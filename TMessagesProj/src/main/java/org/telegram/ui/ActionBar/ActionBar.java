@@ -41,8 +41,6 @@ import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import androidx.core.graphics.ColorUtils;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
@@ -60,6 +58,9 @@ import org.telegram.ui.Components.SnowflakesEffect;
 
 import java.util.ArrayList;
 
+import androidx.core.graphics.ColorUtils;
+
+//ActionBar基本类
 public class ActionBar extends FrameLayout {
 
     public static class ActionBarMenuOnItemClick {
@@ -207,6 +208,7 @@ public class ActionBar extends FrameLayout {
         return backButtonDrawable;
     }
 
+    //创建actionbar返回键
     public void setBackButtonDrawable(Drawable drawable) {
         if (backButtonImageView == null) {
             createBackButtonImage();
@@ -545,6 +547,7 @@ public class ActionBar extends FrameLayout {
         if (menu != null) {
             return menu;
         }
+        //创建一个actionbar菜单
         menu = new ActionBarMenu(getContext(), this);
         addView(menu, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.RIGHT));
         return menu;

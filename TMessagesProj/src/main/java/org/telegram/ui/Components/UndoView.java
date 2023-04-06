@@ -35,9 +35,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.DrawableRes;
-import androidx.annotation.Keep;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
@@ -59,7 +56,11 @@ import org.telegram.ui.PaymentFormActivity;
 
 import java.util.ArrayList;
 
+import androidx.annotation.DrawableRes;
+import androidx.annotation.Keep;
+
 @SuppressWarnings("FieldCanBeLocal")
+//底部提示
 public class UndoView extends FrameLayout {
 
     private TextView infoTextView;

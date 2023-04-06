@@ -75,15 +75,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.ColorUtils;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.LinearSmoothScrollerCustom;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
-
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -205,6 +196,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSmoothScrollerCustom;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
+
 public class DialogsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, FloatingDebugProvider {
 
     public final static boolean DISPLAY_SPEEDOMETER_IN_DOWNLOADS_SEARCH = true;
@@ -226,6 +226,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     public class ViewPage extends FrameLayout {
+        //聊天列表
         private DialogsRecyclerView listView;
         private LinearLayoutManager layoutManager;
         private DialogsAdapter dialogsAdapter;
@@ -3387,6 +3388,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             viewPage.listView.setLayoutManager(viewPage.layoutManager);
             viewPage.listView.setVerticalScrollbarPosition(LocaleController.isRTL ? RecyclerListView.SCROLLBAR_POSITION_LEFT : RecyclerListView.SCROLLBAR_POSITION_RIGHT);
             viewPage.addView(viewPage.listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+            //主页聊天列表点击
             viewPage.listView.setOnItemClickListener((view, position) -> {
                 if (initialDialogsType == DIALOGS_TYPE_BOT_REQUEST_PEER && view instanceof TextCell) {
                     viewPage.dialogsAdapter.onCreateGroupForThisClick();
@@ -3432,6 +3434,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
                 onItemClick(view, position, viewPage.dialogsAdapter);
             });
+            //主页聊天列表长按、移动
             viewPage.listView.setOnItemLongClickListener(new RecyclerListView.OnItemLongClickListenerExtended() {
                 @Override
                 public boolean onItemClick(View view, int position, float x, float y) {
@@ -6616,6 +6619,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             }
                         }
                     } else {
+                        //传入参数
                         ChatActivity chatActivity = new ChatActivity(args);
                         if (topicId != 0) {
                             ForumUtilities.applyTopic(chatActivity, MessagesStorage.TopicKey.of(dialogId, topicId));
@@ -6626,6 +6630,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                 chatActivity.setPreloadedSticker(sticker, true);
                             }
                         }
+                        //核心，打开聊天界面，通过目标顶栏启动目标
                         presentFragment(chatActivity);
                     }
                 }
@@ -8943,7 +8948,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
-    public static final int DIALOGS_TYPE_DEFAULT = 0;
+    public static final int DIALOGS_TYPE_DEFAULT = 0;//默认聊天类型
     public static final int DIALOGS_TYPE_BOT_SHARE = 1; // selecting group to write with inline bot query, including sharing a game
     public static final int DIALOGS_TYPE_ADD_USERS_TO = 2; // Chats + My channels + My groups
     public static final int DIALOGS_TYPE_FORWARD = 3;
@@ -8967,6 +8972,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         MessagesController messagesController = AccountInstance.getInstance(currentAccount).getMessagesController();
         if (dialogsType == DIALOGS_TYPE_DEFAULT) {
+            //核心获取数据
             return messagesController.getDialogs(folderId);
         } else if (dialogsType == DIALOGS_TYPE_BOT_SHARE || dialogsType == DIALOGS_TYPE_WIDGET || dialogsType == DIALOGS_TYPE_IMPORT_HISTORY) {
             return messagesController.dialogsServerOnly;

@@ -8,9 +8,6 @@
 
 package org.telegram.messenger;
 
-import static org.telegram.messenger.NotificationsController.TYPE_CHANNEL;
-import static org.telegram.messenger.NotificationsController.TYPE_PRIVATE;
-
 import android.Manifest;
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
@@ -30,11 +27,6 @@ import android.util.Base64;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.util.SparseIntArray;
-
-import androidx.collection.LongSparseArray;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.core.util.Consumer;
 
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
@@ -86,6 +78,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+
+import androidx.collection.LongSparseArray;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.util.Consumer;
+
+import static org.telegram.messenger.NotificationsController.TYPE_CHANNEL;
+import static org.telegram.messenger.NotificationsController.TYPE_PRIVATE;
 
 public class MessagesController extends BaseController implements NotificationCenter.NotificationCenterDelegate {
 
@@ -7674,6 +7674,7 @@ public class MessagesController extends BaseController implements NotificationCe
             FileLog.d("load messages in chat " + dialogId + " topic_id " + threadMessageId + " count " + count + " max_id " + max_id + " cache " + fromCache + " mindate = " + minDate + " guid " + classGuid + " load_type " + load_type + " last_message_id " + last_message_id + " mode " + mode + " index " + loadIndex + " firstUnread " + first_unread + " unread_count " + unread_count + " last_date " + last_date + " queryFromServer " + queryFromServer + " isTopic " + isTopic);
         }
         if ((threadMessageId == 0 || isTopic) && mode != 2 && (fromCache || DialogObject.isEncryptedDialog(dialogId))) {
+            //核心，从数据库读取记录
             getMessagesStorage().getMessages(dialogId, mergeDialogId, loadInfo, count, max_id, offset_date, minDate, classGuid, load_type, mode == 1, threadMessageId, loadIndex, processMessages, isTopic);
         } else {
             if (threadMessageId != 0) {
@@ -7899,6 +7900,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
+    //核心，载入消息
     public void processLoadedMessages(TLRPC.messages_Messages messagesRes, int resCount, long dialogId, long mergeDialogId, int count, int max_id, int offset_date, boolean isCache, int classGuid,
                                       int first_unread, int last_message_id, int unread_count, int last_date, int load_type, boolean isEnd, int mode, int threadMessageId, int loadIndex, boolean queryFromServer, int mentionsCount, boolean needProcess, boolean isTopic) {
         if (BuildVars.LOGS_ENABLED) {
@@ -7925,6 +7927,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
             }
         }
+        //缓存图片
         if (!isCache) {
             ImageLoader.saveMessagesThumbs(messagesRes.messages);
         }
@@ -7992,6 +7995,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 dialogs_read_outbox_max.put(dialogId, outboxValue);
             }
 
+            //遍历消息是否已读
             for (int a = 0; a < size; a++) {
                 TLRPC.Message message = messagesRes.messages.get(a);
 
@@ -8097,13 +8101,16 @@ public class MessagesController extends BaseController implements NotificationCe
             if (!DialogObject.isEncryptedDialog(dialogId)) {
                 int finalFirst_unread_final = first_unread_final;
                 getMediaDataController().loadReplyMessagesForMessages(objects, dialogId, mode == 1, threadMessageId, () -> {
+                    //是否需要消息显示过程
                     if (!needProcess) {
                         getNotificationCenter().postNotificationName(NotificationCenter.messagesDidLoadWithoutProcess, classGuid, resCount, isCache, isEnd, last_message_id);
                     } else {
+                        //核心，发送消息
                         getNotificationCenter().postNotificationName(NotificationCenter.messagesDidLoad, dialogId, count, objects, isCache, finalFirst_unread_final, last_message_id, unread_count, last_date, load_type, isEnd, classGuid, loadIndex, max_id, mentionsCount, mode);
                     }
                 });
             } else {
+                //发送加密消息
                 getNotificationCenter().postNotificationName(NotificationCenter.messagesDidLoad, dialogId, count, objects, isCache, first_unread_final, last_message_id, unread_count, last_date, load_type, isEnd, classGuid, loadIndex, max_id, mentionsCount, mode);
             }
 
@@ -11451,6 +11458,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
+    //退出登录
     public void performLogout(int type) {
         if (type == 1) {
             unregistedPush();

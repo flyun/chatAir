@@ -27,6 +27,7 @@ import org.telegram.messenger.Utilities;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+//所有通信静态类
 public class TLRPC {
 
     public static final int USER_FLAG_ACCESS_HASH           = 0x00000001;

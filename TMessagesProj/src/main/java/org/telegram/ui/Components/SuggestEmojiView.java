@@ -22,12 +22,6 @@ import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.LocaleController;
@@ -48,6 +42,13 @@ import org.telegram.ui.ContentPreviewViewer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+//输入框表情快捷添加
 public class SuggestEmojiView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
     private final int currentAccount;
@@ -309,6 +310,7 @@ public class SuggestEmojiView extends FrameLayout implements NotificationCenter.
         Theme.chat_gradientRightDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_stickersHintPanel, resourcesProvider), PorterDuff.Mode.MULTIPLY));
     }
 
+    //临时一直关闭
     public void forceClose() {
         if (updateRunnable != null) {
             AndroidUtilities.cancelRunOnUIThread(updateRunnable);
@@ -323,6 +325,7 @@ public class SuggestEmojiView extends FrameLayout implements NotificationCenter.
 
     private Runnable updateRunnable;
     public void fireUpdate() {
+        //核心，输入框快捷输入表情
         if (updateRunnable != null) {
             AndroidUtilities.cancelRunOnUIThread(updateRunnable);
         }

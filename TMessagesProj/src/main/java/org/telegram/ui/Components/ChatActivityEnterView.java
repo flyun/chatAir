@@ -80,26 +80,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.Keep;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.LongSparseArray;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.ColorUtils;
-import androidx.core.math.MathUtils;
-import androidx.core.os.BuildCompat;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
-import androidx.core.view.inputmethod.EditorInfoCompat;
-import androidx.core.view.inputmethod.InputConnectionCompat;
-import androidx.core.view.inputmethod.InputContentInfoCompat;
-import androidx.customview.widget.ExploreByTouchHelper;
-import androidx.dynamicanimation.animation.DynamicAnimation;
-import androidx.dynamicanimation.animation.SpringAnimation;
-import androidx.dynamicanimation.animation.SpringForce;
-import androidx.recyclerview.widget.ChatListItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -162,6 +142,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.LongSparseArray;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
+import androidx.core.math.MathUtils;
+import androidx.core.os.BuildCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.core.view.inputmethod.EditorInfoCompat;
+import androidx.core.view.inputmethod.InputConnectionCompat;
+import androidx.core.view.inputmethod.InputContentInfoCompat;
+import androidx.customview.widget.ExploreByTouchHelper;
+import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
+import androidx.recyclerview.widget.ChatListItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+//聊天输入框
 public class ChatActivityEnterView extends BlurredFrameLayout implements NotificationCenter.NotificationCenterDelegate, SizeNotifierFrameLayout.SizeNotifierFrameLayoutDelegate, StickersAlert.StickersAlertDelegate {
 
     private int commonInputType;
@@ -400,14 +401,14 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     private SimpleTextView slowModeButton;
     private int slowModeTimer;
     private Runnable updateSlowModeRunnable;
-    private View sendButton;
-    private Drawable sendButtonDrawable;
+    private View sendButton;//发送按钮
+    private Drawable sendButtonDrawable;//发送按钮图标
     private Drawable inactinveSendButtonDrawable;
     private Drawable sendButtonInverseDrawable;
     private ActionBarPopupWindow sendPopupWindow;
     private ActionBarPopupWindow.ActionBarPopupWindowLayout sendPopupLayout;
     private ImageView cancelBotButton;
-    private ChatActivityEnterViewAnimatedIconView emojiButton;
+    private ChatActivityEnterViewAnimatedIconView emojiButton;//表情按钮
     @Nullable
     private ImageView expandStickersButton;
     private EmojiView emojiView;
@@ -444,9 +445,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     private ImageView attachButton;
     @Nullable
     private ImageView botButton;
-    private FrameLayout messageEditTextContainer;
-    private FrameLayout textFieldContainer;
-    private FrameLayout sendButtonContainer;
+    private FrameLayout messageEditTextContainer;//除去发送按钮的所有布局
+    private FrameLayout textFieldContainer;//输入框布局
+    private FrameLayout sendButtonContainer;//发送按钮，在输入布局内部填入不同输入图标
     @Nullable
     private FrameLayout doneButtonContainer;
     @Nullable
@@ -1833,6 +1834,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         sendByEnter = preferences.getBoolean("send_by_enter", false);
 
+        //添加输入框布局
         textFieldContainer = new FrameLayout(context) {
             @Override
             public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -1883,6 +1885,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         frameLayout.setClipChildren(false);
         textFieldContainer.addView(frameLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 0, 0, 48, 0));
 
+        //添加表情按钮
         emojiButton = new ChatActivityEnterViewAnimatedIconView(context) {
             @Override
             protected void onDraw(Canvas canvas) {
@@ -1945,6 +1948,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         messageEditTextContainer.addView(emojiButton, LayoutHelper.createFrame(48, 48, Gravity.BOTTOM | Gravity.LEFT, 3, 0, 0, 0));
         setEmojiButtonImage(false, false);
 
+        //聊天模式下要添加的按钮
         if (isChat) {
             attachLayout = new LinearLayout(context);
             attachLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -1953,6 +1957,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             attachLayout.setClipChildren(false);
             messageEditTextContainer.addView(attachLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 48, Gravity.BOTTOM | Gravity.RIGHT));
 
+            //提醒按钮
             notifyButton = new ImageView(context);
             notifySilentDrawable = new CrossOutDrawable(context, R.drawable.input_notify_on, Theme.key_chat_messagePanelIcons);
             notifyButton.setImageDrawable(notifySilentDrawable);
@@ -1985,6 +1990,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
             });
 
+            //附件按钮
             attachButton = new ImageView(context);
             attachButton.setScaleType(ImageView.ScaleType.CENTER);
             attachButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_messagePanelIcons), PorterDuff.Mode.MULTIPLY));
@@ -2002,6 +2008,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             attachButton.setContentDescription(LocaleController.getString("AccDescrAttachButton", R.string.AccDescrAttachButton));
         }
 
+        //有音频需要发送的按钮
         if (audioToSend != null) {
             createRecordAudioPanel();
         }
@@ -2019,6 +2026,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         sendButtonContainer.setClipToPadding(false);
         textFieldContainer.addView(sendButtonContainer, LayoutHelper.createFrame(48, 48, Gravity.BOTTOM | Gravity.RIGHT));
 
+        //音频发送按钮
         audioVideoButtonContainer = new FrameLayout(context);
         audioVideoButtonContainer.setSoundEffectsEnabled(false);
         sendButtonContainer.addView(audioVideoButtonContainer, LayoutHelper.createFrame(48, 48));
@@ -2201,6 +2209,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         audioVideoSendButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_messagePanelIcons), PorterDuff.Mode.SRC_IN));
         audioVideoButtonContainer.addView(audioVideoSendButton, LayoutHelper.createFrame(48, 48));
 
+        //机器人取消发送按钮
         cancelBotButton = new ImageView(context);
         cancelBotButton.setVisibility(INVISIBLE);
         cancelBotButton.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
@@ -2234,6 +2243,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             sendButtonInverseDrawable = context.getResources().getDrawable(R.drawable.input_schedule).mutate();
             inactinveSendButtonDrawable = context.getResources().getDrawable(R.drawable.input_schedule).mutate();
         } else {
+            //核心输入框发送按钮
             sendButtonDrawable = context.getResources().getDrawable(R.drawable.ic_send).mutate();
             sendButtonInverseDrawable = context.getResources().getDrawable(R.drawable.ic_send).mutate();
             inactinveSendButtonDrawable = context.getResources().getDrawable(R.drawable.ic_send).mutate();
@@ -2303,6 +2313,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         inactinveSendButtonDrawable.draw(canvas);
                     } else {
                         sendButtonDrawable.setBounds(x, y, x + sendButtonDrawable.getIntrinsicWidth(), y + sendButtonDrawable.getIntrinsicHeight());
+                        //在发送按钮内部绘制发送图标
                         sendButtonDrawable.draw(canvas);
                     }
                 }
@@ -2356,6 +2367,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             sendButton.setBackgroundDrawable(Theme.createSelectorDrawable(Color.argb(24, Color.red(color), Color.green(color), Color.blue(color)), 1));
         }
         sendButtonContainer.addView(sendButton, LayoutHelper.createFrame(48, 48));
+        //点击发送按钮
         sendButton.setOnClickListener(view -> {
             if ((sendPopupWindow != null && sendPopupWindow.isShowing()) || (runningAnimationAudio != null && runningAnimationAudio.isRunning()) || moveToSendStateRunnable != null) {
                 return;
@@ -2364,6 +2376,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         });
         sendButton.setOnLongClickListener(this::onSendLongClick);
 
+        //慢速发送按钮
         slowModeButton = new SimpleTextView(context);
         slowModeButton.setTextSize(18);
         slowModeButton.setVisibility(INVISIBLE);
@@ -2395,6 +2408,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         checkSendButton(false);
         checkChannelRights();
 
+        //创建输入框UI
         createMessageEditText();
     }
 
@@ -2530,6 +2544,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         doneButtonContainer.addView(doneButtonProgress, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
     }
 
+    //创建贴纸按钮
     private void createExpandStickersButton() {
         if (expandStickersButton != null) {
             return;
@@ -3015,6 +3030,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         messageEditTextContainer.addView(senderSelectView, LayoutHelper.createFrame(32, 32, Gravity.BOTTOM | Gravity.LEFT, 10, 8, 10, 8));
     }
 
+    //创建机器人命令按钮
     private void createBotCommandsMenuButton() {
         if (botCommandsMenuButton != null) {
             return;
@@ -3759,6 +3775,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         }
     }
 
+    //核心创建输入框UI
     private void createMessageEditText() {
         if (messageEditText != null) {
             return;
@@ -7513,6 +7530,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         updateSendAsButton(true);
     }
 
+    //根据音频是否更新输入框
     public void updateSendAsButton(boolean animated) {
         if (parentFragment == null || delegate == null) {
             return;
@@ -9038,6 +9056,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         return parentFragment != null && parentFragment.getThreadMessage() != null ? parentFragment.getThreadMessage().getId() : 0;
     }
 
+    //接受其他组件消息
     @SuppressWarnings("unchecked")
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {

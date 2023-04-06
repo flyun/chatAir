@@ -24,11 +24,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
@@ -71,9 +66,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
+
 public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements DialogCell.DialogCellDelegate {
-    public final static int VIEW_TYPE_DIALOG = 0,
-            VIEW_TYPE_FLICKER = 1,
+    public final static int VIEW_TYPE_DIALOG = 0,//基本消息类型
+            VIEW_TYPE_FLICKER = 1,//占位消息（一会消失）
             VIEW_TYPE_RECENTLY_VIEWED = 2,
             VIEW_TYPE_DIVIDER = 3,
             VIEW_TYPE_ME_URL = 4,
@@ -92,6 +92,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
 
     private Context mContext;
     private ArchiveHintCell archiveHintCell;
+    //主页在线联系人
     private ArrayList<TLRPC.TL_contact> onlineContacts;
     private boolean forceUpdatingContacts;
     private int dialogsCount;
@@ -112,6 +113,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
     private boolean collapsedView;
     RecyclerListView recyclerListView;
     private PullForegroundDrawable pullForegroundDrawable;
+    //主页消息列表类
     ArrayList<ItemInternal> itemInternals = new ArrayList<>();
     ArrayList<ItemInternal> oldItems = new ArrayList<>();
 
@@ -1158,11 +1160,13 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
     }
 
 
+    //从数据库更新主页消息
     private void updateItemList() {
         itemInternals.clear();
         updateHasHints();
 
         MessagesController messagesController = MessagesController.getInstance(currentAccount);
+        //获取数据
         ArrayList<TLRPC.Dialog> array = parentFragment.getDialogsArray(currentAccount, dialogsType, folderId, dialogsListFrozen);
         dialogsCount = array.size();
         isEmpty = false;
@@ -1212,6 +1216,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
             itemInternals.add(new ItemInternal(VIEW_TYPE_HEADER));
             itemInternals.add(new ItemInternal(VIEW_TYPE_CONTACTS_FLICKER));
         } else if (onlineContacts != null) {
+            //更新在线用户
             if (dialogsCount == 0) {
                 isEmpty = true;
                 itemInternals.add(new ItemInternal(requestPeerType == null ? VIEW_TYPE_EMPTY : VIEW_TYPE_REQUIRED_EMPTY));
@@ -1250,11 +1255,13 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
             itemInternals.add(new ItemInternal(VIEW_TYPE_TEXT));
         }
 
+        //如果更新了在线用户，就不更新主页列表
         if (!stopUpdate) {
             for (int k = 0; k < array.size(); k++) {
                 if (dialogsType == DialogsActivity.DIALOGS_TYPE_ADD_USERS_TO && array.get(k) instanceof DialogsActivity.DialogsHeader) {
                     itemInternals.add(new ItemInternal(VIEW_TYPE_HEADER_2, array.get(k)));
                 } else {
+                    //更新主页消息集合
                     itemInternals.add(new ItemInternal(VIEW_TYPE_DIALOG, array.get(k)));
                 }
             }

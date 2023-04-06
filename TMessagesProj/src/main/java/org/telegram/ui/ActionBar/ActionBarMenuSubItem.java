@@ -19,6 +19,7 @@ import org.telegram.ui.Components.CheckBox2;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RLottieImageView;
 
+//弹窗列表itemUI
 public class ActionBarMenuSubItem extends FrameLayout {
 
     private TextView textView;

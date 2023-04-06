@@ -44,10 +44,6 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 
-import androidx.collection.LongSparseArray;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.ColorUtils;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ChatObject;
@@ -112,6 +108,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
 
+import androidx.collection.LongSparseArray;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
+
+//主页消息item
 public class DialogCell extends BaseCell {
 
     public boolean drawingForBlur;

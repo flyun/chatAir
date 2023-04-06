@@ -72,6 +72,7 @@ import org.telegram.ui.LaunchActivity;
 import java.util.ArrayList;
 import java.util.Map;
 
+//dialog弹窗
 public class AlertDialog extends Dialog implements Drawable.Callback, NotificationCenter.NotificationCenterDelegate {
 
     public static final int ALERT_TYPE_MESSAGE = 0;

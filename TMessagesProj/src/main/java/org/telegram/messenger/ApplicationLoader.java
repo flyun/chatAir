@@ -28,9 +28,6 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.telephony.TelephonyManager;
 
-import androidx.annotation.NonNull;
-import androidx.multidex.MultiDex;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
@@ -41,6 +38,9 @@ import org.telegram.ui.Components.ForegroundDetector;
 import org.telegram.ui.LauncherIconController;
 
 import java.io.File;
+
+import androidx.annotation.NonNull;
+import androidx.multidex.MultiDex;
 
 public class ApplicationLoader extends Application {
 
@@ -142,6 +142,7 @@ public class ApplicationLoader extends Application {
         } catch (Exception e) {
             FileLog.e(e);
         }
+        //核心，修改默认数据库地址
         return new File("/data/data/org.telegram.messenger/files");
     }
 

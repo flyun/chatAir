@@ -10,10 +10,6 @@ import android.view.ViewPropertyAnimator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
-
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageReceiver;
@@ -34,6 +30,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
+
+//聊天列表动画配置
 public class ChatListItemAnimator extends DefaultItemAnimator {
 
     public static final long DEFAULT_DURATION = 250;

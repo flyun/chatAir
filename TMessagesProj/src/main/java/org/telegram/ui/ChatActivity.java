@@ -94,24 +94,6 @@ import android.widget.Space;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.LongSparseArray;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.core.graphics.ColorUtils;
-import androidx.dynamicanimation.animation.FloatValueHolder;
-import androidx.dynamicanimation.animation.SpringAnimation;
-import androidx.dynamicanimation.animation.SpringForce;
-import androidx.exifinterface.media.ExifInterface;
-import androidx.recyclerview.widget.ChatListItemAnimator;
-import androidx.recyclerview.widget.GridLayoutManagerFixed;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.LinearSmoothScrollerCustom;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.zxing.common.detector.MathUtils;
 
@@ -319,6 +301,25 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.LongSparseArray;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.core.graphics.ColorUtils;
+import androidx.dynamicanimation.animation.FloatValueHolder;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
+import androidx.exifinterface.media.ExifInterface;
+import androidx.recyclerview.widget.ChatListItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManagerFixed;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSmoothScrollerCustom;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+//聊天页面
 @SuppressWarnings("unchecked")
 public class ChatActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, LocationActivity.LocationActivityDelegate, ChatAttachAlertDocumentLayout.DocumentSelectActivityDelegate, ChatActivityInterface, FloatingDebugProvider {
     private final static boolean PULL_DOWN_BACK_FRAGMENT = false;
@@ -353,8 +354,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private FrameLayout progressView;
     private View progressView2;
     private FrameLayout bottomOverlay;
-    protected ChatActivityEnterView chatActivityEnterView;
-    private ChatActivityEnterTopView chatActivityEnterTopView;
+    protected ChatActivityEnterView chatActivityEnterView;//底部输入框
+    private ChatActivityEnterTopView chatActivityEnterTopView;//输入框上方view
     private int chatActivityEnterViewAnimateFromTop;
     private boolean chatActivityEnterViewAnimateBeforeSending;
     private ActionBarMenuItem.Item timeItem2;
@@ -383,7 +384,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private AnimatorSet bottomOverlayAnimation;
     private boolean bottomOverlayChatWaitsReply;
     private BlurredFrameLayout bottomOverlayChat;
-    private BlurredFrameLayout bottomMessagesActionContainer;
+    private BlurredFrameLayout bottomMessagesActionContainer;//底部提及、转发按钮布局
     @Nullable
     private TextView forwardButton;
     @Nullable
@@ -405,7 +406,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private float pagedownButtonEnterProgress;
     private float mentionsButtonEnterProgress;
     private float reactionsMentionButtonEnterProgress;
-    private FrameLayout pagedownButton;
+    private FrameLayout pagedownButton;//最下面按钮
     private ImageView pagedownButtonImage;
     private ImageView pagedownButtonArrow;
     private ImageView pagedownButtonLoading;
@@ -429,7 +430,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private boolean showTapForForwardingOptionsHit;
     private Runnable tapForForwardingOptionsHitRunnable;
     private ImageView replyIconImageView;
-    private ImageView replyCloseImageView;
+    private ImageView replyCloseImageView;//提及关闭按钮
     public MentionsContainerView mentionContainer;
     private AnimatorSet mentionListAnimation;
     public ChatAttachAlert chatAttachAlert;
@@ -842,13 +843,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private int postponedScrollMessageId;
     private boolean postponedScrollIsCanceled;
     private static ArrayList<ChatActivityTextSelectionHelper> textSelectionHelpersCache;
-    private ChatActivityTextSelectionHelper textSelectionHelper;
+    private ChatActivityTextSelectionHelper textSelectionHelper;//文本选中工具类
     private ChatMessageCell slidingView;
     private boolean maybeStartTrackingSlidingView;
     private boolean startedTrackingSlidingView;
 
     private boolean canShowPagedownButton;
-    private TextSelectionHint textSelectionHint;
+    private TextSelectionHint textSelectionHint;//文本选中提示
     private boolean textSelectionHintWasShowed;
     private float lastTouchY;
 
@@ -1285,6 +1286,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     private final static int id_chat_compose_panel = 1000;
 
+    //聊天列表长按触发器
     RecyclerListView.OnItemLongClickListenerExtended onItemLongClickListener = new RecyclerListView.OnItemLongClickListenerExtended() {
         @Override
         public boolean onItemClick(View view, int position, float x, float y) {
@@ -1294,12 +1296,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             wasManualScroll = true;
             boolean result = true;
             if (!actionBar.isActionModeShowed() && (reportType < 0 || (view instanceof ChatActionCell && (((ChatActionCell) view).getMessageObject().messageOwner.action instanceof TLRPC.TL_messageActionSetMessagesTTL) || ((view instanceof ChatActionCell) && ((ChatActionCell) view).getMessageObject().type == MessageObject.TYPE_SUGGEST_PHOTO)))) {
+                //进入长按模式
                 result = createMenu(view, false, true, x, y);
             } else {
                 boolean outside = false;
                 if (view instanceof ChatMessageCell) {
                     outside = !((ChatMessageCell) view).isInsideBackground(x, y);
                 }
+                //长按选中模式下选择
                 processRowSelect(view, outside, x, y);
             }
             if (view instanceof ChatMessageCell) {
@@ -1413,6 +1417,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         });
     }
 
+    //聊天列表点击回调
     RecyclerListView.OnItemClickListenerExtended onItemClickListener = new RecyclerListView.OnItemClickListenerExtended() {
         @Override
         public void onItemClick(View view, int position, float x, float y) {
@@ -1446,6 +1451,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         @Override
         public boolean hasDoubleTap(View view, int position) {
+            //双击触发点赞表情
             String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
             TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
             if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
@@ -1464,6 +1470,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         @Override
         public void onDoubleTap(View view, int position, float x, float y) {
+            //双击触发点赞表情，都需要
             if (!(view instanceof ChatMessageCell) || getParentActivity() == null || isSecretChat() || isInScheduleMode() || isInPreviewMode()) {
                 return;
             }
@@ -1500,6 +1507,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     };
 
+    //输入文字变动处理类
     private class ChatActivityEnterViewDelegate implements ChatActivityEnterView.ChatActivityEnterViewDelegate {
 
         int lastSize;
@@ -1531,6 +1539,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (mentionContainer != null && mentionContainer.getAdapter() != null) {
                 mentionContainer.getAdapter().addHashtagsFromMessage(message);
             }
+            //定时发送
             if (scheduleDate != 0) {
                 if (scheduledMessagesCount == -1) {
                     scheduledMessagesCount = 0;
@@ -1570,6 +1579,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
 
+            //隐藏输入框上方UI
             hideFieldPanel(notify, scheduleDate, true);
             if (chatActivityEnterView != null && chatActivityEnterView.getEmojiView() != null) {
                 chatActivityEnterView.getEmojiView().onMessageSend();
@@ -1579,6 +1589,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 for (int i = 1; i < Math.min(5, messages.size()); ++i) {
                     MessageObject msg = messages.get(i);
                     if (msg != null && !msg.isOutOwner() && (msg.isVoice() || msg.isRoundVideo()) && msg.isContentUnread()) {
+                        //关闭转录按钮
                         TranscribeButton.showOffTranscribe(msg);
                     }
                 }
@@ -2020,6 +2031,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         super(args);
     }
 
+    //核心，最开始的启动
     @Override
     public boolean onFragmentCreate() {
         final long chatId = arguments.getLong("chat_id", 0);
@@ -2307,6 +2319,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
 
         boolean loadInfo = false;
+        //如果当前聊天不为空，则加载当前聊天记录
         if (currentChat != null) {
             chatInfo = getMessagesController().getChatFull(currentChat.id);
             groupCall = getMessagesController().getGroupCall(currentChat.id, true);
@@ -2336,6 +2349,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             firstLoading = false;
             checkDispatchHideSkeletons(false);
         }
+        //当前不为置顶或者强制空页面
         if (chatMode != MODE_PINNED && !forceHistoryEmpty) {
             waitingForLoad.add(lastLoadIndex);
             if (startLoadFromDate != 0) {
@@ -2352,6 +2366,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (historyPreloaded) {
                     lastLoadIndex++;
                 } else {
+                    //核心，载入消息，然后由数据层将数据从新发送回来
                     getMessagesController().loadMessages(dialog_id, mergeDialogId, loadInfo, AndroidUtilities.isTablet() || (isThreadChat() && !isTopic)  ? 30 : 20, startLoadFromMessageId, 0, true, 0, classGuid, 2, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
                 }
             }
@@ -2693,6 +2708,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    //创建主界面UI
     @Override
     public View createView(Context context) {
         if (textSelectionHelper == null) {
@@ -2771,9 +2787,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
             actionBar.setBackButtonDrawable(new BackDrawable(reportType >= 0));
         }
+        //actionBar点击事件
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(final int id) {
+                //返回键
                 if (id == -1) {
                     if (actionBar.isActionModeShowed()) {
                         clearSelectionMode();
@@ -3136,6 +3154,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             });
             getConnectionsManager().bindRequestToGuid(req, classGuid);
         } else {
+            //添加actionBar内容view
             actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, !inPreviewMode ? 56 : (chatMode == MODE_PINNED ? 10 : 0), 0, 40, 0));
         }
 
@@ -3349,9 +3368,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         menu.setVisibility(inMenuMode ? View.GONE : View.VISIBLE);
 
+        //更新标题
         updateTitle(false);
+
         avatarContainer.updateOnlineCount();
+        //更新副标题
         avatarContainer.updateSubtitle();
+        //更新标题图标
         updateTitleIcons();
 
         if (chatMode == 0 && (!isThreadChat() || isTopic) && reportType < 0) {
@@ -3384,11 +3407,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             contentView.setOccupyStatusBar(false);
         }
 
+        //核心设置聊天背景
         contentView.setBackgroundImage(Theme.getCachedWallpaper(), Theme.isWallpaperMotion());
 
         emptyViewContainer = null;
 
         CharSequence oldMessage;
+        //恢复上次在聊天框编辑的消息
         if (chatActivityEnterView != null) {
             chatActivityEnterView.onDestroy();
             if (!chatActivityEnterView.isEditingMessage()) {
@@ -3403,6 +3428,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             mentionContainer.getAdapter().onDestroy();
         }
 
+        //聊天列表
         chatListView = new RecyclerListView(context, themeDelegate) {
 
             private int lastWidth;
@@ -3925,6 +3951,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             @Override
             protected void onChildPressed(View child, float x, float y, boolean pressed) {
+                //点击聊天文字
                 super.onChildPressed(child, x, y, pressed);
                 if (child instanceof ChatMessageCell) {
                     ChatMessageCell chatMessageCell = (ChatMessageCell) child;
@@ -5043,6 +5070,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         chatListView.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
         chatListViewPaddingTop = 0;
         invalidateChatListViewTopPadding();
+        //配置聊天列表动画
         if (MessagesController.getGlobalMainSettings().getBoolean("view_animations", true)) {
             chatListItemAnimator = new ChatListItemAnimator(this, chatListView, themeDelegate) {
 
@@ -5109,6 +5137,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             };
         }
 
+        //配置聊天列表管理类
         chatLayoutManager = new GridLayoutManagerFixed(context, 1000, LinearLayoutManager.VERTICAL, true) {
 
             boolean computingScroll;
@@ -5329,6 +5358,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         });
         chatListView.setLayoutManager(chatLayoutManager);
+        //配置聊天列表分隔符
         chatListView.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
             public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
@@ -5362,8 +5392,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
         });
+        //配置聊天列表长按回调
         chatListView.setOnItemLongClickListener(onItemLongClickListener);
+        //配置聊天列表点击回调
         chatListView.setOnItemClickListener(onItemClickListener);
+        //配置聊天列表滚动回调
         chatListView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 
             private float totalDy = 0;
@@ -5401,6 +5434,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         checkTextureViewPosition = true;
                         scrollingChatListView = true;
                     }
+                    //滑动时，如果检测机器是低性能，则停止其他高性能消耗的操作
                     if (SharedConfig.getDevicePerformanceClass() == SharedConfig.PERFORMANCE_CLASS_LOW) {
                         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
                     }
@@ -5524,6 +5558,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         progressBar.setProgressColor(getThemedColor(Theme.key_chat_serviceText));
         progressView.addView(progressBar, LayoutHelper.createFrame(32, 32, Gravity.CENTER));
 
+        //日期浮窗
         floatingDateView = new ChatActionCell(context, false, themeDelegate) {
 
             @Override
@@ -5571,6 +5606,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         floatingDateView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         floatingDateView.setInvalidateColors(true);
         contentView.addView(floatingDateView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 4, 0, 0));
+        //浮窗形式下的跳转
         floatingDateView.setOnClickListener(view -> {
             if (floatingDateView.getAlpha() == 0 || actionBar.isActionModeShowed() || reportType >= 0) {
                 return;
@@ -5607,11 +5643,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         closeReportSpam = null;
         translateButton = null;
 
+        //跳转底部按钮
         pagedownButton = new FrameLayout(context);
         pagedownButton.setVisibility(View.INVISIBLE);
         contentView.addView(pagedownButton, LayoutHelper.createFrame(66, 61, Gravity.RIGHT | Gravity.BOTTOM, 0, 0, -3, 5));
         pagedownButton.setOnClickListener(view -> onPageDownClicked());
 
+        //提及跳转按钮
         mentiondownButton = new FrameLayout(context);
         mentiondownButton.setVisibility(View.INVISIBLE);
         contentView.addView(mentiondownButton, LayoutHelper.createFrame(46, 61, Gravity.RIGHT | Gravity.BOTTOM, 0, 0, 7, 5));
@@ -5709,6 +5747,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         reactionsMentiondownButton = new FrameLayout(context);
         contentView.addView(reactionsMentiondownButton, LayoutHelper.createFrame(46, 61, Gravity.RIGHT | Gravity.BOTTOM, 0, 0, 7, 5));
 
+        //输入@显示用户名
         mentionContainer = new MentionsContainerView(context, dialog_id, threadMessageId, ChatActivity.this, themeDelegate) {
 
             @Override
@@ -5993,6 +6032,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             return false;
         });
 
+        //到最底部按钮
         pagedownButtonImage = new ImageView(context);
         pagedownButtonImage.setPadding(0, AndroidUtilities.dp(2), 0, 0);
         Drawable drawable;
@@ -6046,6 +6086,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         pagedownButtonCounter.setReverse(true);
         pagedownButton.addView(pagedownButtonCounter, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 28, Gravity.TOP | Gravity.LEFT));
 
+        //被提及按钮，添加跳转提及聊天位置
         mentiondownButtonImage = new ImageView(context);
         mentiondownButtonImage.setImageResource(R.drawable.mentionbutton);
         mentiondownButtonImage.setScaleType(ImageView.ScaleType.CENTER);
@@ -6083,6 +6124,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         mentiondownButton.addView(mentiondownButtonCounter, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 23, Gravity.TOP | Gravity.CENTER_HORIZONTAL));
         mentiondownButton.setContentDescription(LocaleController.getString("AccDescrMentionDown", R.string.AccDescrMentionDown));
 
+        //情绪提及跳转
         reactionsMentiondownButton.setOnClickListener(view -> {
             wasManualScroll = true;
             getMessagesController().getNextReactionMention(dialog_id, getTopicId(), reactionsMentionCount, (messageId) -> {
@@ -6149,6 +6191,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         reactionsMentiondownButton.addView(reactionsMentiondownButtonCounter, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 28, Gravity.TOP | Gravity.LEFT));
         reactionsMentiondownButton.setContentDescription(LocaleController.getString("AccDescrReactionMentionDown", R.string.AccDescrReactionMentionDown));
 
+        //多媒体播放UI
         fragmentLocationContextView = new FragmentContextView(context, this, true, themeDelegate);
         fragmentContextView = new FragmentContextView(context, this, false, themeDelegate);
         contentView.addView(fragmentLocationContextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.TOP | Gravity.LEFT, 0, -36, 0, 0));
@@ -6164,6 +6207,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             fragmentContextView.setSupportsCalls(false);
         }
 
+        //消息搜索列表
         messagesSearchListView = new RecyclerListView(context, themeDelegate);
         messagesSearchListView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
         LinearLayoutManager messagesSearchLayoutManager = new LinearLayoutManager(context);
@@ -6190,6 +6234,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         contentView.addView(actionBar);
 
+        //覆盖层
         overlayView = new View(context);
         overlayView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -6204,6 +6249,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         instantCameraView = null;
 
+        //配置底部提及、转发按钮布局
         bottomMessagesActionContainer = new BlurredFrameLayout(context, contentView) {
             @Override
             public void onDraw(Canvas canvas) {
@@ -6224,6 +6270,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         replyButton = null;
         forwardButton = null;
 
+        //配置输入框
         chatActivityEnterView = new ChatActivityEnterView(getParentActivity(), contentView, this, true, themeDelegate) {
 
             int lastContentViewHeight;
@@ -6439,8 +6486,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
         };
+        //设置输入框的引用布局
         replyLineView = new View(context);
         replyLineView.setBackgroundColor(getThemedColor(Theme.key_chat_replyPanelLine));
+        //输入布局添加输入框上方布局以及引用布局
         chatActivityEnterView.addTopView(chatActivityEnterTopView, replyLineView, 48);
 
         final FrameLayout replyLayout = new FrameLayout(context);
@@ -6539,11 +6588,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         replyImageView.setRoundRadius(AndroidUtilities.dp(2));
         replyLayout.addView(replyImageView, LayoutHelper.createFrame(34, 34, Gravity.TOP | Gravity.LEFT, 52, 6, 0, 0));
 
+        //添加输入框快捷表情UI
         contentView.addView(
             suggestEmojiPanel = new SuggestEmojiView(context, currentAccount, chatActivityEnterView, themeDelegate),
             LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 160, Gravity.LEFT | Gravity.BOTTOM)
         );
 
+        //输入框顶部按钮，滚动到特定位置
         final ChatActivityEnterTopView.EditView editView = new ChatActivityEnterTopView.EditView(context);
         editView.setMotionEventSplittingEnabled(false);
         editView.setOrientation(LinearLayout.HORIZONTAL);
@@ -6562,6 +6613,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 public void setEditButton(boolean editButton) {
                     super.setEditButton(editButton);
                     if (firstButton) {
+                        //核心配置编辑框宽度
                         getTextView().setMaxWidth(editButton ? AndroidUtilities.dp(116) : Integer.MAX_VALUE);
                     }
                 }
@@ -6634,6 +6686,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         bottomOverlayText.setTextColor(getThemedColor(Theme.key_chat_secretChatStatusText));
         bottomOverlay.addView(bottomOverlayText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 14, 0, 14, 0));
 
+        //输入框底部覆盖层，弹出表情或者其他更多操作
         bottomOverlayChat = new BlurredFrameLayout(context, contentView) {
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -6829,6 +6882,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         contentView.addView(messageEnterTransitionContainer = new MessageEnterTransitionContainer(contentView, currentAccount));
 
+        //缓慢发送模式
         if (currentChat != null) {
             slowModeHint = new HintView(getParentActivity(), 2, themeDelegate);
             slowModeHint.setAlpha(0.0f);
@@ -6838,6 +6892,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         chatAdapter.updateRowsSafe();
 
+        //加载信息，没有信息就加载等待界面
         if (loading && messages.isEmpty()) {
             showProgressView(chatAdapter.botInfoRow < 0);
             chatListView.setEmptyView(null);
@@ -6847,6 +6902,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             chatListView.setEmptyView(emptyViewContainer);
         }
 
+        //检查机器人键盘
         checkBotKeyboard();
         updateBottomOverlay();
         updateSecretStatus();
@@ -6854,6 +6910,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         updatePinnedMessageView(false);
         updateInfoTopView(false);
 
+        //初始化recycleView
         chatScrollHelper = new RecyclerAnimationScrollHelper(chatListView, chatLayoutManager);
         chatScrollHelper.setScrollListener(this::invalidateMessagesVisiblePart);
         chatScrollHelper.setAnimationCallback(chatScrollHelperCallback);
@@ -6864,8 +6921,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             chatActivityEnterView.setFieldText(oldMessage);
         }
 
+        //根据是否为平板重新布局
         fixLayoutInternal();
 
+        //文字选中操作
         textSelectionHelper.setCallback(new TextSelectionHelper.Callback() {
             @Override
             public void onStateChanged(boolean isSelected) {
@@ -6903,9 +6962,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         textSelectionHelper.setParentView(chatListView);
 
+        //设置全屏动画特效
         contentView.addView(fireworksOverlay = new FireworksOverlay(context), LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
+        //检查搜索
         checkInstantSearch();
+        //如果有引用，则设置引用
         if (replyingMessageObject != null) {
             chatActivityEnterView.setReplyingMessageObject(replyingMessageObject);
         }
@@ -6916,6 +6978,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
             decorView = contentView;
         }
+        //图片缩放配置
         pinchToZoomHelper = new PinchToZoomHelper(decorView, contentView) {
             @Override
             protected void drawOverlays(Canvas canvas, float alpha, float parentOffsetX, float parentOffsetY, float clipTop, float clipBottom) {
@@ -7009,12 +7072,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             topBottom[1] = chatListView.getBottom() - blurredViewBottomOffset;
             topBottom[0] = chatListView.getTop() + chatListViewPaddingTop - AndroidUtilities.dp(4);
         });
+        //表情动画配置
         emojiAnimationsOverlay = new EmojiAnimationsOverlay(ChatActivity.this, contentView, chatListView, currentAccount, dialog_id, threadMessageId) {
             @Override
             public void onAllEffectsEnd() {
                 updateMessagesVisiblePart(false);
             }
         };
+        //背景模糊配置
         actionBar.setDrawBlurBackground(contentView);
 
         if (isTopic) {
@@ -7031,6 +7096,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return fragmentView;
     }
 
+    //核心底部长按复制
     private void createBottomMessagesActionButtons() {
         if (replyButton != null || getContext() == null) {
             return;
@@ -7048,6 +7114,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         Drawable image = getContext().getResources().getDrawable(R.drawable.input_reply).mutate();
         image.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
         replyButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
+        //点击底部引用按钮
         replyButton.setOnClickListener(v -> {
             MessageObject messageObject = null;
             for (int a = 1; a >= 0; a--) {
@@ -7080,6 +7147,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         image = getContext().getResources().getDrawable(R.drawable.input_forward).mutate();
         image.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
         forwardButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
+        //点击底部转发按钮
         forwardButton.setOnClickListener(v -> openForward(false));
         bottomMessagesActionContainer.addView(forwardButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.RIGHT | Gravity.TOP));
     }
@@ -7363,6 +7431,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         topChatPanelView.addView(translateButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.BOTTOM, 0, 0, 0, 2));
     }
 
+    //创建底部提示tips
     private void createUndoView() {
         if (undoView != null || getContext() == null) {
             return;
@@ -7377,6 +7446,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return INavigationLayout.BackButtonState.BACK;
     }
 
+    //创建顶栏actionBar个性化按钮，用于选中多个聊天内容
     private void createActionMode() {
         if (selectedMessagesCountTextView != null || getContext() == null) {
             return;
@@ -8828,6 +8898,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    //创建视频通话TextureView
     private TextureView createTextureView(boolean add) {
         if (parentLayout == null) {
             return null;
@@ -10299,6 +10370,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         preloadingMessages.clear();
     }
 
+    //显示浮窗日期
     private void showFloatingDateView(boolean scroll) {
         if (floatingDateView == null) {
             return;
@@ -10327,6 +10399,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    //隐藏浮窗日期
     private void hideFloatingDateView(boolean animated) {
         if (floatingDateView.getTag() != null && !currentFloatingDateOnScreen && (!scrollingFloatingDate || currentFloatingTopIsNotMessage)) {
             floatingDateView.setTag(null);
@@ -10868,6 +10941,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         showFieldPanel(show, null, messageObjectToEdit, null, null, true, 0, false, true);
     }
 
+    //显示隐藏输入框上方UI
     public void showFieldPanel(boolean show, MessageObject messageObjectToReply, MessageObject messageObjectToEdit, ArrayList<MessageObject> messageObjectsToForward, TLRPC.WebPage webPage, boolean notify, int scheduleDate, boolean cancel, boolean animated) {
         if (chatActivityEnterView == null) {
             return;
@@ -10895,6 +10969,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 openKeyboard = true;
             }
             chatActivityEnterTopView.setEditMode(false);
+            //编辑信息
             if (messageObjectToEdit != null) {
                 forwardingMessages = null;
                 if (threadMessageId == 0 || isTopic) {
@@ -10916,6 +10991,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 final boolean canEditMedia = messageObjectToEdit.canEditMedia();
                 replyCloseImageView.setContentDescription(LocaleController.getString("AccDescrCancelEdit", R.string.AccDescrCancelEdit));
                 if (!mediaEmpty && canEditMedia) {
+                    //修复媒体 内容
                     String editButtonText = null;
                     String replaceButtonText;
                     if (messageObjectToEdit.isPhoto()) {
@@ -10941,6 +11017,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                     chatActivityEnterTopView.setEditMode(true);
                 } else {
+                    //修复文本内容
                     replyIconImageView.setImageResource(R.drawable.group_edit);
                     replyIconImageView.setContentDescription(LocaleController.getString("AccDescrEditing", R.string.AccDescrEditing));
                     if (mediaEmpty) {
@@ -10965,6 +11042,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             } else if (messageObjectToReply != null) {
+                //提及
                 editingMessageObject = null;
                 replyingMessageObject = messageObjectToReply;
                 chatActivityEnterView.setReplyingMessageObject(messageObjectToReply);
@@ -11045,6 +11123,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 updateBottomOverlay();
             } else if (messageObjectsToForward != null) {
+                //转发
                 if (messageObjectsToForward.isEmpty()) {
                     return;
                 }
@@ -11206,6 +11285,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     showHint = true;
                 }
             } else {
+                //超链接
                 replyIconImageView.setImageResource(R.drawable.msg_link);
                 if (webPage instanceof TLRPC.TL_webPagePending) {
                     replyNameTextView.setText(LocaleController.getString("GettingLinkInfo", R.string.GettingLinkInfo));
@@ -11335,6 +11415,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             updateBottomOverlay();
         }
 
+        //通过通明度是否显示提示内容
         if (showHint) {
             if (tapForForwardingOptionsHitRunnable == null) {
                 AndroidUtilities.runOnUIThread(tapForForwardingOptionsHitRunnable = () -> {
@@ -12422,6 +12503,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    //是否显示跳转底部按钮
     private void updatePagedownButtonVisibility(boolean animated) {
         if (pagedownButton == null) {
             return;
@@ -12562,6 +12644,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    //聊天整体布局类
     public class ChatActivityFragmentView extends SizeNotifierFrameLayout {
 
         public ChatActivityFragmentView(Context context, INavigationLayout parentLayout) {
@@ -13962,7 +14045,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         checkAndUpdateAvatar();
     }
 
+    //获得当前聊天类型
     private int getMessageType(MessageObject messageObject) {
+        //未知的聊天类型
         if (messageObject == null) {
             return -1;
         }
@@ -13970,10 +14055,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (messageObject.isEditing()) {
                 return -1;
             } else if (messageObject.getId() <= 0 && messageObject.isOut()) {
+                //发送失败
                 if (messageObject.isSendError()) {
                     if (!messageObject.isMediaEmpty()) {
+                        //普通聊天类型发送失败
                         return 0;
                     } else {
+                        //媒体聊天类型发送失败
                         return 20;
                     }
                 } else {
@@ -13981,18 +14069,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             } else {
                 if (messageObject.isAnimatedEmoji()) {
+                    //动画聊天类型
                     return 2;
                 } else if (messageObject.type == 6) {
                     return -1;
                 } else if (messageObject.type == 10 || messageObject.type == MessageObject.TYPE_ACTION_PHOTO || messageObject.type == MessageObject.TYPE_SUGGEST_PHOTO) {
+                    //日期、图片、建议图片聊天类型
                     if (messageObject.getId() == 0) {
                         return -1;
                     }
                     return 1;
                 } else {
                     if (messageObject.isVoice()) {
+                        //音频聊天类型
                         return 2;
                     } else if (messageObject.isSticker() || messageObject.isAnimatedSticker()) {
+                        //贴纸聊天类型
                         TLRPC.InputStickerSet inputStickerSet = messageObject.getInputStickerSet();
                         if (inputStickerSet instanceof TLRPC.TL_inputStickerSetID) {
                             if (!getMediaDataController().isStickerPackInstalled(inputStickerSet.id)) {
@@ -14022,25 +14114,33 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 String mime = messageObject.getDocument().mime_type;
                                 if (mime != null) {
                                     if (messageObject.getDocumentName().toLowerCase().endsWith("attheme")) {
+                                        //主题文档聊天类型
                                         return 10;
                                     } else if (mime.endsWith("/xml")) {
+                                        //文档聊天类型
                                         return 5;
                                     } else if (!messageObject.isNewGif() && mime.endsWith("/mp4") || mime.endsWith("/png") || mime.endsWith("/jpg") || mime.endsWith("/jpeg")) {
+                                        //图片、视频聊天类型
                                         return 6;
                                     }
                                 }
                             }
+                            //多媒体通用聊天类型
                             return 4;
                         }
                     } else if (messageObject.type == MessageObject.TYPE_CONTACT) {
+                        //联系人聊天类型
                         return 8;
                     } else if (messageObject.isMediaEmpty()) {
+                        //最基本的聊天类型，空媒体聊天类型
                         return 3;
                     }
+                    //普通聊天类型
                     return 2;
                 }
             }
         } else {
+            //加密聊天
             if (messageObject.isSending()) {
                 return -1;
             }
@@ -14109,6 +14209,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         addToSelectedMessages(messageObject, outside, true);
     }
 
+    //添加选中聊天内容
     private void addToSelectedMessages(MessageObject messageObject, boolean outside, boolean last) {
         int prevCantForwardCount = cantForwardMessagesCount;
         if (messageObject != null) {
@@ -14476,6 +14577,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         selectionReactionsOverlay.setSelectedMessages(selected);
     }
 
+    //长按选中模式下选择
     private void processRowSelect(View view, boolean outside, float touchX, float touchY) {
         MessageObject message = null;
         if (view instanceof ChatMessageCell) {
@@ -14518,6 +14620,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    //更新actionBar标题
     public void updateTitle(boolean animated) {
         if (avatarContainer == null) {
             return;
@@ -14550,9 +14653,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (currentUser.self) {
                 avatarContainer.setTitle(LocaleController.getString("SavedMessages", R.string.SavedMessages));
             } else if (!MessagesController.isSupportUser(currentUser) && getContactsController().contactsDict.get(currentUser.id) == null && (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
+                //普通用户
                 if (!TextUtils.isEmpty(currentUser.phone)) {
+                    //拥有电话
                     avatarContainer.setTitle(PhoneFormat.getInstance().format("+" + currentUser.phone), currentUser.scam, currentUser.fake, currentUser.verified, getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
                 } else {
+                    //核心设置actionbar主标题
                     avatarContainer.setTitle(UserObject.getUserName(currentUser), currentUser.scam, currentUser.fake, currentUser.verified, getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
                 }
             } else {
@@ -15198,6 +15304,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    //核心，接收全局消息
     @Override
     public void didReceivedNotification(int id, int account, final Object... args) {
         if (id == NotificationCenter.messagesDidLoad) {
@@ -15242,7 +15349,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             } else if (!doNotRemoveLoadIndex) {
                 waitingForLoad.remove(index);
             }
+            //将接收的消息转为ArrayList
             ArrayList<MessageObject> messArr = (ArrayList<MessageObject>) args[2];
+            //空消息，载入空页面
             if (messages.isEmpty() && messArr.size() == 1 && MessageObject.isSystemSignUp(messArr.get(0))) {
                 forceHistoryEmpty = true;
                 endReached[0] = endReached[1] = true;
@@ -15278,6 +15387,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             boolean createUnreadLoading = false;
             boolean showDateAfter = waitingForReplyMessageLoad;
+            //等待回复消息就加载
             if (waitingForReplyMessageLoad) {
                 if (chatMode != MODE_SCHEDULED && !createUnreadMessageAfterIdLoading) {
                     boolean found = false;
@@ -15634,6 +15744,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     dropPhotoAction = action;
                 }
             }
+            //遍历历史消息
             for (int a = 0; a < messArr.size(); a++) {
                 MessageObject obj = messArr.get(a);
                 if (obj.replyMessageObject != null) {
@@ -15757,6 +15868,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (load_type == 1) {
                         messages.add(0, dateObj);
                     } else {
+                        //核心添加历史消息
                         messages.add(dateObj);
                     }
                     newRowsCount++;
@@ -16372,6 +16484,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 updateTopPanel(true);
             }
         } else if (id == NotificationCenter.didReceiveNewMessages) {
+            //接收新消息
             long did = (Long) args[0];
             ArrayList<MessageObject> arr = (ArrayList<MessageObject>) args[1];
             if (did == dialog_id) {
@@ -16646,12 +16759,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             long channelId = (Long) args[1];
             processDeletedMessages(markAsDeletedMessages, channelId);
         } else if (id == NotificationCenter.messageReceivedByServer) {
+            //接收来自服务器的消息
             Boolean scheduled = (Boolean) args[6];
             if (scheduled != (chatMode == MODE_SCHEDULED)) {
                 return;
             }
             Integer msgId = (Integer) args[0];
             MessageObject obj = messagesDict[0].get(msgId);
+            //消息收到回执
             if (isThreadChat() && pendingSendMessagesDict.size() > 0) {
                  MessageObject object = pendingSendMessagesDict.get(msgId);
                  if (object != null) {
@@ -16925,6 +17040,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
         } else if (id == NotificationCenter.chatInfoCantLoad) {
+            //聊天错误提示
             long chatId = (Long) args[0];
             if (currentChat != null && currentChat.id == chatId) {
                 int reason = (Integer) args[1];
@@ -17516,6 +17632,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             updateReplyMessageHeader(true);
         } else if (id == NotificationCenter.didLoadPinnedMessages) {
+            //更新置顶消息
             long did = (Long) args[0];
             if (did == dialog_id) {
                 ArrayList<Integer> ids = (ArrayList<Integer>) args[1];
@@ -17705,6 +17822,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
         } else if (id == NotificationCenter.botInfoDidLoad) {
+            //更新机器人信息
             int guid = (Integer) args[1];
             if (classGuid == guid || guid == 0) {
                 TLRPC.BotInfo info = (TLRPC.BotInfo) args[0];
@@ -17745,6 +17863,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 updateBotButtons();
             }
         } else if (id == NotificationCenter.botKeyboardDidLoad) {
+            //更新机器人键盘按钮
             if (dialog_id == (Long) args[1]) {
                 TLRPC.Message message = (TLRPC.Message) args[0];
                 if (message != null && !userBlocked) {
@@ -17762,6 +17881,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
         } else if (id == NotificationCenter.chatSearchResultsAvailable) {
+            //更新有效的搜索结果
             if (classGuid == (Integer) args[0]) {
                 boolean jumpToMessage = (Boolean) args[6];
                 if (jumpToMessage) {
@@ -17782,6 +17902,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
         } else if (id == NotificationCenter.chatSearchResultsLoading) {
+            //更新搜索结果载入
             if (classGuid == (Integer) args[0]) {
                 if (searchItem != null) {
                     searchItem.setShowSearchProgress(true);
@@ -17791,6 +17912,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
         } else if (id == NotificationCenter.didUpdateMessagesViews) {
+            //消息被更新调用
             LongSparseArray<SparseIntArray> channelViews = (LongSparseArray<SparseIntArray>) args[0];
             LongSparseArray<SparseIntArray> channelForwards = (LongSparseArray<SparseIntArray>) args[1];
             LongSparseArray<SparseArray<TLRPC.MessageReplies>> channelReplies = (LongSparseArray<SparseArray<TLRPC.MessageReplies>>) args[2];
@@ -18888,6 +19010,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private ArrayList<MessageObject> notPushedSponsoredMessages;
+    //发送新内容
     private void processNewMessages(ArrayList<MessageObject> arr) {
         long currentUserId = getUserConfig().getClientUserId();
         boolean updateChat = false;
@@ -18958,6 +19081,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 int date = messageObject.messageOwner.date + chatInfo.slowmode_seconds;
                                 int currentTime = getConnectionsManager().getCurrentTime();
                                 if (date > getConnectionsManager().getCurrentTime()) {
+                                    //限定发言间隔
                                     chatInfo.slowmode_next_send_date = Math.max(chatInfo.slowmode_next_send_date, Math.min(currentTime + chatInfo.slowmode_seconds, date));
                                     if (chatActivityEnterView != null) {
                                         chatActivityEnterView.setSlowModeTimer(chatInfo.slowmode_next_send_date);
@@ -22973,6 +23097,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }, hideDimAfter ? () -> dimBehindView(false) : null, themeDelegate);
     }
 
+    //隐藏actionBar特殊UI
     private void hideActionMode() {
         if (actionBar != null) {
             if (!actionBar.isActionModeShowed()) {
@@ -23047,6 +23172,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return caption;
     }
 
+    //创建点击聊天内容弹窗，single进入多选聊天
     @SuppressLint("ClickableViewAccessibility")
     private boolean createMenu(View v, boolean single, boolean listView, float x, float y, boolean searchGroup) {
         if (actionBar.isActionModeShowed() || reportType >= 0) {
@@ -23074,6 +23200,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         final int type = getMessageType(message);
         if (single) {
             if (message.messageOwner.action instanceof TLRPC.TL_messageActionPinMessage) {
+                //点击顶部固定提及滚动
                 if (message.getReplyMsgId() != 0) {
                     scrollToMessageId(message.getReplyMsgId(), message.messageOwner.id, true, message.getDialogId() == mergeDialogId ? 1 : 0, false, 0);
                 } else {
@@ -23081,6 +23208,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 return true;
             } else if (message.messageOwner.action instanceof TLRPC.TL_messageActionPaymentSent && message.replyMessageObject != null && message.replyMessageObject.isInvoice()) {
+                //点击支付提及
                 TLRPC.TL_payments_getPaymentReceipt req = new TLRPC.TL_payments_getPaymentReceipt();
                 req.msg_id = message.getId();
                 req.peer = getMessagesController().getInputPeer(message.messageOwner.peer_id);
@@ -23091,6 +23219,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }), ConnectionsManager.RequestFlagFailOnServerErrors);
                 return true;
             } else if (message.messageOwner.action instanceof TLRPC.TL_messageActionGroupCall || message.messageOwner.action instanceof TLRPC.TL_messageActionInviteToGroupCall || message.messageOwner.action instanceof TLRPC.TL_messageActionGroupCallScheduled) {
+                //点击群组
                 if (getParentActivity() == null) {
                     return false;
                 }
@@ -23129,6 +23258,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 return true;
             }
         }
+        //矫正单选
         if (message.isSponsored() || threadMessageObjects != null && threadMessageObjects.contains(message)) {
             single = true;
         }
@@ -23196,6 +23326,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             allowChatActions = false;
         }
 
+        //个人模式，正常聊天类型
         if (single || type < 2 || type == 20) {
             if (getParentActivity() == null) {
                 return false;
@@ -23235,6 +23366,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             int[] messageIdToTranslate = new int[] { message.getId() };
             CharSequence messageTextToTranslate = null;
+            //点击翻译
             if (message.messageOwner.action instanceof TLRPC.TL_messageActionSetMessagesTTL && single && (dialog_id >= 0 || (currentChat != null && ChatObject.canUserDoAdminAction(currentChat, ChatObject.ACTION_DELETE_MESSAGES)))) {
                 AutoDeletePopupWrapper autoDeletePopupWrapper = new AutoDeletePopupWrapper(contentView.getContext(), null, new AutoDeletePopupWrapper.Callback() {
                     @Override
@@ -23259,6 +23391,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 autoDeletePopupWrapper.updateItems(userInfo != null ? userInfo.ttl_period : chatInfo.ttl_period);
                 optionsView = autoDeletePopupWrapper.windowLayout;
             } else if (type >= 0 || type == -1 && single && (message.isSending() || message.isEditing()) && currentEncryptedChat == null) {
+                //核心点击聊天弹窗
                 selectedObject = message;
                 selectedObjectGroup = groupedMessages;
                 if (selectedObject.type != MessageObject.TYPE_EMOJIS && selectedObject.type != MessageObject.TYPE_ANIMATED_STICKER && selectedObject.type != MessageObject.TYPE_STICKER) {
@@ -23291,6 +23424,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     icons.add(R.drawable.msg_block2);
                 }
                 if (type == -1) {
+                    //未知聊天弹窗类型
                     if ((selectedObject.type == MessageObject.TYPE_TEXT || selectedObject.isAnimatedEmoji() || selectedObject.isAnimatedEmojiStickers() || getMessageCaption(selectedObject, selectedObjectGroup) != null) && !noforwards) {
                         items.add(LocaleController.getString("Copy", R.string.Copy));
                         options.add(OPTION_COPY);
@@ -23300,6 +23434,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     options.add(OPTION_CANCEL_SENDING);
                     icons.add(R.drawable.msg_delete);
                 } else if (type == 0) {
+                    //核心点击重试
                     items.add(LocaleController.getString("Retry", R.string.Retry));
                     options.add(OPTION_RETRY);
                     icons.add(R.drawable.msg_retry);
@@ -23372,7 +23507,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     options.add(OPTION_DELETE);
                     icons.add(selectedObject.messageOwner.ttl_period != 0 ? R.drawable.msg_delete_auto : R.drawable.msg_delete);
                 } else {
+                    //核心通用聊天类型
                     if (currentEncryptedChat == null) {
+                        //普通聊天类型，根据状态依次添加
                         if (chatMode == MODE_SCHEDULED) {
                             items.add(LocaleController.getString("MessageScheduleSend", R.string.MessageScheduleSend));
                             options.add(OPTION_SEND_NOW);
@@ -23630,6 +23767,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             icons.add(selectedObject.messageOwner.ttl_period != 0 ? R.drawable.msg_delete_auto : R.drawable.msg_delete);
                         }
                     } else {
+                        //加密聊天类型
                         if (allowChatActions) {
                             items.add(LocaleController.getString("Reply", R.string.Reply));
                             options.add(OPTION_REPLY);
@@ -23769,6 +23907,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             boolean addGap = false;
 
+            //消息心情弹窗
             if (optionsView == null) {
                 if (isReactionsViewAvailable) {
                     ReactedHeaderView reactedView = new ReactedHeaderView(contentView.getContext(), currentAccount, message, dialog_id);
@@ -24001,6 +24140,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     addGap = true;
                 }
 
+                //消息回执弹窗
                 if (showMessageSeen) {
                     messageSeenView = new MessageSeenView(contentView.getContext(), currentAccount, message, currentChat);
                     FrameLayout messageSeenLayout = new FrameLayout(contentView.getContext());
@@ -24083,6 +24223,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 boolean showRateTranscription = selectedObject != null && selectedObject.isVoice() && selectedObject.messageOwner != null && getUserConfig().isPremium() && !TextUtils.isEmpty(selectedObject.messageOwner.voiceTranscription) && selectedObject.messageOwner != null && !selectedObject.messageOwner.voiceTranscriptionRated && selectedObject.messageOwner.voiceTranscriptionId != 0 && selectedObject.messageOwner.voiceTranscriptionOpen;
 
+                //手机铃声
                 if (!showRateTranscription && message.probablyRingtone() && currentEncryptedChat == null) {
                     ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), true, false, themeDelegate);
                     cell.setMinimumWidth(AndroidUtilities.dp(200));
@@ -24119,6 +24260,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     popupLayout.getSwipeBack().setOnClickListener(e -> closeMenu());
                 }
 
+                //支持反对弹窗
                 if (showRateTranscription) {
                     final LinearLayout rateTranscriptionLayout = new LinearLayout(contentView.getContext());
                     rateTranscriptionLayout.setOrientation(LinearLayout.VERTICAL);
@@ -24210,6 +24352,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
 
                 final boolean translateButtonEnabled = MessagesController.getInstance(currentAccount).getTranslateController().isContextTranslateEnabled();
+                //赞助弹窗
                 if (selectedObject != null && selectedObject.isSponsored()) {
                     if (selectedObject.sponsoredInfo != null || selectedObject.sponsoredAdditionalInfo != null) {
                         LinearLayout linearLayout = new LinearLayout(getParentActivity());
@@ -24329,6 +24472,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     });
                     popupLayout.addView(new ActionBarPopupWindow.GapView(contentView.getContext(), themeDelegate), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
                 }
+                //普通弹窗列表item数组
                 scrimPopupWindowItems = new ActionBarMenuSubItem[items.size()];
                 for (int a = 0, N = items.size(); a < N; a++) {
                     ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), a == 0, a == N - 1, themeDelegate);
@@ -24349,6 +24493,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                         processSelectedOption(options.get(i));
                     });
+                    //如果是翻译
                     if (option == OPTION_TRANSLATE) {
                         String toLangDefault = LocaleController.getInstance().getCurrentLocale().getLanguage();
                         String toLang = TranslateAlert2.getToLanguage();
@@ -24432,6 +24577,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
 
+            //点击消息遮挡关闭弹窗
             ChatScrimPopupContainerLayout scrimPopupContainerLayout = new ChatScrimPopupContainerLayout(contentView.getContext()) {
                 @Override
                 public boolean dispatchKeyEvent(KeyEvent event) {
@@ -24473,9 +24619,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             });
 
             ReactionsContainerLayout reactionsLayout = null;
+            //弹窗载入view
             if (optionsView != null) {
                 scrimPopupContainerLayout.addView(optionsView);
             } else {
+                //核心是否加入心情反应弹窗
                 reactionsLayout = new ReactionsContainerLayout(ChatActivity.this, contentView.getContext(), currentAccount, getResourceProvider());
                 if (isReactionsAvailable) {
                     int pad = 22;
@@ -24697,6 +24845,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (scrimPopupWindow == null || fragmentView == null || scrimPopupWindow.isShowing()) {
                     return;
                 }
+                //显示聊天内容短按点击弹窗
                 scrimPopupWindow.showAtLocation(chatListView, Gravity.LEFT | Gravity.TOP, finalPopupX, finalPopupY);
                 if (isReactionsAvailable && finalReactionsLayout != null) {
                     finalReactionsLayout.startEnterAnimation(true);
@@ -24727,9 +24876,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (chatActivityEnterView != null && chatActivityEnterView.getEditField() != null) {
                 chatActivityEnterView.getEditField().setAllowDrawCursor(false);
             }
+            //核心正常返回
             return true;
         }
 
+        //上面为短按弹窗，下面进入长按选中状态
         if (chatActivityEnterView != null && (chatActivityEnterView.isRecordingAudioVideo() || chatActivityEnterView.isRecordLocked())) {
             return false;
         }
@@ -24740,10 +24891,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (item != null) {
             item.setVisibility(View.VISIBLE);
         }
+        //创建底部选中按钮
         createBottomMessagesActionButtons();
         bottomMessagesActionContainer.setVisibility(View.VISIBLE);
 
         int translationY = chatActivityEnterView.getMeasuredHeight() - AndroidUtilities.dp(51);
+        //创建顶部选中按钮
         createActionMode();
         if (chatActivityEnterView.getVisibility() == View.VISIBLE) {
             ArrayList<View> views = new ArrayList<>();
@@ -24766,10 +24919,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
             actionBar.showActionMode(true, bottomMessagesActionContainer, null, null, null, chatListView, translationY);
         }
+        //因为是长按多选，所以关闭短按弹窗
         closeMenu();
         chatLayoutManager.setCanScrollVertically(true);
         updatePinnedMessageView(true);
 
+        //设置顶栏图标动画
         AnimatorSet animatorSet = new AnimatorSet();
         ArrayList<Animator> animators = new ArrayList<>();
         for (int a = 0; a < actionModeViews.size(); a++) {
@@ -24879,6 +25034,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     private ValueAnimator scrimViewAlphaAnimator;
 
+    //关闭弹窗动画
     private void closeMenu(boolean hideDim) {
         scrimPopupWindowHideDimOnDismiss = hideDim;
         if (scrimPopupWindow != null) {
@@ -25226,6 +25382,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         MediaController.saveFile(path, getParentActivity(), messageObject.isVideo() ? 1 : 0, null, null);
     }
 
+    //核心弹窗点击触发
     private void processSelectedOption(int option) {
         if (selectedObject == null || getParentActivity() == null) {
             return;
@@ -25233,6 +25390,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         boolean preserveDim = false;
         switch (option) {
             case OPTION_RETRY: {
+                //引用
                 if (selectedObjectGroup != null) {
                     boolean success = true;
                     for (int a = 0; a < selectedObjectGroup.messages.size(); a++) {
@@ -25254,6 +25412,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
             case OPTION_DELETE: {
+                //删除
                 if (getParentActivity() == null) {
                     selectedObject = null;
                     selectedObjectToEditCaption = null;
@@ -25265,6 +25424,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
             case OPTION_FORWARD: {
+                //转发
                 forwardingMessage = selectedObject;
                 forwardingMessageGroup = selectedObjectGroup;
                 Bundle args = new Bundle();
@@ -25280,24 +25440,31 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
             case OPTION_COPY: {
+                //复制
                 if (selectedObject.isDice()) {
+                    //多媒体表情类型
                     AndroidUtilities.addToClipboard(selectedObject.getDiceEmoji());
                 } else {
                     CharSequence caption = getMessageCaption(selectedObject, selectedObjectGroup);
                     if (caption != null) {
+                        //标题
                         AndroidUtilities.addToClipboard(caption);
                     } else {
+                        //聊天内容
                         AndroidUtilities.addToClipboard(getMessageContent(selectedObject, 0, false));
                     }
                 }
+                //创造复制成功提示
                 createUndoView();
                 if (undoView == null) {
                     return;
                 }
+                //显示复制成功提示
                 undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
                 break;
             }
             case OPTION_SAVE_TO_GALLERY: {
+                //保存到画廊
                 if (Build.VERSION.SDK_INT >= 23 && (Build.VERSION.SDK_INT <= 28 || BuildVars.NO_SCOPED_STORAGE) && getParentActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     getParentActivity().requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 4);
                     selectedObject = null;
@@ -25332,6 +25499,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
             case OPTION_APPLY_LOCALIZATION_OR_THEME: {
+                //应用主题
                 File locFile = null;
                 if (!TextUtils.isEmpty(selectedObject.messageOwner.attachPath)) {
                     File f = new File(selectedObject.messageOwner.attachPath);
@@ -25391,6 +25559,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
             case OPTION_SHARE: {
+                //分享
                 String path = selectedObject.messageOwner.attachPath;
                 if (path != null && path.length() > 0) {
                     File temp = new File(path);
@@ -25422,6 +25591,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
             case OPTION_SAVE_TO_GALLERY2: {
+                //保存到画廊
                 String path = selectedObject.messageOwner.attachPath;
                 if (path != null && path.length() > 0) {
                     File temp = new File(path);
@@ -25444,6 +25614,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
             case OPTION_REPLY: {
+                //回复
                 showFieldPanelForReply(selectedObject);
                 break;
             }
@@ -26156,6 +26327,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         updateVisibleRows(false);
     }
 
+    //更新已经显示的列表
     private void updateVisibleRows(boolean suppressUpdateMessageObject) {
         if (chatListView == null) {
             return;
@@ -26294,6 +26466,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         showDialog(builder.create());
     }
 
+    //打开搜索窗口
     private void openSearchWithText(String text) {
         if (!actionBar.isSearchFieldVisible()) {
             AndroidUtilities.updateViewVisibilityAnimated(avatarContainer, false, 0.95f, true);
@@ -26322,6 +26495,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if ((threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(currentUser)) {
             openSearchKeyboard = text == null;
             if (searchItem != null) {
+                //action执行动画
                 searchItem.openSearch(openSearchKeyboard);
             }
         }
@@ -27475,10 +27649,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         }
 
+        //更新消息列表内部方法
         private void updateRowsInternal() {
             rowCount = 0;
             ArrayList<MessageObject> messages = isFrozen ? frozenMessages : ChatActivity.this.messages;
             if (!messages.isEmpty()) {
+                //置顶的消息
                 if ((!forwardEndReached[0] || mergeDialogId != 0 && !forwardEndReached[1]) && !hideForwardEndReached) {
                     loadingDownRow = rowCount++;
                 } else {
@@ -27551,6 +27727,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = null;
             if (viewType == 0) {
+                //普通消息
                 if (!chatMessageCellsCache.isEmpty()) {
                     view = chatMessageCellsCache.get(0);
                     chatMessageCellsCache.remove(0);
@@ -27565,6 +27742,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     chatMessageCell.setAllowAssistant(true);
                 }
             } else if (viewType == 1) {
+                //聊天日期以及事件消息
                 view = new ChatActionCell(mContext, true, themeDelegate) {
                     @Override
                     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
@@ -27743,8 +27921,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 });
             } else if (viewType == 2) {
+                //未读消息
                 view = new ChatUnreadCell(mContext, themeDelegate);
             } else if (viewType == 3) {
+                //机器人消息
                 view = new BotHelpCell(mContext, themeDelegate);
                 ((BotHelpCell) view).setDelegate(url -> {
                     if (url.startsWith("@")) {
@@ -27763,6 +27943,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 });
             } else if (viewType == 4) {
+                //聊天正在加载消息
                 view = new ChatLoadingCell(mContext, contentView, themeDelegate);
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
@@ -27772,6 +27953,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             if (position == botInfoRow || position == botInfoEmptyRow) {
+                //当前绑定的是机器人消息
                 BotHelpCell helpView = (BotHelpCell) holder.itemView;
                 if (UserObject.isReplyUser(currentUser)) {
                     helpView.setText(false, LocaleController.getString("RepliesChatInfo", R.string.RepliesChatInfo));
@@ -27781,9 +27963,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 updateBotHelpCellClick(helpView);
             } else if (position == loadingDownRow || position == loadingUpRow) {
+                //绑定加载消息
                 ChatLoadingCell loadingCell = (ChatLoadingCell) holder.itemView;
                 loadingCell.setProgressVisible(loadsCount > 1);
             } else if (position >= messagesStartRow && position < messagesEndRow) {
+                //绑定普通消息
                 ArrayList<MessageObject> messages = isFrozen ? frozenMessages : ChatActivity.this.messages;
 
                 MessageObject message = messages.get(position - messagesStartRow);
@@ -27810,6 +27994,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
                     int prevPosition;
                     int nextPosition;
+                    //处理消息组
                     if (groupedMessages != null) {
                         MessageObject.GroupedMessagePosition pos = groupedMessages.positions.get(message);
                         if (pos != null) {
@@ -27843,6 +28028,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     int nextType = getItemViewType(nextPosition);
                     int prevType = getItemViewType(prevPosition);
 
+                    //处理置底元素
                     if (!(message.messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup) && nextType == holder.getItemViewType()) {
                         MessageObject nextMessage = messages.get(nextPosition - messagesStartRow);
                         pinnedBottom = nextMessage.isOutOwner() == message.isOutOwner() && Math.abs(nextMessage.messageOwner.date - message.messageOwner.date) <= 5 * 60;
@@ -27878,6 +28064,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             }
                         }
                     }
+                    //处理置顶元素
                     if (prevType == holder.getItemViewType()) {
                         MessageObject prevMessage = messages.get(prevPosition - messagesStartRow);
                         pinnedTop = !(prevMessage.messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup) && prevMessage.isOutOwner() == message.isOutOwner() && Math.abs(prevMessage.messageOwner.date - message.messageOwner.date) <= 5 * 60;
@@ -27913,6 +28100,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             }
                         }
                     }
+                    //处理信道是否置顶置底元素
                     if (ChatObject.isChannel(currentChat) && currentChat.megagroup && message.getFromChatId() <= 0 && message.messageOwner.fwd_from != null && message.messageOwner.fwd_from.saved_from_peer instanceof TLRPC.TL_peerChannel) {
                         if (!pinnedTopByGroup) {
                             pinnedTop = false;
@@ -27922,22 +28110,28 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                     }
 
+                    //更新翻译
                     message.updateTranslation(false);
                     if (groupedMessages != null) {
                         for (int i = 0; i < groupedMessages.messages.size(); ++i) {
                             groupedMessages.messages.get(i).updateTranslation(false);
                         }
                     }
+                    //核心加载列表更新数据
                     messageCell.setMessageObject(message, groupedMessages, pinnedBottom, pinnedTop);
+                    //滚动时设置剧透数据
                     messageCell.setSpoilersSuppressed(chatListView.getScrollState() != RecyclerView.SCROLL_STATE_IDLE);
+                    //根据是否被选中设置高亮
                     messageCell.setHighlighted(highlightMessageId != Integer.MAX_VALUE && message.getId() == highlightMessageId);
                     if (highlightMessageId != Integer.MAX_VALUE) {
                         startMessageUnselect();
                     }
                     int index;
+                    //处理视频以及贴纸特殊消息类
                     if ((index = animatingMessageObjects.indexOf(message)) != -1) {
                         boolean applyAnimation = false;
                         if (message.type == MessageObject.TYPE_ROUND_VIDEO && instantCameraView != null && instantCameraView.getTextureView() != null) {
+                           //拍摄视频消息类、
                             applyAnimation = true;
                             messageCell.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                                 @Override
@@ -28031,6 +28225,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 }
                             });
                         } else if (message.isAnyKindOfSticker() && !message.isAnimatedEmojiStickers()) {
+                            //贴纸
                             applyAnimation = true;
                             messageCell.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                                 @Override
@@ -28152,6 +28347,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             chatActivityEnterView.hideTopView(true);
                         }
                     }
+                    //处理贴纸欢迎动画
                     if (!animatingDocuments.isEmpty() && animatingDocuments.containsKey(message.getDocument())) {
                         animatingDocuments.remove(message.getDocument());
                         if (chatListItemAnimator != null) {
@@ -28159,11 +28355,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                     }
                 } else if (view instanceof ChatActionCell) {
+                    //绑定聊天日期ui
                     ChatActionCell actionCell = (ChatActionCell) view;
                     actionCell.setMessageObject(message);
                     actionCell.setAlpha(1.0f);
                     actionCell.setSpoilersSuppressed(chatListView.getScrollState() != RecyclerView.SCROLL_STATE_IDLE);
                 } else if (view instanceof ChatUnreadCell) {
+                    //绑定未读
                     ChatUnreadCell unreadCell = (ChatUnreadCell) view;
                     unreadCell.setText(LocaleController.getString("UnreadMessages", R.string.UnreadMessages));
                     if (createUnreadMessageAfterId != 0) {
@@ -28361,6 +28559,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         }
 
+        //更新包含消息的行条目
         public View updateRowWithMessageObject(MessageObject messageObject, boolean allowInPlace) {
             if (allowInPlace) {
                 int count = chatListView.getChildCount();
@@ -28919,6 +29118,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         @Override
         public void didPressUserAvatar(ChatMessageCell cell, TLRPC.User user, float touchX, float touchY) {
+            //点击头像
             if (actionBar.isActionModeShowed() || reportType >= 0) {
                 processRowSelect(cell, true, touchX, touchY);
                 return;
@@ -28932,6 +29132,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         @Override
         public boolean didLongPressUserAvatar(ChatMessageCell cell, TLRPC.User user, float touchX, float touchY) {
+            ////长按头像
             if (isAvatarPreviewerEnabled()) {
                 final boolean enableMention = currentChat != null && (bottomOverlayChat == null || bottomOverlayChat.getVisibility() != View.VISIBLE) && (bottomOverlay == null || bottomOverlay.getVisibility() != View.VISIBLE);
                 final AvatarPreviewer.MenuItem[] menuItems = new AvatarPreviewer.MenuItem[2 + (enableMention ? 1 : 0)];
@@ -29812,6 +30013,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return openLinkInternally(urlFinal, cell, span, fromMessageId, PROGRESS_LINK);
     }
 
+    //匹配打开url链接
     private boolean openLinkInternally(String urlFinal, ChatMessageCell cell, CharacterStyle span, int fromMessageId, int fromMessageProgressType) {
         if (currentChat == null || urlFinal == null) {
             return false;
@@ -30852,6 +31054,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         chatListView.invalidate();
     }
 
+    //显示聊天底部主题弹窗
     private void showChatThemeBottomSheet() {
         chatThemeBottomSheet = new ChatThemeBottomSheet(ChatActivity.this, themeDelegate);
         chatListView.setOnInterceptTouchListener(event -> true);
@@ -30937,6 +31140,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     public Runnable onThemeChange;
 
+    //主题配置代理类
     public class ThemeDelegate implements Theme.ResourcesProvider, ChatActionCell.ThemeDelegate, ForwardingPreviewView.ResourcesDelegate {
 
         private final HashMap<String, Drawable> currentDrawables = new HashMap<>();
@@ -31584,6 +31788,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    //更新机器人点击
     private void updateBotHelpCellClick(BotHelpCell cell) {
         final boolean translateButtonEnabled = MessagesController.getInstance(currentAccount).getTranslateController().isContextTranslateEnabled();
         if (translateButtonEnabled && LanguageDetector.hasSupport()) {

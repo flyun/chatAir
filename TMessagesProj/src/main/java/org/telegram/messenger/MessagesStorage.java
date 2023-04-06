@@ -19,9 +19,6 @@ import android.util.Pair;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 
-import androidx.annotation.UiThread;
-import androidx.collection.LongSparseArray;
-
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
@@ -52,6 +49,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+
+import androidx.annotation.UiThread;
+import androidx.collection.LongSparseArray;
 
 public class MessagesStorage extends BaseController {
 
@@ -7506,7 +7506,9 @@ public class MessagesStorage extends BaseController {
         });
     }
 
+    //核心，从数据库获取消息
     public Runnable getMessagesInternal(long dialogId, long mergeDialogId, int count, int max_id, int offset_date, int minDate, int classGuid, int load_type, boolean scheduled, int threadMessageId, int loadIndex, boolean processMessages, boolean isTopic) {
+        //从数据库读取的消息加载到这里
         TLRPC.TL_messages_messages res = new TLRPC.TL_messages_messages();
         long currentUserId = getUserConfig().clientUserId;
         int count_unread = 0;
@@ -7541,6 +7543,7 @@ public class MessagesStorage extends BaseController {
             } else {
                 messageSelect = "SELECT m.read_state, m.data, m.send_state, m.mid, m.date, r.random_id, m.replydata, m.media, m.ttl, m.mention, m.imp, m.forwards, m.replies_data, m.custom_params FROM messages_v2 as m LEFT JOIN randoms_v2 as r ON r.mid = m.mid AND r.uid = m.uid";
             }
+            //是否为计划消息
             if (scheduled) {
                 isEnd = true;
                 cursor = database.queryFinalized(String.format(Locale.US, "SELECT m.data, m.send_state, m.mid, m.date, r.random_id, m.replydata, m.ttl FROM scheduled_messages_v2 as m LEFT JOIN randoms_v2 as r ON r.mid = m.mid AND r.uid = m.uid WHERE m.uid = %d ORDER BY m.date DESC", dialogId));
@@ -7627,6 +7630,7 @@ public class MessagesStorage extends BaseController {
                     } else if (load_type != 1 && load_type != 3 && load_type != 4 && minDate == 0) {
                         if (load_type == 2) {
                             if (threadMessageId == 0) {
+                                //通过联系人id从数据库读取消息组
                                 cursor = database.queryFinalized("SELECT inbox_max, unread_count, date, unread_count_i FROM dialogs WHERE did = " + dialogId);
                                 if (cursor.next()) {
                                     messageMaxId = max_id_query = min_unread_id = Math.max(1, cursor.intValue(0));
@@ -7781,6 +7785,7 @@ public class MessagesStorage extends BaseController {
                     cursor.dispose();
                     cursor = null;
 
+                    //从数据库，通过时间，联系人获取聊天数据
                     if (load_type == 3 || load_type == 4 || queryFromServer && load_type == 2) {
                         if (threadMessageId != 0) {
                             cursor = database.queryFinalized(String.format(Locale.US, "SELECT max(mid) FROM messages_topics WHERE uid = %d AND topic_id = %d AND mid > 0", dialogId, threadMessageId));
@@ -8127,6 +8132,7 @@ public class MessagesStorage extends BaseController {
                 int maxId = Integer.MIN_VALUE;
                 ArrayList<Long> messageIdsToFix = null;
 
+                //将数据库数据转为对象
                 if (cursor != null) {
                     while (cursor.next()) {
                         messagesCount++;
@@ -8189,6 +8195,7 @@ public class MessagesStorage extends BaseController {
                                 MessageCustomParamsHelper.readLocalParams(message, customParams);
                                 customParams.reuse();
                             }
+                            //将数据库中的数据添加bean集合
                             res.messages.add(message);
 
                             addUsersAndChatsFromMessage(message, usersToLoad, chatsToLoad, animatedEmojiToLoad);
@@ -8241,6 +8248,7 @@ public class MessagesStorage extends BaseController {
                     cursor = null;
                 }
 
+                //排序
                 Collections.sort(res.messages, (lhs, rhs) -> {
                     if (lhs.id > 0 && rhs.id > 0) {
                         if (lhs.id > rhs.id) {

@@ -53,6 +53,7 @@ import android.text.TextUtils;
 import android.text.style.CharacterStyle;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
+import android.util.Log;
 import android.util.Property;
 import android.util.SparseArray;
 import android.util.StateSet;
@@ -666,9 +667,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private boolean invalidateSpoilersParent;
 
-    private int textX;
+    private int textX;//文字起始位置
     private int unmovedTextX;
-    private int textY;
+    private int textY;//文字起始位置
     private int totalHeight;
     private int additionalTimeOffsetY;
     private int keyboardHeight;
@@ -4112,6 +4113,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
+    //设置文字内容
     private void setMessageContent(MessageObject messageObject, MessageObject.GroupedMessages groupedMessages, boolean bottomNear, boolean topNear) {
         if (messageObject.checkLayout() || currentPosition != null && lastHeight != AndroidUtilities.displaySize.y) {
             currentMessageObject = null;
@@ -4583,8 +4585,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     availableTimeWidth -= Math.ceil(Theme.chat_audioTimePaint.measureText("00:00")) + (messageObject.isOutOwner() ? 0 : AndroidUtilities.dp(64));
                 }
                 measureTime(messageObject);
+                //核心去掉时间以及回执，则该值把设为0
+                //时间加上空隙
                 int timeMore = timeWidth + AndroidUtilities.dp(6);
                 if (messageObject.isOutOwner()) {
+                    //到达时间加上已读未读回执
                     timeMore += AndroidUtilities.dp(20.5f);
                 }
                 timeMore += getExtraTimeX();
@@ -4734,6 +4739,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     backgroundWidth = Math.max(backgroundWidth, messageObject.lastLineWidth) + AndroidUtilities.dp(31);
                     backgroundWidth = Math.max(backgroundWidth, timeWidth + AndroidUtilities.dp(31));
                 } else {
+                    //判断最后一行是否能容纳下时间已读，容纳不行啊，换行
                     int diff = backgroundWidth - messageObject.lastLineWidth;
                     if (diff >= 0 && diff <= timeMore) {
                         backgroundWidth = backgroundWidth + timeMore - diff + AndroidUtilities.dp(31);
@@ -5588,6 +5594,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     createInstantViewButton();
                 } else {
                     photoImage.setImageBitmap((Drawable) null);
+                    //核心计算背景宽度
                     calcBackgroundWidth(maxWidth, timeMore, maxChildWidth);
 
                     if (blurredPhotoImage.getBitmap() != null) {
@@ -8470,8 +8477,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
+    //计算背景大小，如果忽略时间以及回执状态，将timeMore设为0
     private void calcBackgroundWidth(int maxWidth, int timeMore, int maxChildWidth) {
         boolean newLineForTime;
+        //最后一行宽度
         int lastLineWidth = (reactionsLayoutInBubble.isEmpty || reactionsLayoutInBubble.isSmall) ? currentMessageObject.lastLineWidth : reactionsLayoutInBubble.lastLineX;
         if (!reactionsLayoutInBubble.isEmpty && !reactionsLayoutInBubble.isSmall) {
             newLineForTime = maxWidth - lastLineWidth < timeMore || currentMessageObject.hasRtl;
@@ -8482,6 +8491,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             newLineForTime = hasLinkPreview || hasOldCaptionPreview || hasGamePreview || hasInvoicePreview || maxWidth - lastLineWidth < timeMore || currentMessageObject.hasRtl;
         }
 
+        //是否为了时间新起一行
         if (newLineForTime) {
             totalHeight += AndroidUtilities.dp(14);
             hasNewLineForTime = true;
@@ -8865,6 +8875,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
+    //聊天弹窗边框
     private int getExtraTextX() {
         if (SharedConfig.bubbleRadius >= 15) {
             return AndroidUtilities.dp(2);
@@ -9403,11 +9414,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         imageDrawn = false;
         radialProgress.setCircleCrossfadeColor(null, 0.0f, 1.0f);
         if (currentMessageObject.type == MessageObject.TYPE_TEXT || currentMessageObject.type == MessageObject.TYPE_EMOJIS) {
+            //绘制文字
+            //设置文字起始位置
             if (currentMessageObject.isOutOwner()) {
                 textX = getCurrentBackgroundLeft() + AndroidUtilities.dp(11) + getExtraTextX();
             } else {
                 textX = getCurrentBackgroundLeft() + (currentMessageObject.type == MessageObject.TYPE_EMOJIS ? 0 : AndroidUtilities.dp(!mediaBackground && drawPinnedBottom ? 11 : 17)) + getExtraTextX();
             }
+            //特殊文字配置
             if (hasGamePreview) {
                 textX += AndroidUtilities.dp(11);
                 textY = AndroidUtilities.dp(14) + namesOffset;
@@ -9444,6 +9458,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     animatedEmojiStack.clearPositions();
                 }
                 if (transitionParams.animateChangeProgress != 1.0f && transitionParams.animateMessageText) {
+                    //文字过度动画
                     canvas.save();
                     if (currentBackgroundDrawable != null) {
                         Rect r = currentBackgroundDrawable.getBounds();
@@ -9463,6 +9478,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     drawMessageText(canvas, currentMessageObject.textLayoutBlocks, currentMessageObject.textXOffset, true, transitionParams.animateChangeProgress, false);
                     canvas.restore();
                 } else {
+                    //正常文字绘制
                     drawMessageText(canvas, currentMessageObject.textLayoutBlocks, currentMessageObject.textXOffset, true, 1.0f, false);
                 }
             }
@@ -9472,6 +9488,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
             drawTime = true;
         } else if (drawPhotoImage) {
+            //绘制图片
             float pipFloat = roundVideoPlayPipFloat.get();
             if (pipFloat > 0) {
                 if (drillHolePaint == null) {
@@ -9606,6 +9623,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         } else {
             if (documentAttachType == DOCUMENT_ATTACH_TYPE_MUSIC || documentAttachType == DOCUMENT_ATTACH_TYPE_DOCUMENT) {
+                //绘制音乐链接或者文档
                 drawMediaCheckBox = mediaCheckBox != null && (checkBoxVisible || mediaCheckBox.getProgress() != 0 || checkBoxAnimationInProgress) && currentMessagesGroup != null;
                 if (drawMediaCheckBox) {
                     radialProgress.setCircleCrossfadeColor(currentMessageObject.isOutOwner() ? Theme.key_chat_outTimeText : Theme.key_chat_inTimeText, checkBoxAnimationProgress, 1.0f - mediaCheckBox.getProgress());
@@ -9625,6 +9643,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         }
         if (documentAttachType == DOCUMENT_ATTACH_TYPE_GIF) {
+            //绘制gif动画
             if (drawPhotoImage && photoImage.getVisible() && !hasGamePreview && !currentMessageObject.needDrawBluredPreview()) {
                 int oldAlpha = ((BitmapDrawable) Theme.chat_msgMediaMenuDrawable).getPaint().getAlpha();
                 Theme.chat_msgMediaMenuDrawable.setAlpha((int) (oldAlpha * controlsAlpha));
@@ -9633,6 +9652,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 Theme.chat_msgMediaMenuDrawable.setAlpha(oldAlpha);
             }
         } else if (documentAttachType == DOCUMENT_ATTACH_TYPE_MUSIC) {
+            //绘制音乐链接
             if (currentMessageObject.isOutOwner()) {
                 Theme.chat_audioTitlePaint.setColor(getThemedColor(Theme.key_chat_outAudioTitleText));
                 Theme.chat_audioPerformerPaint.setColor(getThemedColor(isDrawSelectionBackground() ? Theme.key_chat_outAudioPerformerSelectedText : Theme.key_chat_outAudioPerformerText));
@@ -9716,6 +9736,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
         } else if (documentAttachType == DOCUMENT_ATTACH_TYPE_AUDIO || documentAttachType == DOCUMENT_ATTACH_TYPE_ROUND) {
+            //绘制视频
             if (currentMessageObject.isOutOwner()) {
                 Theme.chat_audioTimePaint.setColor(getThemedColor(isDrawSelectionBackground() ? Theme.key_chat_outAudioDurationSelectedText : Theme.key_chat_outAudioDurationText));
                 radialProgress.setProgressColor(getThemedColor(isDrawSelectionBackground() || buttonPressed != 0 ? Theme.key_chat_outAudioSelectedProgress : Theme.key_chat_outAudioProgress));
@@ -10781,6 +10802,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         drawMessageText(canvas, textLayoutBlocks, currentMessageObject == null ? 0 : currentMessageObject.textXOffset, origin, alpha, drawOnlyText);
     }
 
+    //绘制文字
     @SuppressLint("Range")
     public void drawMessageText(Canvas canvas, ArrayList<MessageObject.TextLayoutBlock> textLayoutBlocks, float rtlOffset, boolean origin, float alpha, boolean drawOnlyText) {
         if (textLayoutBlocks == null || textLayoutBlocks.isEmpty() || alpha == 0) {
@@ -10806,6 +10828,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
 
         boolean translating = MessagesController.getInstance(currentAccount).getTranslateController().isTranslating(getMessageObject());
+        //翻译模块
         if ((textLayoutBlocks == transitionParams.animateOutTextBlocks) == (currentMessageObject != null && currentMessageObject.translated)) {
             if (translationLoadingFloat == null) {
                 translationLoadingFloat = new AnimatedFloat(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
@@ -10912,9 +10935,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         canvas.drawPath(urlPathSelection.get(b), Theme.chat_textSearchSelectionPaint);
                     }
                 }
+                //核心绘制文字选中
                 if (delegate.getTextSelectionHelper() != null && transitionParams.animateChangeProgress == 1f && !drawOnlyText) {
                     delegate.getTextSelectionHelper().draw(currentMessageObject, block, canvas);
                 }
+                //绘制文字
                 try {
                     Emoji.emojiDrawingYOffset = -transitionYOffsetForDrawables;
                     SpoilerEffect.renderWithRipple(this, invalidateSpoilersParent, spoilersColor, 0, block.spoilersPatchedTextLayout, block.textLayout, block.spoilers, canvas, false);
@@ -13047,6 +13072,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     float transitionYOffsetForDrawables;
 
+    //设置drawable大小
     public void setDrawableBoundsInner(Drawable drawable, int x, int y, int w, int h) {
         if (drawable != null) {
             transitionYOffsetForDrawables = (y + h + transitionParams.deltaBottom) - ((int) (y + h + transitionParams.deltaBottom));
@@ -13101,6 +13127,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
         }
+        //更改绘制画笔背景颜色
         if (currentMessageObject.type == MessageObject.TYPE_ROUND_VIDEO) {
             Theme.chat_timePaint.setColor(
                 ColorUtils.blendARGB(
@@ -13128,6 +13155,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         }
 
+        //绘制背景
         drawBackgroundInternal(canvas, false);
         if (isHighlightedAnimated) {
             long newTime = System.currentTimeMillis();
@@ -13178,6 +13206,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             restore = canvas.saveLayerAlpha(rect, (int) (255 * alphaInternal), Canvas.ALL_SAVE_FLAG);
         }
         boolean clipContent = false;
+        //绘制翻译背景
         if (transitionParams.animateBackgroundBoundsInner && currentBackgroundDrawable != null && !isRoundVideo) {
             Rect r = currentBackgroundDrawable.getBounds();
             canvas.save();
@@ -13187,6 +13216,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             );
             clipContent = true;
         }
+        //核心绘制文字
         drawContent(canvas);
         if (clipContent) {
             canvas.restore();
@@ -13245,13 +13275,17 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             drawNamesLayout(canvas, 1f);
         }
 
+        //绘制媒体
         if ((!autoPlayingMedia || !MediaController.getInstance().isPlayingMessageAndReadyToDraw(currentMessageObject) || isRoundVideo) && !transitionParams.animateBackgroundBoundsInner) {
             drawOverlays(canvas);
         }
+
+        //绘制信息到达时间以及是否已读
         if ((drawTime || !mediaBackground) && !forceNotDrawTime && !transitionParams.animateBackgroundBoundsInner && !(enterTransitionInProgress && !currentMessageObject.isVoice())) {
             drawTime(canvas, 1f, false);
         }
 
+        //媒体相关的信息配置
         if ((controlsAlpha != 1.0f || timeAlpha != 1.0f) && currentMessageObject.type != MessageObject.TYPE_ROUND_VIDEO) {
             long newTime = System.currentTimeMillis();
             long dt = Math.abs(lastControlsAlphaChangeTime - newTime);
@@ -13276,6 +13310,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         }
 
+        //绘制已选择文字的背景
         if ((drawBackground || transitionParams.animateDrawBackground) && shouldDrawSelectionOverlay() && currentMessagesGroup == null && hasSelectionOverlay()) {
             if (selectionOverlayPaint == null) {
                 selectionOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -13295,6 +13330,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         if (restore != Integer.MIN_VALUE) {
             canvas.restoreToCount(restore);
         }
+        //更新已选中的文字位置
         updateSelectionTextPosition();
     }
 
@@ -13314,6 +13350,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         int additionalTop = 0;
         int additionalBottom = 0;
         boolean forceMediaByGroup = currentPosition != null && (currentPosition.flags & MessageObject.POSITION_FLAG_BOTTOM) == 0 && currentMessagesGroup.isDocuments && !drawPinnedBottom;
+        //设置背景点击与未点击样式
         if (currentMessageObject.isOutOwner()) {
             if (transitionParams.changePinnedBottomProgress >= 1 && !mediaBackground && !drawPinnedBottom && !forceMediaByGroup) {
                 currentBackgroundDrawable = (Theme.MessageDrawable) getThemedDrawable(Theme.key_drawable_msgOut);
@@ -13330,6 +13367,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             } else {
                 currentBackgroundShadowDrawable = currentBackgroundDrawable.getShadowDrawable();
             }
+            //设置背景偏移
             backgroundDrawableLeft = layoutWidth - backgroundWidth - (!mediaBackground ? 0 : AndroidUtilities.dp(9));
             backgroundDrawableRight = backgroundWidth - (mediaBackground ? 0 : AndroidUtilities.dp(3));
             if (currentMessagesGroup != null && !currentMessagesGroup.isDocuments) {
@@ -13346,6 +13384,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 backgroundDrawableRight -= AndroidUtilities.dp(6);
             }
 
+            //不绘制群组消息
             if (currentPosition != null) {
                 if ((currentPosition.flags & MessageObject.POSITION_FLAG_RIGHT) == 0) {
                     backgroundDrawableRight += AndroidUtilities.dp(SharedConfig.bubbleRadius + 2);
@@ -13389,6 +13428,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 setDrawableBoundsInner(currentBackgroundDrawable, backgroundLeft, backgroundDrawableTop - additionalTop, backgroundDrawableRight, backgroundHeight - additionalBottom + 10);
                 setDrawableBoundsInner(currentBackgroundSelectedDrawable, backgroundDrawableLeft, backgroundDrawableTop, backgroundDrawableRight - AndroidUtilities.dp(6), backgroundHeight);
             } else {
+                //设置背景四周大小距离
                 setDrawableBoundsInner(currentBackgroundDrawable, backgroundLeft, backgroundDrawableTop, backgroundDrawableRight, backgroundHeight);
                 setDrawableBoundsInner(currentBackgroundSelectedDrawable, backgroundLeft, backgroundDrawableTop, backgroundDrawableRight, backgroundHeight);
             }
@@ -13482,6 +13522,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             backgroundDrawableRight += AndroidUtilities.dp(6);
         }
 
+        //提醒背景
         if (hasPsaHint) {
             int x;
             if (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_RIGHT) != 0) {
@@ -13511,6 +13552,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             psaHelpY = y + AndroidUtilities.dp(4);
         }
 
+        //选择框背景
         if (checkBoxVisible || checkBoxAnimationInProgress) {
             animateCheckboxTranslation();
             int size = AndroidUtilities.dp(21);
@@ -13522,12 +13564,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
 
         int restoreCount = canvas.getSaveCount();
+        //翻译背景
         if (transitionYOffsetForDrawables != 0) {
             canvas.save();
             canvas.translate(0, transitionYOffsetForDrawables);
         }
 
         float pinnedBottomOffset = 0;
+        //视频背景
         if (currentMessageObject != null && currentMessageObject.isRoundVideo()) {
             float progress = getVideoTranscriptionProgress();
 //            if (transitionParams.animateDrawBackground) {
@@ -13545,10 +13589,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
 
         if ((drawBackground || transitionParams.animateDrawBackground) && currentBackgroundDrawable != null && (currentPosition == null || isDrawSelectionBackground() && (currentMessageObject.isMusic() || currentMessageObject.isDocument())) && !(enterTransitionInProgress && !currentMessageObject.isVoice())) {
+            //音乐、文档背景
             float alphaInternal = this.alphaInternal;
             if (fromParent) {
                 alphaInternal *= getAlpha();
             }
+            //是否被选中更改背景
             if (hasSelectionOverlay()) {
 //                if ((isPressed() && isCheckPressed || !isCheckPressed && isPressed) && !textIsSelectionMode()) {
 //                    currentSelectedBackgroundAlpha = 1f;
@@ -13565,6 +13611,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             } else {
                 if (isHighlightedAnimated) {
+                    //是否执行高亮背景
                     currentBackgroundDrawable.setAlpha((int) (255 * alphaInternal));
                     currentBackgroundDrawable.drawCached(canvas, backgroundCacheParams);
                     currentSelectedBackgroundAlpha = getHighlightAlpha();
@@ -13573,6 +13620,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         currentBackgroundSelectedDrawable.drawCached(canvas, backgroundCacheParams);
                     }
                 } else if (selectedBackgroundProgress != 0 && !(currentMessagesGroup != null && currentMessagesGroup.isDocuments)) {
+                    //选择背景进度
                     currentBackgroundDrawable.setAlpha((int) (255 * alphaInternal));
                     currentBackgroundDrawable.drawCached(canvas, backgroundCacheParams);
                     currentSelectedBackgroundAlpha = selectedBackgroundProgress;
@@ -13582,7 +13630,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         currentBackgroundShadowDrawable = null;
                     }
                 } else {
+                    //其他情况的背景
                     if (isDrawSelectionBackground() && (currentPosition == null || currentMessageObject.isMusic() || currentMessageObject.isDocument() || getBackground() != null)) {
+                        //绘制文档、音乐背景
                         if (currentPosition != null) {
                             canvas.save();
 //                            canvas.clipRect(0, 0, getMeasuredWidth(), getMeasuredHeight());
@@ -13594,16 +13644,19 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             canvas.restore();
                         }
                     } else {
+                        //核心绘制背景
                         currentSelectedBackgroundAlpha = 0;
                         currentBackgroundDrawable.setAlpha((int) (255 * alphaInternal));
                         currentBackgroundDrawable.drawCached(canvas, backgroundCacheParams);
                     }
                 }
+                //不绘制背景阴影的情况
                 if (currentBackgroundShadowDrawable != null && currentPosition == null) {
                     currentBackgroundShadowDrawable.setAlpha((int) (255 * alphaInternal));
                     currentBackgroundShadowDrawable.draw(canvas);
                 }
 
+                //绘制翻译背景
                 if (transitionParams.changePinnedBottomProgress != 1f && currentPosition == null) {
                     if (currentMessageObject.isOutOwner()) {
                         Theme.MessageDrawable drawable = (Theme.MessageDrawable) getThemedDrawable(Theme.key_drawable_msgOut);
@@ -13651,6 +13704,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
         }
+        //视频不加边框
         if (currentMessageObject != null && currentMessageObject.isRoundVideo()) {
             currentBackgroundDrawable.setRoundingRadius(0);
         }
@@ -15632,6 +15686,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return mediaBackground && captionLayout == null && (reactionsLayoutInBubble.isEmpty || reactionsLayoutInBubble.isSmall || currentMessageObject.isAnyKindOfSticker() || currentMessageObject.isRoundVideo())/* || isMedia && drawCommentButton && !isRepliesChat*/;
     }
 
+    //绘制时间以及未读已读
     public void drawTime(Canvas canvas, float alpha, boolean fromParent) {
         if (!drawFromPinchToZoom && delegate != null && delegate.getPinchToZoomHelper() != null && delegate.getPinchToZoomHelper().isInOverlayModeFor(this) && shouldDrawTimeOnMedia()) {
             return;
@@ -15650,6 +15705,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 currentAlpha *= (1f - currentSelectedBackgroundAlpha);
             }
             if (transitionParams.animateShouldDrawTimeOnMedia && transitionParams.animateChangeProgress != 1f) {
+                //针对媒体的时间绘制
                 if (shouldDrawTimeOnMedia()) {
                     overideShouldDrawTimeOnMedia = 1;
                     drawTimeInternal(canvas, currentAlpha * transitionParams.animateChangeProgress, fromParent, this.timeX, timeLayout, timeWidth, drawSelectionBackground);
@@ -15663,6 +15719,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
                 overideShouldDrawTimeOnMedia = 0;
             } else {
+                //普通情况下的时间绘制
                 float timeX;
                 float timeWidth;
                 if (transitionParams.shouldAnimateTimeX) {
@@ -15676,15 +15733,18 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         }
 
+        //与动画有关的时间绘制
         if (transitionParams.animateBackgroundBoundsInner) {
             drawOverlays(canvas);
         }
     }
 
+    //绘制时间以及未读已读
     private void drawTimeInternal(Canvas canvas, float alpha, boolean fromParent, float timeX, StaticLayout timeLayout, float timeWidth, boolean drawSelectionBackground) {
         if ((!drawTime || groupPhotoInvisible) && shouldDrawTimeOnMedia() || timeLayout == null || (currentMessageObject.deleted && currentPosition != null) || currentMessageObject.type == MessageObject.TYPE_PHONE_CALL) {
             return;
         }
+        //根据不同情况绘制时间画笔配置
         if (currentMessageObject.type == MessageObject.TYPE_ROUND_VIDEO) {
             Theme.chat_timePaint.setColor(
                 ColorUtils.blendARGB(
@@ -15755,6 +15815,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
         int timeYOffset;
         if (shouldDrawTimeOnMedia()) {
+            //针对媒体的绘制
             timeYOffset = -(drawCommentButton ? AndroidUtilities.dp(41.3f) : 0);
             Paint paint;
             if (currentMessageObject.shouldDrawWithoutBackground()) {
@@ -15868,6 +15929,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             canvas.restore();
             Theme.chat_timePaint.setAlpha(255);
         } else {
+            //普通绘制
             if (currentMessageObject.isSponsored()) {
                 timeYOffset = -AndroidUtilities.dp(48);
                 if (hasNewLineForTime) {
@@ -15924,6 +15986,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 if (currentMessageObject.isOutOwner()) {
                     drawViewsAndRepliesLayout(canvas, layoutHeight, alpha, timeYOffset, timeX, 1f, drawSelectionBackground);
                 }
+                //重新配置已读未读错误消息状态
                 transitionParams.lastStatusDrawableParams = transitionParams.createStatusDrawableParams();
 
                 if (drawClock && fromParent && getParent() != null) {
@@ -15954,12 +16017,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     Theme.chat_timePaint.setAlpha(oldAlpha);
                 }
             } else {
+                //核心绘制时间
                 canvas.translate(drawTimeX = timeTitleTimeX + additionalX, drawTimeY = layoutHeight - AndroidUtilities.dp(pinnedBottom || pinnedTop ? 7.5f : 6.5f) - timeLayout.getHeight() + timeYOffset);
                 timeLayout.draw(canvas);
             }
             canvas.restore();
         }
 
+        //绘制自己已读未读状态
         if (currentMessageObject.isOutOwner()) {
             int currentStatus = transitionParams.createStatusDrawableParams();
             if (transitionParams.lastStatusDrawableParams >= 0 && transitionParams.lastStatusDrawableParams != currentStatus && !statusDrawableAnimationInProgress) {
@@ -15990,6 +16055,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     drawStatusDrawable(canvas, drawCheck1, drawCheck2, drawClock, drawError, alpha, bigRadius, timeYOffset, layoutHeight, statusDrawableProgress, false, drawSelectionBackground);
                 }
             } else {
+                //绘制已读未读错误状态
                 drawStatusDrawable(canvas, drawCheck1, drawCheck2, drawClock, drawError, alpha, bigRadius, timeYOffset, layoutHeight, 1, false, drawSelectionBackground);
             }
             if (needRestore) {
@@ -16002,6 +16068,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
         canvas.restore();
 
+        //多媒体预览相关未锁内容绘制
         if (unlockLayout != null) {
             if (unlockX == 0 || unlockY == 0) {
                 calculateUnlockXY();
@@ -16409,6 +16476,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
+    //绘制已读未读消息状态
     private void drawStatusDrawable(Canvas canvas, boolean drawCheck1, boolean drawCheck2, boolean drawClock, boolean drawError, float alpha, boolean bigRadius, float timeYOffset, float layoutHeight, float progress, boolean moveCheck, boolean drawSelectionBackground) {
         final boolean useScale = progress != 1f && !moveCheck;
         float scale = 0.5f + 0.5f * progress;
@@ -16453,6 +16521,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
             invalidate();
         }
+        //绘制已发送
         if (drawCheck2) {
             if (shouldDrawTimeOnMedia()) {
                 Drawable drawable;
@@ -16524,6 +16593,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 drawable.setAlpha(255);
             }
         }
+        //绘制已读
         if (drawCheck1) {
             if (shouldDrawTimeOnMedia()) {
                 Drawable drawable = currentMessageObject.shouldDrawWithoutBackground() ? getThemedDrawable(Theme.key_drawable_msgStickerHalfCheck) : Theme.chat_msgMediaHalfCheckDrawable;
@@ -16553,6 +16623,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 drawable.setAlpha(255);
             }
         }
+
+        //绘制发送错误
         if (drawError) {
             int x;
             float y;

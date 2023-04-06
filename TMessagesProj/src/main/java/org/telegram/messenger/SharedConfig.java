@@ -20,9 +20,6 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.webkit.WebView;
 
-import androidx.annotation.IntDef;
-import androidx.core.content.pm.ShortcutManagerCompat;
-
 import org.json.JSONObject;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
@@ -42,6 +39,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
+import androidx.annotation.IntDef;
+import androidx.core.content.pm.ShortcutManagerCompat;
+
+//存储配置类
 public class SharedConfig {
     /**
      * V2: Ping and check time serialized

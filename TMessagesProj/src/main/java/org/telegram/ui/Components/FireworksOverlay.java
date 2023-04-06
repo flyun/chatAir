@@ -21,6 +21,7 @@ import org.telegram.messenger.Utilities;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+//全屏动画特效
 public class FireworksOverlay extends View {
 
     private static Paint[] paint;

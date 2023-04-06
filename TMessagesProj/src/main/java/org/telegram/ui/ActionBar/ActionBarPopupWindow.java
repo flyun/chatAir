@@ -33,24 +33,23 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ScrollView;
 
-import androidx.annotation.Keep;
-import androidx.annotation.Nullable;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.Paint.Views.LPhotoPaintView;
 import org.telegram.ui.Components.PopupSwipeBackLayout;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
 
+import androidx.annotation.Keep;
+import androidx.annotation.Nullable;
+
+//核心ActionBar通过PopupWindow弹出列表弹窗实现类，也是聊天弹窗实现基类
 public class ActionBarPopupWindow extends PopupWindow {
 
     private static Method layoutInScreenMethod;

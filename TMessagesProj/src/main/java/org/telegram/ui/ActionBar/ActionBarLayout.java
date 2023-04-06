@@ -40,10 +40,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 
-import androidx.annotation.Keep;
-import androidx.core.graphics.ColorUtils;
-import androidx.core.math.MathUtils;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
@@ -63,6 +59,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import androidx.annotation.Keep;
+import androidx.core.graphics.ColorUtils;
+import androidx.core.math.MathUtils;
+
+//ActionBar主要实现布局
 public class ActionBarLayout extends FrameLayout implements INavigationLayout, FloatingDebugProvider {
 
     public boolean highlightActionButtons = false;

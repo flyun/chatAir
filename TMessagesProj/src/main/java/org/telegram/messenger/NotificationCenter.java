@@ -12,31 +12,32 @@ import android.os.SystemClock;
 import android.util.SparseArray;
 import android.view.View;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
+
+//消息中心
 public class NotificationCenter {
 
     private final static long EXPIRE_NOTIFICATIONS_TIME = 5017;
     private static int totalEvents = 1;
 
-    public static final int didReceiveNewMessages = totalEvents++;
+    public static final int didReceiveNewMessages = totalEvents++;//接受新消息
     public static final int updateInterfaces = totalEvents++;
     public static final int dialogsNeedReload = totalEvents++;
-    public static final int closeChats = totalEvents++;
+    public static final int closeChats = totalEvents++;//关闭聊天
     public static final int messagesDeleted = totalEvents++;
     public static final int historyCleared = totalEvents++;
     public static final int messagesRead = totalEvents++;
     public static final int threadMessagesRead = totalEvents++;
     public static final int commentsRead = totalEvents++;
     public static final int changeRepliesCounter = totalEvents++;
-    public static final int messagesDidLoad = totalEvents++;
+    public static final int messagesDidLoad = totalEvents++;//接收数据库中的消息
     public static final int didLoadSponsoredMessages = totalEvents++;
     public static final int didLoadSendAsPeers = totalEvents++;
     public static final int updateDefaultSendAsPeer = totalEvents++;

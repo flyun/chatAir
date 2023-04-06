@@ -26,8 +26,6 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import androidx.core.content.ContextCompat;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ChatObject;
@@ -55,6 +53,9 @@ import org.telegram.ui.TopicsFragment;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import androidx.core.content.ContextCompat;
+
+//actionBar中间显示UI
 public class ChatAvatarContainer extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
     private BackupImageView avatarImageView;
@@ -691,6 +692,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         updateSubtitle(false);
     }
 
+    //更新副标题
     public void updateSubtitle(boolean animated) {
         if (parentFragment == null) {
             return;

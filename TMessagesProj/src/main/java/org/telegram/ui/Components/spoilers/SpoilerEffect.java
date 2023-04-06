@@ -31,12 +31,6 @@ import android.text.style.URLSpan;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.graphics.ColorUtils;
-import androidx.core.math.MathUtils;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.LiteMode;
@@ -53,6 +47,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
+
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.graphics.ColorUtils;
+import androidx.core.math.MathUtils;
 
 public class SpoilerEffect extends Drawable {
     public final static int MAX_PARTICLES_PER_ENTITY = measureMaxParticlesCount();
@@ -657,6 +657,7 @@ public class SpoilerEffect extends Drawable {
     @MainThread
     public static void renderWithRipple(View v, boolean invalidateSpoilersParent, int spoilersColor, int verticalOffset, AtomicReference<Layout> patchedLayoutRef, Layout textLayout, List<SpoilerEffect> spoilers, Canvas canvas, boolean useParentWidth) {
         if (spoilers.isEmpty()) {
+            //核心文字绘制
             textLayout.draw(canvas);
             return;
         }
@@ -706,9 +707,11 @@ public class SpoilerEffect extends Drawable {
         if (!spoilers.isEmpty()) {
             canvas.save();
             canvas.translate(0, verticalOffset);
+            //遮蔽文字绘制层
             pl.draw(canvas);
             canvas.restore();
         } else {
+            //核心文字绘制
             textLayout.draw(canvas);
         }
 

@@ -84,6 +84,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
 
+//日期显示类，以及其他事件触发类
 public class ChatActionCell extends BaseCell implements DownloadController.FileDownloadProgressListener, NotificationCenter.NotificationCenterDelegate {
     private final static boolean USE_PREMIUM_GIFT_LOCAL_STICKER = false;
     private final static boolean USE_PREMIUM_GIFT_MONTHS_AS_EMOJI_NUMBERS = false;
@@ -386,6 +387,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
         overrideText = text;
     }
 
+    //接收聊天实体类
     public void setMessageObject(MessageObject messageObject) {
         setMessageObject(messageObject, false);
     }
@@ -1088,6 +1090,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             }
         }
 
+        //绘制日期事件背景
         drawBackground(canvas, false);
 
         if (isButtonLayout(messageObject) || (messageObject != null && messageObject.type == MessageObject.TYPE_ACTION_PHOTO)) {

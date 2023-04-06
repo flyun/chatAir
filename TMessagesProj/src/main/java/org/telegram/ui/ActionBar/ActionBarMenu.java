@@ -14,13 +14,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import androidx.annotation.Nullable;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.Adapters.FiltersView;
 import org.telegram.ui.Components.RLottieDrawable;
 
 import java.util.ArrayList;
+
+import androidx.annotation.Nullable;
 
 public class ActionBarMenu extends LinearLayout {
 
@@ -129,6 +129,7 @@ public class ActionBarMenu extends LinearLayout {
             addView(menuItem, index, new LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT));
         }
         menuItem.setOnClickListener(view -> {
+            //触发action点击事件
             ActionBarMenuItem item = (ActionBarMenuItem) view;
             if (item.hasSubMenu()) {
                 if (parentActionBar.actionBarMenuOnItemClick.canOpenMenu()) {

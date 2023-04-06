@@ -8,9 +8,6 @@
 
 package org.telegram.ui.ActionBar;
 
-import static org.telegram.messenger.AndroidUtilities.dp;
-import static org.telegram.messenger.AndroidUtilities.dpf2;
-
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -66,13 +63,6 @@ import android.util.SparseArray;
 import android.util.StateSet;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
-import androidx.core.graphics.ColorUtils;
-import androidx.core.math.MathUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -142,6 +132,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
+import androidx.core.graphics.ColorUtils;
+import androidx.core.math.MathUtils;
+
+import static org.telegram.messenger.AndroidUtilities.dp;
+import static org.telegram.messenger.AndroidUtilities.dpf2;
+
+//基本主题类
 public class Theme {
 
     public static final String DEFAULT_BACKGROUND_SLUG = "d";
@@ -303,6 +303,7 @@ public class Theme {
             setTop(top, backgroundWidth, backgroundHeight, backgroundHeight, 0, 0, topNear, bottomNear);
         }
 
+        //设置背景状态
         public void setTop(int top, int backgroundWidth, int backgroundHeight, int heightOffset, int blurredViewTopOffset, int blurredViewBottomOffset, boolean topNear, boolean bottomNear) {
             if (crossfadeFromDrawable != null) {
                 crossfadeFromDrawable.setTop(top, backgroundWidth, backgroundHeight, heightOffset, blurredViewTopOffset, blurredViewBottomOffset, topNear, bottomNear);
@@ -412,6 +413,8 @@ public class Theme {
                     gradientShader = null;
                     paint.setShader(null);
                 }
+                //设置背景颜色
+                color = getColor(key_chat_outBubble);
                 paint.setColor(color);
             }
             if (gradientShader instanceof BitmapShader) {
@@ -4325,18 +4328,24 @@ public class Theme {
         defaultColors.put(key_chat_outGreenCall, 0xff00c853);
         defaultColors.put(key_chat_lockIcon, 0xffffffff);
         defaultColors.put(key_chat_muteIcon, 0xffb1cce3);
+        //左边气泡颜色
         defaultColors.put(key_chat_inBubble, 0xffffffff);
+        //左边气泡选中颜色
         defaultColors.put(key_chat_inBubbleSelected, 0xffecf7fd);
         defaultColors.put(key_chat_inBubbleShadow, 0xff1d3753);
+        //右边气泡颜色
         defaultColors.put(key_chat_outBubble, 0xffefffde);
         defaultColors.put(key_chat_outBubbleGradientSelectedOverlay, 0x14000000);
+        //右边气泡选中颜色
         defaultColors.put(key_chat_outBubbleSelected, 0xffd9f7c5);
         defaultColors.put(key_chat_outBubbleShadow, 0xff1e750c);
         defaultColors.put(key_chat_inMediaIcon, 0xffffffff);
         defaultColors.put(key_chat_inMediaIconSelected, 0xffeff8fe);
         defaultColors.put(key_chat_outMediaIcon, 0xffefffde);
         defaultColors.put(key_chat_outMediaIconSelected, 0xffe1f8cf);
+        //左边气泡文字颜色
         defaultColors.put(key_chat_messageTextIn, 0xff000000);
+        //右边气泡文字颜色
         defaultColors.put(key_chat_messageTextOut, 0xff000000);
         defaultColors.put(key_chat_messageLinkIn, 0xff2678b6);
         defaultColors.put(key_chat_messageLinkOut, 0xff2678b6);
