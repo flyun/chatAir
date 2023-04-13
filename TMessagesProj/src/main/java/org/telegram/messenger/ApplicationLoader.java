@@ -143,7 +143,7 @@ public class ApplicationLoader extends Application {
             FileLog.e(e);
         }
         //核心，修改默认数据库地址
-        return new File("/data/data/org.telegram.messenger/files");
+        return new File("/data/data/info.flyun.chatair/files");
     }
 
     public static void postInitApplication() {
