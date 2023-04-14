@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.ui.Components.Paint.PersistColorPalette;
 
+//多用户类，用于定义其他类的配置
 public class AccountInstance {
 
     private int currentAccount;

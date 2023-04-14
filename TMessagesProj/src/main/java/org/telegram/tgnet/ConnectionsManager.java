@@ -59,6 +59,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
 
+//网络连接类
 public class ConnectionsManager extends BaseController {
 
     public final static int ConnectionTypeGeneric = 1;
@@ -123,13 +124,19 @@ public class ConnectionsManager extends BaseController {
 
     private boolean forceTryIpV6;
 
+    //屏蔽思路：使用return屏蔽公共方法，涉及具体调用时用到，则手动注释
+    private static final boolean CLOSE = true;
+
+    //定义线程池
     static {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_SECONDS, TimeUnit.SECONDS, sPoolWorkQueue, sThreadFactory);
         threadPoolExecutor.allowCoreThreadTimeOut(true);
         DNS_THREAD_POOL_EXECUTOR = threadPoolExecutor;
     }
 
+    //设置强制使用ipv6
     public void setForceTryIpV6(boolean forceTryIpV6) {
+        if (CLOSE) return;
         if (this.forceTryIpV6 != forceTryIpV6) {
             this.forceTryIpV6 = forceTryIpV6;
             checkConnection();
@@ -171,6 +178,7 @@ public class ConnectionsManager extends BaseController {
 
     public ConnectionsManager(int instance) {
         super(instance);
+        if (CLOSE) return;
         connectionState = native_getConnectionState(currentAccount);
         String deviceModel;
         String systemLangCode;
@@ -230,6 +238,7 @@ public class ConnectionsManager extends BaseController {
         init(BuildVars.BUILD_VERSION, TLRPC.LAYER, BuildVars.APP_ID, deviceModel, systemVersion, appVersion, langCode, systemLangCode, configPath, FileLog.getNetworkLogPath(), pushString, fingerprint, timezoneOffset, getUserConfig().getClientUserId(), enablePushConnection);
     }
 
+    //获得推送地址
     private String getRegId() {
         String pushString = SharedConfig.pushString;
         if (!TextUtils.isEmpty(pushString) && SharedConfig.pushType == PushListenerController.PUSH_TYPE_HUAWEI) {
@@ -245,7 +254,9 @@ public class ConnectionsManager extends BaseController {
         return pushString;
     }
 
+    //是否推送已经连接
     public boolean isPushConnectionEnabled() {
+        if (CLOSE) return false;
         SharedPreferences preferences = MessagesController.getGlobalNotificationsSettings();
         if (preferences.contains("pushConnection")) {
             return preferences.getBoolean("pushConnection", true);
@@ -255,18 +266,22 @@ public class ConnectionsManager extends BaseController {
     }
 
     public long getCurrentTimeMillis() {
+        if (CLOSE) return 0;
         return native_getCurrentTimeMillis(currentAccount);
     }
 
     public int getCurrentTime() {
+        if (CLOSE) return 0;
         return native_getCurrentTime(currentAccount);
     }
 
     public int getCurrentDatacenterId() {
+        if (CLOSE) return 0;
         return native_getCurrentDatacenterId(currentAccount);
     }
 
     public int getTimeDifference() {
+        if (CLOSE) return 0;
         return native_getTimeDifference(currentAccount);
     }
 
@@ -295,12 +310,14 @@ public class ConnectionsManager extends BaseController {
     }
 
     public int sendRequestSync(final TLObject object, final RequestDelegate onComplete, final QuickAckDelegate onQuickAck, final WriteToSocketDelegate onWriteToSocket, final int flags, final int datacenterId, final int connetionType, final boolean immediate) {
+        if (CLOSE) return 0;
         final int requestToken = lastRequestToken.getAndIncrement();
         sendRequestInternal(object, onComplete, null, onQuickAck, onWriteToSocket, flags, datacenterId, connetionType, immediate, requestToken);
         return requestToken;
     }
 
     public int sendRequest(final TLObject object, final RequestDelegate onComplete, final RequestDelegateTimestamp onCompleteTimestamp, final QuickAckDelegate onQuickAck, final WriteToSocketDelegate onWriteToSocket, final int flags, final int datacenterId, final int connetionType, final boolean immediate) {
+        if (CLOSE) return 0;
         final int requestToken = lastRequestToken.getAndIncrement();
         Utilities.stageQueue.postRunnable(() -> {
             sendRequestInternal(object, onComplete, onCompleteTimestamp, onQuickAck, onWriteToSocket, flags, datacenterId, connetionType, immediate, requestToken);
@@ -308,7 +325,9 @@ public class ConnectionsManager extends BaseController {
         return requestToken;
     }
 
+    //最终发送请求
     private void sendRequestInternal(TLObject object, RequestDelegate onComplete, RequestDelegateTimestamp onCompleteTimestamp, QuickAckDelegate onQuickAck, WriteToSocketDelegate onWriteToSocket, int flags, int datacenterId, int connetionType, boolean immediate, int requestToken) {
+        if (CLOSE) return;
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("send request " + object + " with token = " + requestToken);
         }
@@ -383,31 +402,39 @@ public class ConnectionsManager extends BaseController {
         }
     }
 
+    //取消请求
     public void cancelRequest(int token, boolean notifyServer) {
+        if (CLOSE) return;
         Utilities.stageQueue.postRunnable(() -> {
             native_cancelRequest(currentAccount, token, notifyServer);
         });
     }
 
+    //清理
     public void cleanup(boolean resetKeys) {
+        if (CLOSE) return;
         native_cleanUp(currentAccount, resetKeys);
     }
 
     public void cancelRequestsForGuid(int guid) {
+        if (CLOSE) return;
         Utilities.stageQueue.postRunnable(() -> {
             native_cancelRequestsForGuid(currentAccount, guid);
         });
     }
 
     public void bindRequestToGuid(int requestToken, int guid) {
+        if (CLOSE) return;
         native_bindRequestToGuid(currentAccount, requestToken, guid);
     }
 
     public void applyDatacenterAddress(int datacenterId, String ipAddress, int port) {
+        if (CLOSE) return;
         native_applyDatacenterAddress(currentAccount, datacenterId, ipAddress, port);
     }
 
     public int getConnectionState() {
+        if (CLOSE) return 0;
         if (connectionState == ConnectionStateConnected && isUpdating) {
             return ConnectionStateUpdating;
         }
@@ -415,19 +442,25 @@ public class ConnectionsManager extends BaseController {
     }
 
     public void setUserId(long id) {
+        if (CLOSE) return;
         native_setUserId(currentAccount, id);
     }
 
+    //检查网络连接
     public void checkConnection() {
+        if (CLOSE) return;
         native_setIpStrategy(currentAccount, getIpStrategy());
         native_setNetworkAvailable(currentAccount, ApplicationLoader.isNetworkOnline(), ApplicationLoader.getCurrentNetworkType(), ApplicationLoader.isConnectionSlow());
     }
 
     public void setPushConnectionEnabled(boolean value) {
+        if (CLOSE) return;
         native_setPushConnectionEnabled(currentAccount, value);
     }
 
+    //配置网络初始化
     public void init(int version, int layer, int apiId, String deviceModel, String systemVersion, String appVersion, String langCode, String systemLangCode, String configPath, String logPath, String regId, String cFingerprint, int timezoneOffset, long userId, boolean enablePushConnection) {
+        if (CLOSE) return;
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
         String proxyAddress = preferences.getString("proxy_ip", "");
         String proxyUsername = preferences.getString("proxy_user", "");
@@ -461,7 +494,9 @@ public class ConnectionsManager extends BaseController {
         checkConnection();
     }
 
+    //设置语言类型
     public static void setLangCode(String langCode) {
+        if (CLOSE) return;
         langCode = langCode.replace('_', '-').toLowerCase();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             native_setLangCode(a, langCode);
@@ -469,6 +504,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void setRegId(String regId, @PushListenerController.PushType int type, String status) {
+        if (CLOSE) return;
         String pushString = regId;
         if (!TextUtils.isEmpty(pushString) && type == PushListenerController.PUSH_TYPE_HUAWEI) {
             pushString = "huawei://" + pushString;
@@ -486,6 +522,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void setSystemLangCode(String langCode) {
+        if (CLOSE) return;
         langCode = langCode.replace('_', '-').toLowerCase();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             native_setSystemLangCode(a, langCode);
@@ -493,28 +530,34 @@ public class ConnectionsManager extends BaseController {
     }
 
     public void switchBackend(boolean restart) {
+        if (CLOSE) return;
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         preferences.edit().remove("language_showed2").commit();
         native_switchBackend(currentAccount, restart);
     }
 
     public boolean isTestBackend() {
+        if (CLOSE) return false;
         return native_isTestBackend(currentAccount) != 0;
     }
 
     public void resumeNetworkMaybe() {
+        if (CLOSE) return;
         native_resumeNetwork(currentAccount, true);
     }
 
     public void updateDcSettings() {
+        if (CLOSE) return;
         native_updateDcSettings(currentAccount);
     }
 
     public long getPauseTime() {
+        if (CLOSE) return 0;
         return lastPauseTime;
     }
 
     public long checkProxy(String address, int port, String username, String password, String secret, RequestTimeDelegate requestTimeDelegate) {
+        if (CLOSE) return 0;
         if (TextUtils.isEmpty(address)) {
             return 0;
         }
@@ -533,7 +576,9 @@ public class ConnectionsManager extends BaseController {
         return native_checkProxy(currentAccount, address, port, username, password, secret, requestTimeDelegate);
     }
 
+    //设置暂时和恢复网络连接
     public void setAppPaused(final boolean value, final boolean byScreenState) {
+        if (CLOSE) return;
         if (!byScreenState) {
             appPaused = value;
             if (BuildVars.LOGS_ENABLED) {
@@ -572,6 +617,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void onUnparsedMessageReceived(long address, final int currentAccount, long messageId) {
+        if (CLOSE) return;
         try {
             NativeByteBuffer buff = NativeByteBuffer.wrap(address);
             buff.reused = true;
@@ -595,14 +641,17 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void onUpdate(final int currentAccount) {
+        if (CLOSE) return;
         Utilities.stageQueue.postRunnable(() -> AccountInstance.getInstance(currentAccount).getMessagesController().updateTimerProc());
     }
 
     public static void onSessionCreated(final int currentAccount) {
+        if (CLOSE) return;
         Utilities.stageQueue.postRunnable(() -> AccountInstance.getInstance(currentAccount).getMessagesController().getDifference());
     }
 
     public static void onConnectionStateChanged(final int state, final int currentAccount) {
+        if (CLOSE) return;
         AndroidUtilities.runOnUIThread(() -> {
             getInstance(currentAccount).connectionState = state;
             AccountInstance.getInstance(currentAccount).getNotificationCenter().postNotificationName(NotificationCenter.didUpdateConnectionState);
@@ -610,6 +659,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void onLogout(final int currentAccount) {
+        if (CLOSE) return;
         AndroidUtilities.runOnUIThread(() -> {
             AccountInstance accountInstance = AccountInstance.getInstance(currentAccount);
             if (accountInstance.getUserConfig().getClientUserId() != 0) {
@@ -620,6 +670,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static int getInitFlags() {
+        if (CLOSE) return 0;
         int flags = 0;
         EmuDetector detector = EmuDetector.with(ApplicationLoader.applicationContext);
         if (detector.detect()) {
@@ -632,6 +683,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void onBytesSent(int amount, int networkType, final int currentAccount) {
+        if (CLOSE) return;
         try {
             AccountInstance.getInstance(currentAccount).getStatsController().incrementSentBytesCount(networkType, StatsController.TYPE_TOTAL, amount);
         } catch (Exception e) {
@@ -639,7 +691,9 @@ public class ConnectionsManager extends BaseController {
         }
     }
 
+    //native使用的
     public static void onRequestNewServerIpAndPort(final int second, final int currentAccount) {
+        if (CLOSE) return;
         Utilities.globalQueue.postRunnable(() -> {
             boolean networkOnline = ApplicationLoader.isNetworkOnline();
             Utilities.stageQueue.postRunnable(() -> {
@@ -684,10 +738,12 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void onProxyError() {
+        if (CLOSE) return;
         AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needShowAlert, 3));
     }
 
     public static void getHostByName(String hostName, long address) {
+        if (CLOSE) return;
         AndroidUtilities.runOnUIThread(() -> {
             ResolvedDomain resolvedDomain = dnsCache.get(hostName);
             if (resolvedDomain != null && SystemClock.elapsedRealtime() - resolvedDomain.ttl < 5 * 60 * 1000) {
@@ -711,6 +767,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void onBytesReceived(int amount, int networkType, final int currentAccount) {
+        if (CLOSE) return;
         try {
             StatsController.getInstance(currentAccount).incrementReceivedBytesCount(networkType, StatsController.TYPE_TOTAL, amount);
         } catch (Exception e) {
@@ -719,6 +776,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void onUpdateConfig(long address, final int currentAccount) {
+        if (CLOSE) return;
         try {
             NativeByteBuffer buff = NativeByteBuffer.wrap(address);
             buff.reused = true;
@@ -732,10 +790,12 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void onInternalPushReceived(final int currentAccount) {
+        if (CLOSE) return;
         KeepAliveJob.startJob();
     }
 
     public static void setProxySettings(boolean enabled, String address, int port, String username, String password, String secret) {
+        if (CLOSE) return;
         if (address == null) {
             address = "";
         }
@@ -794,10 +854,12 @@ public class ConnectionsManager extends BaseController {
     public static native void native_onHostNameResolved(String host, long address, String ip);
 
     public static int generateClassGuid() {
+        if (CLOSE) return 0;
         return lastClassGuid++;
     }
 
     public void setIsUpdating(final boolean value) {
+        if (CLOSE) return;
         AndroidUtilities.runOnUIThread(() -> {
             if (isUpdating == value) {
                 return;
@@ -811,6 +873,7 @@ public class ConnectionsManager extends BaseController {
 
     @SuppressLint("NewApi")
     protected byte getIpStrategy() {
+        if (CLOSE) return 0;
         if (Build.VERSION.SDK_INT < 19) {
             return USE_IPV4_ONLY;
         }
@@ -893,6 +956,7 @@ public class ConnectionsManager extends BaseController {
         return USE_IPV4_ONLY;
     }
 
+    //利用谷歌查询DNS
     private static class ResolveHostByNameTask extends AsyncTask<Void, Void, ResolvedDomain> {
 
         private ArrayList<Long> addresses = new ArrayList<>();
