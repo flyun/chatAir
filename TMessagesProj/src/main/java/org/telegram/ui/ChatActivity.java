@@ -959,6 +959,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int OPTION_TRANSCRIBE = 30;
     private final static int OPTION_HIDE_SPONSORED_MESSAGE = 31;
     private final static int OPTION_VIEW_IN_TOPIC = 32;
+    private final static int OPTION_SHARE_CHAT = 51;
     private final static int OPTION_SEND_NOW = 100;
     private final static int OPTION_EDIT_SCHEDULE_TIME = 102;
     private final static int OPTION_SPEED_PROMO = 103;
@@ -1452,6 +1453,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         @Override
         public boolean hasDoubleTap(View view, int position) {
             //双击触发点赞表情
+            if (BuildVars.IS_CHAT_AIR) return true;
             String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
             TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
             if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
@@ -1476,6 +1478,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             ChatMessageCell cell = (ChatMessageCell) view;
             MessageObject primaryMessage = cell.getPrimaryMessageObject();
+
+            if (BuildVars.IS_CHAT_AIR && primaryMessage != null) {
+                //执行复制
+                AndroidUtilities.addToClipboard(getMessageContent(primaryMessage, 0, false));
+                //创造复制成功提示
+                createUndoView();
+                if (undoView == null) {
+                    return;
+                }
+                //显示复制成功提示
+                undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                return;
+            }
+
             if (primaryMessage.isSecretMedia()) {
                 return;
             }
@@ -23529,7 +23545,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 icons.add(R.drawable.msg_fave);
                             }
                         }
-                        if (allowChatActions) {
+                        if (allowChatActions && !BuildVars.IS_CHAT_AIR) {
                             items.add(LocaleController.getString("Reply", R.string.Reply));
                             options.add(OPTION_REPLY);
                             icons.add(R.drawable.msg_reply);
@@ -23557,6 +23573,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             items.add(LocaleController.getString("ViewInTopic", R.string.ViewInTopic));
                             options.add(OPTION_VIEW_IN_TOPIC);
                             icons.add(R.drawable.msg_viewintopic);
+                        }
+
+                        if (BuildVars.IS_CHAT_AIR) {
+                            items.add(LocaleController.getString("ShareFile", R.string.ShareFile));
+                            options.add(OPTION_SHARE_CHAT);
+                            icons.add(R.drawable.msg_shareout);
                         }
                         if (type == 2) {
                             if (chatMode != MODE_SCHEDULED) {
@@ -23587,7 +23609,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                     icons.add(R.drawable.msg_download);
                                 }
                             }
-                        } else if (type == 3 && !noforwards) {
+                        } else if (type == 3 && !noforwards && !BuildVars.IS_CHAT_AIR) {
+                            //默认聊天type为3
                             if (selectedObject.messageOwner.media instanceof TLRPC.TL_messageMediaWebPage && MessageObject.isNewGifDocument(selectedObject.messageOwner.media.webpage.document)) {
                                 items.add(LocaleController.getString("SaveToGIFs", R.string.SaveToGIFs));
                                 options.add(OPTION_ADD_TO_GIFS);
@@ -23722,9 +23745,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 icons.add(R.drawable.msg_unfave);
                             }
                         }
+                        //添加通用点击选项
                         if (!selectedObject.isSponsored() && chatMode != MODE_SCHEDULED && (!selectedObject.needDrawBluredPreview() || selectedObject.hasExtendedMediaPreview()) &&
                                 !selectedObject.isLiveLocation() && selectedObject.type != MessageObject.TYPE_PHONE_CALL && !noforwards &&
-                                selectedObject.type != MessageObject.TYPE_GIFT_PREMIUM && selectedObject.type != MessageObject.TYPE_SUGGEST_PHOTO) {
+                                selectedObject.type != MessageObject.TYPE_GIFT_PREMIUM && selectedObject.type != MessageObject.TYPE_SUGGEST_PHOTO && !BuildVars.IS_CHAT_AIR) {
                             items.add(LocaleController.getString("Forward", R.string.Forward));
                             options.add(OPTION_FORWARD);
                             icons.add(R.drawable.msg_forward);
@@ -23733,7 +23757,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             items.add(LocaleController.getString("UnpinMessage", R.string.UnpinMessage));
                             options.add(OPTION_UNPIN);
                             icons.add(R.drawable.msg_unpin);
-                        } else if (allowPin) {
+                        } else if (allowPin && !BuildVars.IS_CHAT_AIR) {
                             items.add(LocaleController.getString("PinMessage", R.string.PinMessage));
                             options.add(OPTION_PIN);
                             icons.add(R.drawable.msg_pin);
@@ -23743,7 +23767,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             options.add(OPTION_TRANSLATE);
                             icons.add(R.drawable.msg_translate);
                         }
-                        if (allowEdit) {
+                        if (allowEdit && !BuildVars.IS_CHAT_AIR) {
                             items.add(LocaleController.getString("Edit", R.string.Edit));
                             options.add(OPTION_EDIT);
                             icons.add(R.drawable.msg_edit);
@@ -23885,12 +23909,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (message.isForwardedChannelPost()) {
                 TLRPC.ChatFull chatInfo = getMessagesController().getChatFull(-message.getFromChatId());
                 if (chatInfo == null) {
-                    isReactionsAvailable = true;
+                    isReactionsAvailable = true && !BuildVars.IS_CHAT_AIR;
                 } else {
-                    isReactionsAvailable = !isSecretChat() && !isInScheduleMode() && message.isReactionsAvailable() && (chatInfo != null && !(chatInfo.available_reactions instanceof TLRPC.TL_chatReactionsNone)) && !availableReacts.isEmpty();
+                    isReactionsAvailable = !isSecretChat() && !isInScheduleMode() && message.isReactionsAvailable() && (chatInfo != null && !(chatInfo.available_reactions instanceof TLRPC.TL_chatReactionsNone)) && !availableReacts.isEmpty() && !BuildVars.IS_CHAT_AIR;
                 }
             } else {
-                isReactionsAvailable = !message.isSecretMedia() && !isSecretChat() && !isInScheduleMode() && message.isReactionsAvailable() && (chatInfo != null && !(chatInfo.available_reactions instanceof TLRPC.TL_chatReactionsNone) || (chatInfo == null && !ChatObject.isChannel(currentChat)) || currentUser != null) && !availableReacts.isEmpty();
+                isReactionsAvailable = !message.isSecretMedia() && !isSecretChat() && !isInScheduleMode() && message.isReactionsAvailable() && (chatInfo != null && !(chatInfo.available_reactions instanceof TLRPC.TL_chatReactionsNone) || (chatInfo == null && !ChatObject.isChannel(currentChat)) || currentUser != null) && !availableReacts.isEmpty() && !BuildVars.IS_CHAT_AIR;
             }
             boolean showMessageSeen = !isReactionsViewAvailable && !isInScheduleMode() && currentChat != null && message.isOutOwner() && message.isSent() && !message.isEditing() && !message.isSending() && !message.isSendError() && !message.isContentUnread() && !message.isUnread() && (ConnectionsManager.getInstance(currentAccount).getCurrentTime() - message.messageOwner.date < getMessagesController().chatReadMarkExpirePeriod)  && (ChatObject.isMegagroup(currentChat) || !ChatObject.isChannel(currentChat)) && !ChatObject.isForum(currentChat) && chatInfo != null && chatInfo.participants_count <= getMessagesController().chatReadMarkSizeThreshold && !(message.messageOwner.action instanceof TLRPC.TL_messageActionChatJoinedByRequest) && (v instanceof ChatMessageCell);
             boolean showSponsorInfo = selectedObject != null && selectedObject.isSponsored() && (selectedObject.sponsoredInfo != null || selectedObject.sponsoredAdditionalInfo != null);
@@ -25464,6 +25488,19 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 //显示复制成功提示
                 undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                break;
+            }
+            case OPTION_SHARE_CHAT: {
+                //分享
+                try {
+                    Intent intent = new Intent(Intent.ACTION_SEND);
+                    intent.setType("text/plain");
+                    String text = getMessageContent(selectedObject, 0, false).toString();
+                    intent.putExtra(Intent.EXTRA_TEXT, text);
+                    getParentActivity().startActivityForResult(Intent.createChooser(intent, text), 500);
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
                 break;
             }
             case OPTION_SAVE_TO_GALLERY: {

@@ -389,6 +389,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
+    //点击事件回调
     public interface ChatMessageCellDelegate {
         default boolean isReplyOrSelf() {
             return false;
