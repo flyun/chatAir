@@ -3175,7 +3175,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             searchItemVisible = false;
         }
 
-        if (chatMode == 0 && (threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(currentUser) && reportType < 0) {
+        //电话功能
+        if (chatMode == 0 && (threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(currentUser) && reportType < 0 && !BuildVars.IS_CHAT_AIR) {
             TLRPC.UserFull userFull = null;
             if (currentUser != null) {
                 audioCallIconItem = menu.lazilyAddItem(call, R.drawable.ic_call, themeDelegate);
@@ -3207,7 +3208,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             headerItem = menu.addItem(chat_menu_options, R.drawable.ic_ab_other, themeDelegate);
             headerItem.setContentDescription(LocaleController.getString("AccDescrMoreOptions", R.string.AccDescrMoreOptions));
 
-            if (currentUser == null || !currentUser.self) {
+            //静音图标
+            if (currentUser == null || !currentUser.self && !BuildVars.IS_CHAT_AIR) {
                 chatNotificationsPopupWrapper = new ChatNotificationsPopupWrapper(context, currentAccount, headerItem.getPopupLayout().getSwipeBack(), false, false, new ChatNotificationsPopupWrapper.Callback() {
                     @Override
                     public void dismiss() {
@@ -22046,7 +22048,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 Theme.setSelectorDrawableColor(addToContactsButton.getBackground(), getThemedColor(Theme.key_chat_addContact) & 0x19ffffff, true);
             }
             reportSpamButton.setTag(Theme.key_chat_addContact);
-        } else if (user != null) {
+        } else if (user != null && !BuildVars.IS_CHAT_AIR) {
+            //用户相关的操作
             if (UserObject.isReplyUser(user)) {
                 if (addToContactsButton != null) {
                     addToContactsButton.setVisibility(View.GONE);
