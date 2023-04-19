@@ -1743,6 +1743,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         @Override
         public void onTextChanged(final CharSequence text, boolean bigChange) {
             MediaController.getInstance().setInputFieldHasText(!TextUtils.isEmpty(text) || chatActivityEnterView.isEditingMessage());
+
+            if (BuildVars.IS_CHAT_AIR) return;
             if (mentionContainer != null && mentionContainer.getAdapter() != null) {
                 mentionContainer.getAdapter().searchUsernameOrHashtag(text, chatActivityEnterView.getCursorPosition(), messages, false, false);
             }
@@ -1774,6 +1776,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         @Override
         public void onTextSpansChanged(CharSequence text) {
+            if (BuildVars.IS_CHAT_AIR) return;
             searchLinks(text, true);
         }
 
@@ -1851,12 +1854,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         public void onWindowSizeChanged(int size) {
             if (size < AndroidUtilities.dp(72) + ActionBar.getCurrentActionBarHeight()) {
                 allowStickersPanel = false;
-                if (suggestEmojiPanel.getVisibility() == View.VISIBLE) {
+                if (suggestEmojiPanel.getVisibility() == View.VISIBLE && !BuildVars.IS_CHAT_AIR) {
                     suggestEmojiPanel.setVisibility(View.INVISIBLE);
                 }
             } else {
                 allowStickersPanel = true;
-                if (suggestEmojiPanel.getVisibility() == View.INVISIBLE) {
+                if (suggestEmojiPanel.getVisibility() == View.INVISIBLE && !BuildVars.IS_CHAT_AIR) {
                     suggestEmojiPanel.setVisibility(View.VISIBLE);
                 }
             }
@@ -1938,7 +1941,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (mentionContainer != null) {
                 mentionContainer.animate().alpha(chatActivityEnterView.isStickersExpanded() ? 0 : 1f).setInterpolator(CubicBezierInterpolator.DEFAULT).start();
             }
-            if (suggestEmojiPanel != null) {
+            if (suggestEmojiPanel != null && !BuildVars.IS_CHAT_AIR) {
                 suggestEmojiPanel.setVisibility(View.VISIBLE);
                 suggestEmojiPanel.animate().alpha(chatActivityEnterView.isStickersExpanded() ? 0 : 1f).setInterpolator(CubicBezierInterpolator.DEFAULT).withEndAction(() -> {
                     if (suggestEmojiPanel != null && chatActivityEnterView.isStickersExpanded()) {
@@ -6458,6 +6461,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             chatActivityEnterView.setVisibility(View.INVISIBLE);
         }
         if (!ChatObject.isChannel(currentChat) || currentChat.megagroup) {
+            //默认会设置bot按钮布局（没有bot就配置没有bot的布局）
             chatActivityEnterView.setBotInfo(botInfo, false);
         }
         contentView.addView(chatActivityEnterView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM));
@@ -6611,6 +6615,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             suggestEmojiPanel = new SuggestEmojiView(context, currentAccount, chatActivityEnterView, themeDelegate),
             LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 160, Gravity.LEFT | Gravity.BOTTOM)
         );
+        suggestEmojiPanel.setVisibility(View.GONE);
 
         //输入框顶部按钮，滚动到特定位置
         final ChatActivityEnterTopView.EditView editView = new ChatActivityEnterTopView.EditView(context);
@@ -10733,6 +10738,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return dialog != chatAttachAlert && super.dismissDialogOnPause(dialog);
     }
 
+    //输入词汇检测
     private void searchLinks(final CharSequence charSequence, final boolean force) {
         if (currentEncryptedChat != null && getMessagesController().secretWebpagePreview == 0 || editingMessageObject != null && !editingMessageObject.isWebpage()) {
             return;

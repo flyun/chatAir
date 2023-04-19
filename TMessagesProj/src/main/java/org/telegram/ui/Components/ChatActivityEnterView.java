@@ -410,7 +410,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     private ImageView cancelBotButton;
     private ChatActivityEnterViewAnimatedIconView emojiButton;//表情按钮
     @Nullable
-    private ImageView expandStickersButton;
+    private ImageView expandStickersButton;//贴纸按钮
     private EmojiView emojiView;
     private AnimatorSet panelAnimation;
     private boolean emojiViewVisible;
@@ -1946,6 +1946,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
         });
         messageEditTextContainer.addView(emojiButton, LayoutHelper.createFrame(48, 48, Gravity.BOTTOM | Gravity.LEFT, 3, 0, 0, 0));
+        if (BuildVars.IS_CHAT_AIR) emojiButton.setVisibility(GONE);
         setEmojiButtonImage(false, false);
 
         //聊天模式下要添加的按钮
@@ -2006,6 +2007,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 delegate.didPressAttachButton();
             });
             attachButton.setContentDescription(LocaleController.getString("AccDescrAttachButton", R.string.AccDescrAttachButton));
+            if (BuildVars.IS_CHAT_AIR) attachButton.setVisibility(GONE);
         }
 
         //有音频需要发送的按钮
@@ -2208,6 +2210,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         audioVideoSendButton.setPadding(padding, padding, padding, padding);
         audioVideoSendButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_messagePanelIcons), PorterDuff.Mode.SRC_IN));
         audioVideoButtonContainer.addView(audioVideoSendButton, LayoutHelper.createFrame(48, 48));
+        if (BuildVars.IS_CHAT_AIR) audioVideoButtonContainer.setVisibility(GONE);
 
         //机器人取消发送按钮
         cancelBotButton = new ImageView(context);
@@ -2374,7 +2377,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
             sendMessage();
         });
-        sendButton.setOnLongClickListener(this::onSendLongClick);
+        if (!BuildVars.IS_CHAT_AIR) sendButton.setOnLongClickListener(this::onSendLongClick);
 
         //慢速发送按钮
         slowModeButton = new SimpleTextView(context);
@@ -2451,6 +2454,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 delegate.openScheduledMessages();
             }
         });
+        if (BuildVars.IS_CHAT_AIR) scheduledButton.setVisibility(GONE);
     }
 
     private void createGiftButton() {
@@ -2611,6 +2615,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         recordedAudioPanel.setFocusable(true);
         recordedAudioPanel.setFocusableInTouchMode(true);
         recordedAudioPanel.setClickable(true);
+        if (BuildVars.IS_CHAT_AIR) recordedAudioPanel.setVisibility(GONE);
         messageEditTextContainer.addView(recordedAudioPanel, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM));
 
         recordDeleteImageView = new RLottieImageView(getContext());
@@ -3068,6 +3073,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         messageEditTextContainer.addView(botCommandsMenuButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 32, Gravity.BOTTOM | Gravity.LEFT, 10, 8, 10, 8));
         AndroidUtilities.updateViewVisibilityAnimated(botCommandsMenuButton, false, 1f, false);
         botCommandsMenuButton.setExpanded(true, false);
+        if (BuildVars.IS_CHAT_AIR) botCommandsMenuButton.setVisibility(GONE);
     }
 
     private void createBotWebViewButton() {
@@ -3079,6 +3085,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         createBotCommandsMenuButton();
         botWebViewButton.setBotMenuButton(botCommandsMenuButton);
         messageEditTextContainer.addView(botWebViewButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.BOTTOM));
+        if (BuildVars.IS_CHAT_AIR) botWebViewButton.setVisibility(GONE);
     }
 
     private void createRecordCircle() {
@@ -3803,6 +3810,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         messageEditText.setInputType(commonInputType = (messageEditText.getInputType() | EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE));
         updateFieldHint(false);
         messageEditText.setSingleLine(false);
+        //输入框最大行数
         messageEditText.setMaxLines(6);
         messageEditText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         messageEditText.setGravity(Gravity.BOTTOM);
@@ -3815,7 +3823,8 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         messageEditText.setHintTextColor(getThemedColor(Theme.key_chat_messagePanelHint));
         messageEditText.setCursorColor(getThemedColor(Theme.key_chat_messagePanelCursor));
         messageEditText.setHandlesColor(getThemedColor(Theme.key_chat_TextSelectionCursor));
-        messageEditTextContainer.addView(messageEditText, 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 52, 0, isChat ? 50 : 2, 1.5f));
+        messageEditTextContainer.addView(messageEditText, 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM,
+                BuildVars.IS_CHAT_AIR? 2 :52, 0, isChat ? 50 : 2, 1.5f));
         messageEditText.setOnKeyListener(new OnKeyListener() {
 
             boolean ctrlPressed = false;
@@ -5431,6 +5440,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         return encryptedChat == null || AndroidUtilities.getPeerLayerVersion(encryptedChat.layer) >= 101;
     }
 
+    //核心 输入文字改变布局
     private void checkSendButton(boolean animated) {
         if (editingMessageObject != null || recordingAudioVideo) {
             return;
@@ -5440,6 +5450,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         }
         CharSequence message = messageEditText == null ? "" : AndroidUtilities.getTrimmedString(messageEditText.getText());
         if (slowModeTimer > 0 && slowModeTimer != Integer.MAX_VALUE && !isInScheduleMode()) {
+            //延时发送布局
             if (slowModeButton.getVisibility() != VISIBLE) {
                 if (animated) {
                     if (runningAnimationType == 5) {
@@ -5609,6 +5620,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
             }
         } else if (message.length() > 0 || forceShowSendButton || audioToSend != null || videoToSendMessageObject != null || slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode()) {
+            //正常发送布局
             final String caption = messageEditText == null ? null : messageEditText.getCaption();
             boolean showBotButton = caption != null && (sendButton.getVisibility() == VISIBLE || expandStickersButton != null && expandStickersButton.getVisibility() == VISIBLE);
             boolean showSendButton = caption == null && (cancelBotButton.getVisibility() == VISIBLE || expandStickersButton != null && expandStickersButton.getVisibility() == VISIBLE);
@@ -5619,7 +5631,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 color = getThemedColor(Theme.key_chat_messagePanelSend);
             }
             Theme.setSelectorDrawableColor(sendButton.getBackground(), Color.argb(24, Color.red(color), Color.green(color), Color.blue(color)), true);
-            if (audioVideoButtonContainer.getVisibility() == VISIBLE || slowModeButton.getVisibility() == VISIBLE || showBotButton || showSendButton) {
+            if (audioVideoButtonContainer.getVisibility() == VISIBLE || slowModeButton.getVisibility() == VISIBLE || showBotButton || showSendButton
+            ||(BuildVars.IS_CHAT_AIR && sendButton.getVisibility() != VISIBLE)) {
+                //是否执行变更动画
                 if (animated) {
                     if (runningAnimationType == 1 && caption == null || runningAnimationType == 3 && caption != null) {
                         return;
@@ -5633,6 +5647,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         runningAnimation2 = null;
                     }
 
+                    //修改输入框布局
                     if (attachLayout != null) {
                         runningAnimation2 = new AnimatorSet();
                         ArrayList<Animator> animators = new ArrayList<>();
@@ -5681,6 +5696,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         }
                     }
 
+                    //修改发送按钮转换
                     runningAnimation = new AnimatorSet();
 
                     ArrayList<Animator> animators = new ArrayList<>();
@@ -5810,6 +5826,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
             }
         } else if (emojiView != null && emojiViewVisible && (stickersTabOpen || emojiTabOpen && searchingType == 2) && !AndroidUtilities.isInMultiwindow) {
+            //表情布局
             if (animated) {
                 if (runningAnimationType == 4) {
                     return;
@@ -5971,6 +5988,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
             }
         } else if (sendButton.getVisibility() == VISIBLE || cancelBotButton.getVisibility() == VISIBLE || expandStickersButton != null && expandStickersButton.getVisibility() == VISIBLE || slowModeButton.getVisibility() == VISIBLE) {
+            //发送布局
             if (animated) {
                 if (runningAnimationType == 2) {
                     return;
@@ -6039,13 +6057,15 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     }
                 }
 
-                audioVideoButtonContainer.setVisibility(VISIBLE);
+                if (!BuildVars.IS_CHAT_AIR) audioVideoButtonContainer.setVisibility(VISIBLE);
                 runningAnimation = new AnimatorSet();
                 runningAnimationType = 2;
 
                 ArrayList<Animator> animators = new ArrayList<>();
-                animators.add(ObjectAnimator.ofFloat(audioVideoButtonContainer, View.SCALE_X, 1.0f));
-                animators.add(ObjectAnimator.ofFloat(audioVideoButtonContainer, View.SCALE_Y, 1.0f));
+                if (!BuildVars.IS_CHAT_AIR) {
+                    animators.add(ObjectAnimator.ofFloat(audioVideoButtonContainer, View.SCALE_X, 1.0f));
+                    animators.add(ObjectAnimator.ofFloat(audioVideoButtonContainer, View.SCALE_Y, 1.0f));
+                }
 
                 float alpha = 1.0f;
                 TLRPC.Chat chat = parentFragment.getCurrentChat();
@@ -6056,7 +6076,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     alpha = userFull.voice_messages_forbidden ? 0.5f : 1.0f;
                 }
 
-                animators.add(ObjectAnimator.ofFloat(audioVideoButtonContainer, View.ALPHA, alpha));
+                if (!BuildVars.IS_CHAT_AIR) {
+                    animators.add(ObjectAnimator.ofFloat(audioVideoButtonContainer, View.ALPHA, alpha));
+                }
                 if (cancelBotButton.getVisibility() == VISIBLE) {
                     animators.add(ObjectAnimator.ofFloat(cancelBotButton, View.SCALE_X, 0.1f));
                     animators.add(ObjectAnimator.ofFloat(cancelBotButton, View.SCALE_Y, 0.1f));
@@ -6084,8 +6106,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                             setSlowModeButtonVisible(false);
                             runningAnimation = null;
                             runningAnimationType = 0;
+                            if (BuildVars.IS_CHAT_AIR) sendButton.setVisibility(GONE);
 
-                            if (audioVideoButtonContainer != null) {
+                            if (audioVideoButtonContainer != null && !BuildVars.IS_CHAT_AIR) {
                                 audioVideoButtonContainer.setVisibility(VISIBLE);
                             }
                         }
@@ -6118,10 +6141,12 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     expandStickersButton.setAlpha(0.0f);
                     expandStickersButton.setVisibility(GONE);
                 }
-                audioVideoButtonContainer.setScaleX(1.0f);
-                audioVideoButtonContainer.setScaleY(1.0f);
-                audioVideoButtonContainer.setAlpha(1.0f);
-                audioVideoButtonContainer.setVisibility(VISIBLE);
+                if (!BuildVars.IS_CHAT_AIR) {
+                    audioVideoButtonContainer.setScaleX(1.0f);
+                    audioVideoButtonContainer.setScaleY(1.0f);
+                    audioVideoButtonContainer.setAlpha(1.0f);
+                    audioVideoButtonContainer.setVisibility(VISIBLE);
+                }
                 if (attachLayout != null) {
                     if (getVisibility() == VISIBLE) {
                         delegate.onAttachButtonShow();
@@ -6158,6 +6183,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         }
     }
 
+    //更改输入框布局
     private void updateFieldRight(int attachVisible) {
         if (messageEditText == null || editingMessageObject != null) {
             return;
@@ -6165,6 +6191,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) messageEditText.getLayoutParams();
         int oldRightMargin = layoutParams.rightMargin;
         if (attachVisible == 1) {
+            //恢复正常布局
             if (botButton != null && botButton.getVisibility() == VISIBLE && scheduledButton != null && scheduledButton.getVisibility() == VISIBLE && attachLayout != null && attachLayout.getVisibility() == VISIBLE) {
                 layoutParams.rightMargin = AndroidUtilities.dp(146);
             } else if (botButton != null && botButton.getVisibility() == VISIBLE || notifyButton != null && notifyButton.getVisibility() == VISIBLE || scheduledButton != null && scheduledButton.getTag() != null) {
@@ -6173,16 +6200,19 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 layoutParams.rightMargin = AndroidUtilities.dp(50);
             }
         } else if (attachVisible == 2) {
+            //设置bot布局
             if (layoutParams.rightMargin != AndroidUtilities.dp(2)) {
                 if (botButton != null && botButton.getVisibility() == VISIBLE && scheduledButton != null && scheduledButton.getVisibility() == VISIBLE && attachLayout != null && attachLayout.getVisibility() == VISIBLE) {
                     layoutParams.rightMargin = AndroidUtilities.dp(146);
                 } else if (botButton != null && botButton.getVisibility() == VISIBLE || notifyButton != null && notifyButton.getVisibility() == VISIBLE || scheduledButton != null && scheduledButton.getTag() != null) {
                     layoutParams.rightMargin = AndroidUtilities.dp(98);
                 } else {
+                    //也是默认设置布局
                     layoutParams.rightMargin = AndroidUtilities.dp(50);
                 }
             }
         } else {
+            //编辑布局
             if (scheduledButton != null && scheduledButton.getTag() != null) {
                 layoutParams.rightMargin = AndroidUtilities.dp(50);
             } else {
@@ -10100,6 +10130,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null) {
+            //机器人输入框边距
             botCommandsMenuButton.measure(widthMeasureSpec, heightMeasureSpec);
             ((MarginLayoutParams) emojiButton.getLayoutParams()).leftMargin = AndroidUtilities.dp(10) + (botCommandsMenuButton == null ? 0 : botCommandsMenuButton.getMeasuredWidth());
             if (messageEditText != null) {
@@ -10113,9 +10144,11 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 ((MarginLayoutParams) messageEditText.getLayoutParams()).leftMargin = AndroidUtilities.dp(63) + width;
             }
         } else {
+            //默认配置输入框边距
             ((MarginLayoutParams) emojiButton.getLayoutParams()).leftMargin = AndroidUtilities.dp(3);
             if (messageEditText != null) {
-                ((MarginLayoutParams) messageEditText.getLayoutParams()).leftMargin = AndroidUtilities.dp(50);
+                ((MarginLayoutParams) messageEditText.getLayoutParams()).leftMargin
+                        = AndroidUtilities.dp(BuildVars.IS_CHAT_AIR? 10 : 50);
             }
         }
         updateBotCommandsMenuContainerTopPadding();
