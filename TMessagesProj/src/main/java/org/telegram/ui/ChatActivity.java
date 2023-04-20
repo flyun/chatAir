@@ -3797,7 +3797,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 chatActionBackgroundDarkenPaint.setColor(wasDarkenColor);
             }
 
+            //列表滚动动画
             private void processTouchEvent(MotionEvent e) {
+                if (BuildVars.IS_CHAT_AIR) return;
                 if (e != null) {
                     wasManualScroll = true;
                 }
@@ -3886,9 +3888,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             @Override
             public boolean onTouchEvent(MotionEvent e) {
-                //列表滑动
                 textSelectionHelper.checkSelectionCancel(e);
-                if (BuildVars.IS_CHAT_AIR) return super.onTouchEvent(e);
                 if (e.getAction() == MotionEvent.ACTION_DOWN) {
                     scrollByTouch = true;
                 }
