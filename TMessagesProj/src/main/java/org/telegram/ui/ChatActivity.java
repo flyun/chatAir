@@ -390,6 +390,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     @Nullable
     private TextView replyButton;
     @Nullable
+    private TextView shareButton;
+    @Nullable
+    private TextView copyButton;
+    @Nullable
     private FrameLayout emptyViewContainer;
     private ChatGreetingsView greetingsViewContainer;
     public ChatActivityFragmentView contentView;
@@ -1284,6 +1288,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int open_forum = 61;
 
     private final static int translate = 62;
+
+    private final static int share = 81;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -2822,34 +2828,40 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 } else if (id == view_as_topics) {
                     TopicsFragment.prepareToSwitchAnimation(ChatActivity.this);
                 } else if (id == copy) {
-                    SpannableStringBuilder str = new SpannableStringBuilder();
-                    long previousUid = 0;
-                    for (int a = 1; a >= 0; a--) {
-                        ArrayList<Integer> ids = new ArrayList<>();
-                        for (int b = 0; b < selectedMessagesCanCopyIds[a].size(); b++) {
-                            ids.add(selectedMessagesCanCopyIds[a].keyAt(b));
-                        }
-                        if (currentEncryptedChat == null) {
-                            Collections.sort(ids);
-                        } else {
-                            Collections.sort(ids, Collections.reverseOrder());
-                        }
-                        for (int b = 0; b < ids.size(); b++) {
-                            Integer messageId = ids.get(b);
-                            MessageObject messageObject = selectedMessagesCanCopyIds[a].get(messageId);
-                            if (str.length() != 0) {
-                                str.append("\n\n");
+                    if (!BuildVars.IS_CHAT_AIR) {
+                        SpannableStringBuilder str = new SpannableStringBuilder();
+                        long previousUid = 0;
+                        for (int a = 1; a >= 0; a--) {
+                            ArrayList<Integer> ids = new ArrayList<>();
+                            for (int b = 0; b < selectedMessagesCanCopyIds[a].size(); b++) {
+                                ids.add(selectedMessagesCanCopyIds[a].keyAt(b));
                             }
-                            str.append(getMessageContent(messageObject, previousUid, ids.size() != 1 && (currentUser == null || !currentUser.self)));
-                            previousUid = messageObject.getFromChatId();
+                            if (currentEncryptedChat == null) {
+                                Collections.sort(ids);
+                            } else {
+                                Collections.sort(ids, Collections.reverseOrder());
+                            }
+                            for (int b = 0; b < ids.size(); b++) {
+                                Integer messageId = ids.get(b);
+                                MessageObject messageObject = selectedMessagesCanCopyIds[a].get(messageId);
+                                if (str.length() != 0) {
+                                    str.append("\n\n");
+                                }
+                                str.append(getMessageContent(messageObject, previousUid, ids.size() != 1 && (currentUser == null || !currentUser.self)));
+                                previousUid = messageObject.getFromChatId();
+                            }
                         }
+                        if (str.length() != 0) {
+                            AndroidUtilities.addToClipboard(str);
+                            createUndoView();
+                            undoView.showWithAction(0, UndoView.ACTION_TEXT_COPIED, null);
+                        }
+                        clearSelectionMode();
+                    } else {
+                        openCopy();
                     }
-                    if (str.length() != 0) {
-                        AndroidUtilities.addToClipboard(str);
-                        createUndoView();
-                        undoView.showWithAction(0, UndoView.ACTION_TEXT_COPIED, null);
-                    }
-                    clearSelectionMode();
+                } else if(id == share) {
+                    openShare();
                 } else if (id == delete) {
                     if (getParentActivity() == null) {
                         return;
@@ -6292,6 +6304,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         bottomMessagesActionContainer.setOnTouchListener((v, event) -> true);
         replyButton = null;
         forwardButton = null;
+        shareButton = null;
+        copyButton = null;
 
         //配置输入框
         chatActivityEnterView = new ChatActivityEnterView(getParentActivity(), contentView, this, true, themeDelegate) {
@@ -7160,6 +7174,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         });
         bottomMessagesActionContainer.addView(replyButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.TOP));
 
+        if (BuildVars.IS_CHAT_AIR) replyButton.setVisibility(View.GONE);
+
         forwardButton = new TextView(getContext());
         forwardButton.setText(LocaleController.getString("Forward", R.string.Forward));
         forwardButton.setGravity(Gravity.CENTER_VERTICAL);
@@ -7174,7 +7190,46 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         forwardButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
         //点击底部转发按钮
         forwardButton.setOnClickListener(v -> openForward(false));
+        if (BuildVars.IS_CHAT_AIR) forwardButton.setVisibility(View.GONE);
         bottomMessagesActionContainer.addView(forwardButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.RIGHT | Gravity.TOP));
+
+        if(!BuildVars.IS_CHAT_AIR) return;
+        //分享按钮
+        shareButton = new TextView(getContext());
+        shareButton.setText(LocaleController.getString("Share", R.string.Share));
+        shareButton.setGravity(Gravity.CENTER_VERTICAL);
+        shareButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        shareButton.setPadding(AndroidUtilities.dp(21), 0, AndroidUtilities.dp(21), 0);
+        shareButton.setCompoundDrawablePadding(AndroidUtilities.dp(6));
+        shareButton.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), 3));
+        shareButton.setTextColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon));
+        shareButton.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
+        image = getContext().getResources().getDrawable(R.drawable.share).mutate();
+        image.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
+        shareButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
+        shareButton.setOnClickListener(v -> {
+            openShare();
+        });
+        bottomMessagesActionContainer.addView(shareButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.TOP));
+
+        //复制按钮
+        copyButton = new TextView(getContext());
+        copyButton.setText(LocaleController.getString("Copy", R.string.Copy));
+        copyButton.setGravity(Gravity.CENTER_VERTICAL);
+        copyButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        copyButton.setPadding(AndroidUtilities.dp(21), 0, AndroidUtilities.dp(21), 0);
+        copyButton.setCompoundDrawablePadding(AndroidUtilities.dp(6));
+        copyButton.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), 3));
+        copyButton.setTextColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon));
+        copyButton.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
+        image = getContext().getResources().getDrawable(R.drawable.msg_copy).mutate();
+        image.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
+        copyButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
+        copyButton.setOnClickListener(v -> {
+            openCopy();
+        });
+        bottomMessagesActionContainer.addView(copyButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.RIGHT | Gravity.TOP));
+
     }
 
     private void checkInstantSearch() {
@@ -7486,11 +7541,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         actionMode.addView(selectedMessagesCountTextView, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, 65, 0, 0, 0));
 
         if (currentEncryptedChat == null) {
-            actionModeViews.add(actionMode.addItemWithWidth(save_to, R.drawable.msg_download, AndroidUtilities.dp(54), LocaleController.getString("SaveToMusic", R.string.SaveToMusic)));
+            if (!BuildVars.IS_CHAT_AIR) actionModeViews.add(actionMode.addItemWithWidth(save_to, R.drawable.msg_download, AndroidUtilities.dp(54), LocaleController.getString("SaveToMusic", R.string.SaveToMusic)));
             actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.msg_edit, AndroidUtilities.dp(54), LocaleController.getString("Edit", R.string.Edit)));
             actionModeViews.add(actionMode.addItemWithWidth(star, R.drawable.msg_fave, AndroidUtilities.dp(54), LocaleController.getString("AddToFavorites", R.string.AddToFavorites)));
             actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.msg_copy, AndroidUtilities.dp(54), LocaleController.getString("Copy", R.string.Copy)));
-            actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, AndroidUtilities.dp(54), LocaleController.getString("Forward", R.string.Forward)));
+            if (!BuildVars.IS_CHAT_AIR) actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, AndroidUtilities.dp(54), LocaleController.getString("Forward", R.string.Forward)));
+            if (BuildVars.IS_CHAT_AIR) actionModeViews.add(actionMode.addItemWithWidth(share, R.drawable.share, AndroidUtilities.dp(54), LocaleController.getString("Share", R.string.Share)));
             actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, AndroidUtilities.dp(54), LocaleController.getString("Delete", R.string.Delete)));
         } else {
             actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.msg_edit, AndroidUtilities.dp(54), LocaleController.getString("Edit", R.string.Edit)));
@@ -7500,6 +7556,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         actionMode.getItem(edit).setVisibility(canEditMessagesCount == 1 && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() == 1 ? View.VISIBLE : View.GONE);
         actionMode.getItem(copy).setVisibility(!getMessagesController().isChatNoForwards(currentChat) && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
+        if (BuildVars.IS_CHAT_AIR) actionMode.getItem(share).setVisibility(!getMessagesController().isChatNoForwards(currentChat) && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
         actionMode.getItem(star).setVisibility(selectedMessagesCanStarIds[0].size() + selectedMessagesCanStarIds[1].size() != 0 ? View.VISIBLE : View.GONE);
         actionMode.getItem(delete).setVisibility(cantDeleteMessagesCount == 0 ? View.VISIBLE : View.GONE);
     }
@@ -9192,6 +9249,75 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         DialogsActivity fragment = new DialogsActivity(args);
         fragment.setDelegate(ChatActivity.this);
         presentFragment(fragment);
+    }
+
+    private void openCopy() {
+        SpannableStringBuilder str = new SpannableStringBuilder();
+        long previousUid = 0;
+        for (int a = 1; a >= 0; a--) {
+            ArrayList<Integer> ids = new ArrayList<>();
+            for (int b = 0; b < selectedMessagesCanCopyIds[a].size(); b++) {
+                ids.add(selectedMessagesCanCopyIds[a].keyAt(b));
+            }
+            if (currentEncryptedChat == null) {
+                Collections.sort(ids);
+            } else {
+                Collections.sort(ids, Collections.reverseOrder());
+            }
+            for (int b = 0; b < ids.size(); b++) {
+                Integer messageId = ids.get(b);
+                MessageObject messageObject = selectedMessagesCanCopyIds[a].get(messageId);
+                if (str.length() != 0) {
+                    str.append("\n\n");
+                }
+                str.append(getMessageContent(messageObject, previousUid, false));
+                previousUid = messageObject.getFromChatId();
+            }
+        }
+        if (str.length() != 0) {
+            AndroidUtilities.addToClipboard(str);
+            createUndoView();
+            undoView.showWithAction(0, UndoView.ACTION_TEXT_COPIED, null);
+        }
+        clearSelectionMode();
+    }
+
+    private void openShare() {
+        SpannableStringBuilder str = new SpannableStringBuilder();
+        long previousUid = 0;
+        for (int a = 1; a >= 0; a--) {
+            ArrayList<Integer> ids = new ArrayList<>();
+            for (int b = 0; b < selectedMessagesCanCopyIds[a].size(); b++) {
+                ids.add(selectedMessagesCanCopyIds[a].keyAt(b));
+            }
+            if (currentEncryptedChat == null) {
+                Collections.sort(ids);
+            } else {
+                Collections.sort(ids, Collections.reverseOrder());
+            }
+            for (int b = 0; b < ids.size(); b++) {
+                Integer messageId = ids.get(b);
+                MessageObject messageObject = selectedMessagesCanCopyIds[a].get(messageId);
+                if (str.length() != 0) {
+                    str.append("\n\n");
+                }
+                str.append(getMessageContent(messageObject, previousUid, false));
+                previousUid = messageObject.getFromChatId();
+            }
+        }
+        if (str.length() != 0) {
+            try {
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                String text = str.toString();
+                intent.putExtra(Intent.EXTRA_TEXT, text);
+                getParentActivity().startActivityForResult(Intent.createChooser(intent, text), 500);
+            } catch (Exception e) {
+                FileLog.e(e);
+            }finally {
+                clearSelectionMode();
+            }
+        }
     }
 
     private void showBottomOverlayProgress(boolean show, boolean animated) {
@@ -14357,6 +14483,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 createActionMode();
                 ActionBarMenuItem saveItem = actionBar.createActionMode().getItem(save_to);
                 ActionBarMenuItem copyItem = actionBar.createActionMode().getItem(copy);
+                ActionBarMenuItem shareItem = actionBar.createActionMode().getItem(share);
                 ActionBarMenuItem starItem = actionBar.createActionMode().getItem(star);
                 ActionBarMenuItem editItem = actionBar.createActionMode().getItem(edit);
                 ActionBarMenuItem forwardItem = actionBar.createActionMode().getItem(forward);
@@ -14428,6 +14555,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     copyItem.setVisibility(!noforwards && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
                     newCopyVisible = copyItem.getVisibility();
                 }
+                if (shareItem != null) {
+                    shareItem.setVisibility(!noforwards && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
+                }
                 if (starItem != null) {
                     starVisible = starItem.getVisibility();
                     starItem.setVisibility(getMediaDataController().canAddStickerToFavorites() && (selectedMessagesCanStarIds[0].size() + selectedMessagesCanStarIds[1].size()) == selectedCount ? View.VISIBLE : View.GONE);
@@ -14495,7 +14625,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                     }
 
-                    if (replyButton.getVisibility() != newVisibility) {
+                    if (replyButton.getVisibility() != newVisibility && !BuildVars.IS_CHAT_AIR) {
                         if (replyButtonAnimation != null) {
                             replyButtonAnimation.cancel();
                         }
@@ -24926,7 +25056,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (item != null) {
             item.setVisibility(View.VISIBLE);
         }
-        //创建底部选中按钮
+        //创建底部转发提及按钮
         createBottomMessagesActionButtons();
         bottomMessagesActionContainer.setVisibility(View.VISIBLE);
 
@@ -25328,6 +25458,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    //name为判断是否添加name
     private CharSequence getMessageContent(MessageObject messageObject, long previousUid, boolean name) {
         SpannableStringBuilder str = new SpannableStringBuilder();
         if (name) {

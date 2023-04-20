@@ -3530,6 +3530,7 @@
     <string name="DeleteAndStop">Delete and stop</string>
     <string name="Forward">Forward</string>
     <string name="Retry">Retry</string>
+    <string name="Share">Share</string>
     <string name="FromCamera">From camera</string>
     <string name="FromGalley">From gallery</string>
     <string name="DeletePhoto">Remove photo</string>
