@@ -28,6 +28,7 @@ import android.widget.ImageView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLog;
@@ -140,6 +141,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             parentFragment = (ChatActivity) baseFragment;
         }
 
+        //标题头像
         final boolean avatarClickable = parentFragment != null && parentFragment.getChatMode() == 0 && !UserObject.isReplyUser(parentFragment.getCurrentUser());
         avatarImageView = new BackupImageView(context) {
             @Override
@@ -165,8 +167,9 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         avatarImageView.setRoundRadius(AndroidUtilities.dp(21));
         addView(avatarImageView);
         if (avatarClickable) {
+            //头像点击
             avatarImageView.setOnClickListener(v -> {
-                if (!onAvatarClick()) {
+                if (!onAvatarClick() && !BuildVars.IS_CHAT_AIR) {
                     openProfile(true);
                 }
             });
@@ -220,17 +223,18 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         }
 
         if (parentFragment != null && parentFragment.getChatMode() == 0) {
-            if ((!parentFragment.isThreadChat() || parentFragment.isTopic) && !UserObject.isReplyUser(parentFragment.getCurrentUser())) {
+            //整个标题界面点击
+            if ((!parentFragment.isThreadChat() || parentFragment.isTopic) && !UserObject.isReplyUser(parentFragment.getCurrentUser())&& !BuildVars.IS_CHAT_AIR) {
                 setOnClickListener(v -> openProfile(false));
             }
 
             TLRPC.Chat chat = parentFragment.getCurrentChat();
-            statusDrawables[0] = new TypingDotsDrawable(true);
-            statusDrawables[1] = new RecordStatusDrawable(true);
-            statusDrawables[2] = new SendingFileDrawable(true);
-            statusDrawables[3] = new PlayingGameDrawable(false, resourcesProvider);
-            statusDrawables[4] = new RoundStatusDrawable(true);
-            statusDrawables[5] = new ChoosingStickerStatusDrawable(true);
+            statusDrawables[0] = new TypingDotsDrawable(true);//正在输入
+            statusDrawables[1] = new RecordStatusDrawable(true);//正在录制声音
+            statusDrawables[2] = new SendingFileDrawable(true);//正在发送文件
+            statusDrawables[3] = new PlayingGameDrawable(false, resourcesProvider);//正在游戏
+            statusDrawables[4] = new RoundStatusDrawable(true);//正在录制视频
+            statusDrawables[5] = new ChoosingStickerStatusDrawable(true);//正在选择贴纸表情
             for (int a = 0; a < statusDrawables.length; a++) {
                 statusDrawables[a].setIsChat(chat != null);
             }
@@ -331,6 +335,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         openProfile(byAvatar, true);
     }
 
+    //点击标题头像
     public void openProfile(boolean byAvatar, boolean fromChatAnimation) {
         if (byAvatar && (AndroidUtilities.isTablet() || AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y || !avatarImageView.getImageReceiver().hasNotThumb())) {
             byAvatar = false;
@@ -654,9 +659,12 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         }
     }
 
+    //设置标题动画
     private void setTypingAnimation(boolean start) {
         if (start) {
+            //开启副标题动画
             try {
+//                int type = 0;
                 int type = MessagesController.getInstance(currentAccount).getPrintingStringType(parentFragment.getDialogId(), parentFragment.getThreadId());
                 if (type == 5) {
                     subtitleTextView.replaceTextWithDrawable(statusDrawables[type], "**oo**");
@@ -679,6 +687,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 FileLog.e(e);
             }
         } else {
+            //关闭副标题动画
             currentTypingDrawable = null;
             subtitleTextView.setLeftDrawable(null);
             subtitleTextView.replaceTextWithDrawable(null, null);
@@ -693,11 +702,13 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
     }
 
     //更新副标题
+    //初始化，接受消息，发送信息时回调用
     public void updateSubtitle(boolean animated) {
         if (parentFragment == null) {
             return;
         }
         TLRPC.User user = parentFragment.getCurrentUser();
+        //收藏夹或者回复自己等等，则隐藏副标题
         if (UserObject.isUserSelf(user) || UserObject.isReplyUser(user) || parentFragment.getChatMode() != 0) {
             if (subtitleTextView.getVisibility() != GONE) {
                 subtitleTextView.setVisibility(GONE);
@@ -705,14 +716,19 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             return;
         }
         TLRPC.Chat chat = parentFragment.getCurrentChat();
+        //当前用户是否正在输入
         CharSequence printString = MessagesController.getInstance(currentAccount).getPrintingString(parentFragment.getDialogId(), parentFragment.getThreadId(), false);
         if (printString != null) {
             printString = TextUtils.replace(printString, new String[]{"..."}, new String[]{""});
         }
         CharSequence newSubtitle;
         boolean useOnlineColor = false;
+        //printString = LocaleController.getString("Typing", R.string.Typing);
         if (printString == null || printString.length() == 0 || ChatObject.isChannel(chat) && !chat.megagroup) {
+            //开启正在副标题输入动画
+            //当前正在输入或者通知或者不是群组
             if (parentFragment.isThreadChat() && !parentFragment.isTopic) {
+                //通知或者话题
                 if (titleTextView.getTag() != null) {
                     return;
                 }
@@ -749,6 +765,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 }
                 return;
             }
+            //关闭标题动画
             setTypingAnimation(false);
             if (parentFragment.isTopic && chat != null) {
                 TLRPC.TL_forumTopic topic = MessagesController.getInstance(currentAccount).getTopicsController().findTopic(chat.id, parentFragment.getTopicId());
@@ -819,7 +836,8 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                         }
                     }
                 }
-            } else if (user != null) {
+            } else if (user != null && !BuildVars.IS_CHAT_AIR) {
+                //正常执行，获取当前聊天用户信息
                 TLRPC.User newUser = MessagesController.getInstance(currentAccount).getUser(user.id);
                 if (newUser != null) {
                     user = newUser;
@@ -837,6 +855,8 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                     newStatus = LocaleController.getString("Bot", R.string.Bot);
                 } else {
                     isOnline[0] = false;
+                    //获取最近在线时间文本
+                    //考虑替换为剩余token显示
                     newStatus = LocaleController.formatUserStatus(currentAccount, user, isOnline, allowShorterStatus ? statusMadeShorter : null);
                     useOnlineColor = isOnline[0];
                 }
@@ -845,6 +865,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 newSubtitle = "";
             }
         } else {
+            //正在输入的动画
             if (parentFragment.isThreadChat()) {
                 if (titleTextView.getTag() != null) {
                     titleTextView.setTag(null);
@@ -873,16 +894,20 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 }
             }
             newSubtitle = printString;
+            //关闭输入表情查找
             if (MessagesController.getInstance(currentAccount).getPrintingStringType(parentFragment.getDialogId(), parentFragment.getThreadId()) == 5) {
                 newSubtitle = Emoji.replaceEmoji(newSubtitle, subtitleTextView.getTextPaint().getFontMetricsInt(), AndroidUtilities.dp(15), false);
             }
             useOnlineColor = true;
             setTypingAnimation(true);
         }
+        //设置子标题用户在线颜色
         lastSubtitleColorKey = useOnlineColor ? Theme.key_chat_status : Theme.key_actionBarDefaultSubtitle;
         if (lastSubtitle == null) {
+            //设置子标题文字
             subtitleTextView.setText(newSubtitle);
             if (overrideSubtitleColor == null) {
+                //设置子标题文字颜色
                 subtitleTextView.setTextColor(getThemedColor(lastSubtitleColorKey));
                 subtitleTextView.setTag(lastSubtitleColorKey);
             } else {
