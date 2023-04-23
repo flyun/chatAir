@@ -1,7 +1,5 @@
 package org.telegram.ui;
 
-import static org.telegram.ui.ActionBar.ActionBarLayout.findScrollingChild;
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
@@ -12,11 +10,6 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.widget.FrameLayout;
-
-import androidx.annotation.NonNull;
-import androidx.dynamicanimation.animation.FloatValueHolder;
-import androidx.dynamicanimation.animation.SpringAnimation;
-import androidx.dynamicanimation.animation.SpringForce;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.NotificationCenter;
@@ -29,6 +22,14 @@ import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 
+import androidx.annotation.NonNull;
+import androidx.dynamicanimation.animation.FloatValueHolder;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
+
+import static org.telegram.ui.ActionBar.ActionBarLayout.findScrollingChild;
+
+//右划内容界面
 public abstract class RightSlidingDialogContainer extends FrameLayout {
 
     BaseFragment currentFragment;

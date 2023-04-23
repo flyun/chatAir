@@ -14,8 +14,6 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 
-import androidx.core.graphics.ColorUtils;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
@@ -23,14 +21,17 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.ui.ActionBar.Theme;
 
+import androidx.core.graphics.ColorUtils;
+
+//滑动功能控制
 public class SwipeGestureSettingsView extends FrameLayout {
 
-    public static final int SWIPE_GESTURE_PIN = 0;
-    public static final int SWIPE_GESTURE_READ = 1;
-    public static final int SWIPE_GESTURE_ARCHIVE = 2;
-    public static final int SWIPE_GESTURE_MUTE = 3;
-    public static final int SWIPE_GESTURE_DELETE = 4;
-    public static final int SWIPE_GESTURE_FOLDERS = 5;
+    public static final int SWIPE_GESTURE_PIN = 0;//置顶
+    public static final int SWIPE_GESTURE_READ = 1;//已读
+    public static final int SWIPE_GESTURE_ARCHIVE = 2;//存档
+    public static final int SWIPE_GESTURE_MUTE = 3;//静音
+    public static final int SWIPE_GESTURE_DELETE = 4;//删除
+    public static final int SWIPE_GESTURE_FOLDERS = 5;//文件夹
 
     Paint outlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     Paint filledPaint = new Paint(Paint.ANTI_ALIAS_FLAG);

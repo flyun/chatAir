@@ -22,8 +22,6 @@ import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 
-import androidx.core.graphics.ColorUtils;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLog;
@@ -34,6 +32,9 @@ import org.telegram.ui.ActionBar.Theme;
 
 import java.util.ArrayList;
 
+import androidx.core.graphics.ColorUtils;
+
+//头像类
 public class AvatarDrawable extends Drawable {
 
     private TextPaint namePaint;
@@ -66,6 +67,7 @@ public class AvatarDrawable extends Drawable {
     public static final int AVATAR_TYPE_SHARES = 3;
     public static final int AVATAR_TYPE_REPLIES = 12;
 
+    //设置特殊已有头像
     public static final int AVATAR_TYPE_FILTER_CONTACTS = 4;
     public static final int AVATAR_TYPE_FILTER_NON_CONTACTS = 5;
     public static final int AVATAR_TYPE_FILTER_GROUPS = 6;
@@ -286,6 +288,7 @@ public class AvatarDrawable extends Drawable {
         return text.substring(0, text.offsetByCodePoints(0, Math.min(text.codePointCount(0, text.length()), 1)));
     }
 
+    //设置头像首字母包括表情符号
     public void setInfo(long id, String firstName, String lastName, String custom) {
         hasGradient = true;
         invalidateTextLayout = true;

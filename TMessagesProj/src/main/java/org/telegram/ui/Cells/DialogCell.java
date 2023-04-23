@@ -46,6 +46,7 @@ import android.view.animation.OvershootInterpolator;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ChatThemeController;
 import org.telegram.messenger.ContactsController;
@@ -276,7 +277,7 @@ public class DialogCell extends BaseCell {
     private int currentDialogFolderDialogsCount;
     private int currentEditDate;
     private boolean isDialogCell;
-    private int lastMessageDate;
+    private int lastMessageDate;//消息日期
     private int unreadCount;
     private boolean markUnread;
     private int mentionCount;
@@ -395,8 +396,8 @@ public class DialogCell extends BaseCell {
     private int messageLeft;
     private int buttonLeft;
     private int typingLeft;
-    private StaticLayout messageLayout;
-    private StaticLayout typingLayout;
+    private StaticLayout messageLayout;//聊天界面
+    private StaticLayout typingLayout;//输入状态
 
     private int buttonTop;
     private StaticLayout buttonLayout;
@@ -857,6 +858,7 @@ public class DialogCell extends BaseCell {
 
     int thumbSize;
 
+    //构建界面
     public void buildLayout() {
         if (isTransitionSupport) {
             return;
@@ -921,6 +923,7 @@ public class DialogCell extends BaseCell {
             buttonLayout = null;
         }
 
+        //信息格式化样式
         String messageFormat;
         if (Build.VERSION.SDK_INT >= 18) {
             if ((!useForceThreeLines && !SharedConfig.useThreeLinesLayout || currentDialogFolderId != 0) || isForumCell()) {
@@ -943,6 +946,7 @@ public class DialogCell extends BaseCell {
         if (message != null) {
             message.updateTranslation();
         }
+        //移除下划线以及粗体
         CharSequence msgText = message != null ? message.messageText : null;
         if (msgText instanceof Spannable) {
             Spannable sp = new SpannableStringBuilder(msgText);
@@ -955,6 +959,7 @@ public class DialogCell extends BaseCell {
         lastMessageString = msgText;
 
         if (customDialog != null) {
+            //页面样式
             if (customDialog.type == 2) {
                 drawNameLock = true;
                 if (useForceThreeLines || SharedConfig.useThreeLinesLayout) {
@@ -993,6 +998,7 @@ public class DialogCell extends BaseCell {
                 }
             }
 
+            //页面样式
             if (customDialog.type == 1) {
                 messageNameString = LocaleController.getString("FromYou", R.string.FromYou);
                 checkMessage = false;
@@ -1064,6 +1070,7 @@ public class DialogCell extends BaseCell {
                 }
             }
 
+            //配置样式名字位置
             if (encryptedChat != null) {
                 if (currentDialogFolderId == 0) {
                     drawNameLock = true;
@@ -1129,6 +1136,7 @@ public class DialogCell extends BaseCell {
                 lastDate = message.messageOwner.date;
             }
 
+            //配置草稿信息
             if (isTopic) {
                 draftMessage = MediaDataController.getInstance(currentAccount).getDraft(currentDialogId, getTopicId());
                 if (draftMessage != null && TextUtils.isEmpty(draftMessage.message)) {
@@ -1147,6 +1155,7 @@ public class DialogCell extends BaseCell {
             }
 
             if (isForumCell()) {
+                //配置讨论
                 draftMessage = null;
                 needEmoji = true;
                 updateMessageThumbs();
@@ -1161,6 +1170,8 @@ public class DialogCell extends BaseCell {
                 }
                 currentMessagePaint = Theme.dialogs_messagePaint[paintIndex];
             } else {
+                //默认配置
+                //配置输入状态
                 if (printingString != null) {
                     lastPrintString = printingString;
                     printingStringType = MessagesController.getInstance(currentAccount).getPrintingStringType(currentDialogId, getTopicId());
@@ -1187,6 +1198,7 @@ public class DialogCell extends BaseCell {
                     lastPrintString = null;
                     printingStringType = -1;
                 }
+                //配置草稿
                 if (draftMessage != null) {
                     checkMessage = false;
                     messageNameString = LocaleController.getString("Draft", R.string.Draft);
@@ -1220,6 +1232,7 @@ public class DialogCell extends BaseCell {
                         currentMessagePaint = Theme.dialogs_messagePrintingPaint[paintIndex];
                         messageString = LocaleController.getString("HistoryCleared", R.string.HistoryCleared);
                     } else if (message == null) {
+                        //配置特殊聊天信息
                         if (encryptedChat != null) {
                             currentMessagePaint = Theme.dialogs_messagePrintingPaint[paintIndex];
                             if (encryptedChat instanceof TLRPC.TL_encryptedChatRequested) {
@@ -1310,6 +1323,7 @@ public class DialogCell extends BaseCell {
                             showChecks = false;
                             drawTime = false;
                         } else if (dialogsType == DialogsActivity.DIALOGS_TYPE_FORWARD && UserObject.isUserSelf(user)) {
+                            //收藏夹
                             messageString = LocaleController.getString("SavedMessagesInfo", R.string.SavedMessagesInfo);
                             showChecks = false;
                             drawTime = false;
@@ -1317,6 +1331,7 @@ public class DialogCell extends BaseCell {
                             checkMessage = false;
                             messageString = formatArchivedDialogNames();
                         } else if (message.messageOwner instanceof TLRPC.TL_messageService && (!MessageObject.isTopicActionMessage(message) || message.messageOwner.action instanceof TLRPC.TL_messageActionTopicCreate)) {
+                            //系统服务消息
                             if (ChatObject.isChannelAndNotMegaGroup(chat) && (message.messageOwner.action instanceof TLRPC.TL_messageActionChannelMigrateFrom)) {
                                 messageString = "";
                                 showChecks = false;
@@ -1329,10 +1344,12 @@ public class DialogCell extends BaseCell {
                                 messageString = applyThumbs(messageString);
                             }
                         } else {
+                            //默认配置
                             needEmoji = true;
                             updateMessageThumbs();
                             if (chat != null && chat.id > 0 && fromChat == null && (!ChatObject.isChannel(chat) || ChatObject.isMegagroup(chat)) && !ForumUtilities.isTopicCreateMessage(message)) {
                                 messageNameString = getMessageNameString();
+                                //讨论
                                 if (chat.forum && !isTopic && !useFromUserAsAvatar) {
                                     CharSequence topicName = MessagesController.getInstance(currentAccount).getTopicsController().getTopicIconName(chat, message, currentMessagePaint);
                                     if (!TextUtils.isEmpty(topicName)) {
@@ -1380,6 +1397,7 @@ public class DialogCell extends BaseCell {
                                 }
                             } else {
                                 if (!TextUtils.isEmpty(restrictionReason)) {
+                                    //受限原因
                                     messageString = restrictionReason;
                                 } else if (MessageObject.isTopicActionMessage(message)) {
                                     if (message.messageTextShort != null && (!(message.messageOwner.action instanceof TLRPC.TL_messageActionTopicCreate) || !isTopic)) {
@@ -1398,6 +1416,7 @@ public class DialogCell extends BaseCell {
                                 } else if (message.messageOwner.media instanceof TLRPC.TL_messageMediaDocument && message.messageOwner.media.document instanceof TLRPC.TL_documentEmpty && message.messageOwner.media.ttl_seconds != 0) {
                                     messageString = LocaleController.getString("AttachVideoExpired", R.string.AttachVideoExpired);
                                 } else if (getCaptionMessage() != null) {
+                                    //标题类型
                                     MessageObject message = getCaptionMessage();
                                     String emoji;
                                     if (!needEmoji) {
@@ -1514,6 +1533,7 @@ public class DialogCell extends BaseCell {
                 }
             }
 
+            //配置聊天最后时间
             if (draftMessage != null) {
                 timeString = LocaleController.stringForMessageListDate(draftMessage.date);
             } else if (lastMessageDate != 0) {
@@ -1608,6 +1628,7 @@ public class DialogCell extends BaseCell {
 
             promoDialog = false;
             MessagesController messagesController = MessagesController.getInstance(currentAccount);
+            //促销类型
             if (dialogsType == DialogsActivity.DIALOGS_TYPE_DEFAULT && messagesController.isPromoDialog(currentDialogId, true)) {
                 drawPinBackground = true;
                 promoDialog = true;
@@ -1669,6 +1690,7 @@ public class DialogCell extends BaseCell {
             }
         }
 
+        //绘制时间
         int timeWidth;
         if (drawTime) {
             timeWidth = (int) Math.ceil(Theme.dialogs_timePaint.measureText(timeString));
@@ -1736,6 +1758,7 @@ public class DialogCell extends BaseCell {
             }
         }
 
+        //配置各种情况下的名字间隔
         if (drawPremium && emojiStatus.getDrawable() != null) {
             int w = AndroidUtilities.dp(6 + 24 + 6);
             nameWidth -= w;
@@ -2087,6 +2110,7 @@ public class DialogCell extends BaseCell {
         }
 
         try {
+            //绘制输入状态
             if (!TextUtils.isEmpty(typingString)) {
                 if (useForceThreeLines || SharedConfig.useThreeLinesLayout) {
                     typingLayout = StaticLayoutEx.createStaticLayout(typingString, Theme.dialogs_messagePrintingPaint[paintIndex], messageWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, AndroidUtilities.dp(1), false, TextUtils.TruncateAt.END, messageWidth, typingString != null ? 1 : 2);
@@ -2380,6 +2404,7 @@ public class DialogCell extends BaseCell {
         return !isDialogFolder() && chat != null && chat.forum && !isTopic;
     }
 
+    //绘制回执状态
     private void drawCheckStatus(Canvas canvas, boolean drawClock, boolean drawCheck1, boolean drawCheck2, boolean moveCheck,  float alpha) {
         if (alpha == 0 && !moveCheck) {
             return;
@@ -2539,20 +2564,24 @@ public class DialogCell extends BaseCell {
         drawAvatarSelector = false;
         ttlPeriod = 0;
         if (customDialog != null) {
+            //重新绑定
             lastMessageDate = customDialog.date;
             lastUnreadState = customDialog.unread_count != 0;
             unreadCount = customDialog.unread_count;
             drawPin = customDialog.pinned;
             dialogMuted = customDialog.muted;
             hasUnmutedTopics = false;
+            //设置头像
             avatarDrawable.setInfo(customDialog.id, customDialog.name, null);
             avatarImage.setImage(null, "50_50", avatarDrawable, null, 0);
             for (int i = 0; i < thumbImage.length; ++i) {
                 thumbImage[i].setImageBitmap((BitmapDrawable) null);
             }
             avatarImage.setRoundRadius(AndroidUtilities.dp(28));
+            //静音
             drawUnmute = false;
         } else {
+            //新建view
             int oldUnreadCount = unreadCount;
             boolean oldHasReactionsMentions = reactionMentionCount != 0;
             boolean oldMarkUnread = markUnread;
@@ -2807,6 +2836,7 @@ public class DialogCell extends BaseCell {
                 }
             }
 
+            //加载聊天数量动画
             if (animated && (oldUnreadCount != unreadCount || oldMarkUnread != markUnread) && (!isDialogCell || (System.currentTimeMillis() - lastDialogChangedTime) > 100)) {
                 if (countAnimator != null) {
                     countAnimator.cancel();
@@ -2868,6 +2898,7 @@ public class DialogCell extends BaseCell {
             }
 
             boolean newHasReactionsMentions = reactionMentionCount != 0;
+            //提及或者心情
             if (animated && (newHasReactionsMentions != oldHasReactionsMentions)) {
                 if (reactionsMentionsAnimator != null) {
                     reactionsMentionsAnimator.cancel();
@@ -3249,6 +3280,7 @@ public class DialogCell extends BaseCell {
                 Theme.dialogs_lockDrawable.draw(canvas);
             }
 
+            //绘制名字
             if (nameLayout != null) {
                 if (nameLayoutEllipsizeByGradient && !nameLayoutFits) {
                     if (nameLayoutEllipsizeLeft && fadePaint == null) {
@@ -3289,6 +3321,7 @@ public class DialogCell extends BaseCell {
                 }
             }
 
+            //绘制时间
             if (timeLayout != null && currentDialogFolderId == 0) {
                 canvas.save();
                 canvas.translate(timeLeft, timeTop);
@@ -3325,6 +3358,7 @@ public class DialogCell extends BaseCell {
                 canvas.restore();
             }
 
+            //绘制聊天内容
             if (messageLayout != null) {
                 if (currentDialogFolderId != 0) {
                     if (chat != null) {
@@ -3477,7 +3511,8 @@ public class DialogCell extends BaseCell {
                 canvas.restore();
             }
 
-            if (currentDialogFolderId == 0) {
+            //绘制回执
+            if (currentDialogFolderId == 0 && !BuildVars.IS_CHAT_AIR) {
                 int currentStatus = (drawClock ? 1 : 0) + (drawCheck1 ? 2 : 0) + (drawCheck2 ? 4 : 0);
                 if (lastStatusDrawableParams >= 0 && lastStatusDrawableParams != currentStatus && !statusDrawableAnimationInProgress) {
                     createStatusDrawableAnimator(lastStatusDrawableParams, currentStatus);
@@ -3549,11 +3584,13 @@ public class DialogCell extends BaseCell {
                 }
 
             } else if (drawVerified) {
+                //绘制验证
                 setDrawableBounds(Theme.dialogs_verifiedDrawable, nameMuteLeft - AndroidUtilities.dp(1), AndroidUtilities.dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 13.5f : 16.5f));
                 setDrawableBounds(Theme.dialogs_verifiedCheckDrawable, nameMuteLeft - AndroidUtilities.dp(1), AndroidUtilities.dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 13.5f : 16.5f));
                 Theme.dialogs_verifiedDrawable.draw(canvas);
                 Theme.dialogs_verifiedCheckDrawable.draw(canvas);
             } else if (drawPremium) {
+                //绘制VIP
                 if (emojiStatus != null) {
                     emojiStatus.setBounds(
                             nameMuteLeft - AndroidUtilities.dp(2),
@@ -3569,6 +3606,7 @@ public class DialogCell extends BaseCell {
                     premiumDrawable.draw(canvas);
                 }
             } else if (drawScam != 0) {
+                //绘制占位
                 setDrawableBounds((drawScam == 1 ? Theme.dialogs_scamDrawable : Theme.dialogs_fakeDrawable), nameMuteLeft, AndroidUtilities.dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 12 : 15));
                 (drawScam == 1 ? Theme.dialogs_scamDrawable : Theme.dialogs_fakeDrawable).draw(canvas);
             }
@@ -3707,12 +3745,14 @@ public class DialogCell extends BaseCell {
             }
         }
 
+        //绘制动画头像
         if (animatingArchiveAvatar) {
             canvas.save();
             float scale = 1.0f + interpolator.getInterpolation(animatingArchiveAvatarProgress / 170.0f);
             canvas.scale(scale, scale, avatarImage.getCenterX(), avatarImage.getCenterY());
         }
 
+        //绘制头像
         if (drawAvatar && (!(currentDialogFolderId != 0 || isTopic && forumTopic != null && forumTopic.id == 1) || archivedChatsDrawable == null || !archivedChatsDrawable.isDraw())) {
             avatarImage.draw(canvas);
         }
@@ -3775,6 +3815,7 @@ public class DialogCell extends BaseCell {
             }
             if (user != null && !MessagesController.isSupportUser(user) && !user.bot) {
                 boolean isOnline = isOnline();
+                //绘制在线状态
                 if (isOnline || onlineProgress != 0) {
                     int top = (int) (avatarImage.getImageY2() - AndroidUtilities.dp(useForceThreeLines || SharedConfig.useThreeLinesLayout ? 6 : 8));
                     int left;
@@ -3953,6 +3994,7 @@ public class DialogCell extends BaseCell {
             canvas.restore();
         }
 
+        //绘制分隔符
         if (useSeparator) {
             int left;
             if (fullSeparator || currentDialogFolderId != 0 && archiveHidden && !fullSeparator2 || fullSeparator2 && !archiveHidden) {

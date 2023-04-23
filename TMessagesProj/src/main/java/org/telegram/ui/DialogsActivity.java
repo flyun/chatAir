@@ -1965,6 +1965,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    //RecyclerView拖拽滑动类
     private class SwipeController extends ItemTouchHelper.Callback {
 
         private RectF buttonInstance;
@@ -1993,6 +1994,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 DialogCell dialogCell = (DialogCell) viewHolder.itemView;
                 long dialogId = dialogCell.getDialogId();
                 if (actionBar.isActionModeShowed(null)) {
+                    //上下滑动
                     TLRPC.Dialog dialog = getMessagesController().dialogs_dict.get(dialogId);
                     if (!allowMoving || dialog == null || !isDialogPinned(dialog) || DialogObject.isFolderDialogId(dialogId)) {
                         return 0;
@@ -2002,7 +2004,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     swipeFolderBack = false;
                     return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0);
                 } else {
-                    if ((filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE && SharedConfig.getChatSwipeAction(currentAccount) == SwipeGestureSettingsView.SWIPE_GESTURE_FOLDERS) || !allowSwipeDuringCurrentTouch || ((dialogId == getUserConfig().clientUserId || dialogId == 777000) && SharedConfig.getChatSwipeAction(currentAccount) == SwipeGestureSettingsView.SWIPE_GESTURE_ARCHIVE) || getMessagesController().isPromoDialog(dialogId, false) && getMessagesController().promoDialogType != MessagesController.PROMO_TYPE_PSA) {
+                    //左滑
+                    if (BuildVars.IS_CHAT_AIR || (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE && SharedConfig.getChatSwipeAction(currentAccount) == SwipeGestureSettingsView.SWIPE_GESTURE_FOLDERS) || !allowSwipeDuringCurrentTouch || ((dialogId == getUserConfig().clientUserId || dialogId == 777000) && SharedConfig.getChatSwipeAction(currentAccount) == SwipeGestureSettingsView.SWIPE_GESTURE_ARCHIVE) || getMessagesController().isPromoDialog(dialogId, false) && getMessagesController().promoDialogType != MessagesController.PROMO_TYPE_PSA) {
                         return 0;
                     }
                     boolean canSwipeBack = folderId == 0 && (SharedConfig.getChatSwipeAction(currentAccount) == SwipeGestureSettingsView.SWIPE_GESTURE_MUTE || SharedConfig.getChatSwipeAction(currentAccount) == SwipeGestureSettingsView.SWIPE_GESTURE_READ || SharedConfig.getChatSwipeAction(currentAccount) == SwipeGestureSettingsView.SWIPE_GESTURE_PIN || SharedConfig.getChatSwipeAction(currentAccount) == SwipeGestureSettingsView.SWIPE_GESTURE_DELETE) && !rightSlidingDialogContainer.hasFragment();
@@ -2066,6 +2069,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            //左右滑动item
             if (viewHolder != null) {
                 DialogCell dialogCell = (DialogCell) viewHolder.itemView;
                 long dialogId = dialogCell.getDialogId();
@@ -3156,6 +3160,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         ContentView contentView = new ContentView(context);
         fragmentView = contentView;
 
+        //主页多页面，默认2
         int pagesCount = folderId == 0 && initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect ? 2 : 1;
         viewPages = new ViewPage[pagesCount];
         for (int a = 0; a < pagesCount; a++) {
@@ -3434,7 +3439,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
                 onItemClick(view, position, viewPage.dialogsAdapter);
             });
-            //主页聊天列表长按、移动
+            //主页聊天列表长按
             viewPage.listView.setOnItemLongClickListener(new RecyclerListView.OnItemLongClickListenerExtended() {
                 @Override
                 public boolean onItemClick(View view, int position, float x, float y) {
@@ -3651,6 +3656,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         } else if (!onlySelect) {
             type = 1;
         }
+        //搜索界面
         searchViewPager = new SearchViewPager(context, this, type, initialDialogsType, folderId, new SearchViewPager.ChatPreviewDelegate() {
             @Override
             public void startChatPreview(RecyclerListView listView, DialogCell cell) {
@@ -3876,6 +3882,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         contentView.addView(filtersView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
         filtersView.setVisibility(View.GONE);
 
+        //新建聊天按钮
         floatingButtonContainer = new FrameLayout(context);
         floatingButtonContainer.setVisibility(onlySelect && initialDialogsType != 10 || folderId != 0 ? View.GONE : View.VISIBLE);
         contentView.addView(floatingButtonContainer, LayoutHelper.createFrame((Build.VERSION.SDK_INT >= 21 ? 56 : 60), (Build.VERSION.SDK_INT >= 21 ? 56 : 60), (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM, LocaleController.isRTL ? 14 : 0, 0, LocaleController.isRTL ? 0 : 14, 14));
@@ -4254,6 +4261,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             contentView.addView(animatedStatusView, LayoutHelper.createFrame(20, 20, Gravity.LEFT | Gravity.TOP));
         }
 
+        //自动更新界面
         if (searchString == null && initialDialogsType == DIALOGS_TYPE_DEFAULT) {
             updateLayout = new FrameLayout(context) {
 
@@ -4328,6 +4336,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             updateLayout.addView(updateTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 0, 0, 0, 0));
         }
 
+        //撤销按钮
         for (int a = 0; a < 2; a++) {
             undoView[a] = new UndoView(context) {
                 @Override
@@ -4401,6 +4410,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             actionBar.setSearchTextColor(Theme.getColor(Theme.key_actionBarDefaultArchivedSearchPlaceholder), true);
         }
 
+        //全面屏模糊界面
         if (!onlySelect && initialDialogsType == DIALOGS_TYPE_DEFAULT) {
             blurredView = new View(context) {
                 @Override
@@ -4425,6 +4435,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
 
         actionBarDefaultPaint.setColor(Theme.getColor(folderId == 0 ? Theme.key_actionBarDefault : Theme.key_actionBarDefaultArchived));
+        //预览模式
         if (inPreviewMode) {
             final TLRPC.User currentUser = getUserConfig().getCurrentUser();
             avatarContainer = new ChatAvatarContainer(actionBar.getContext(), null, false);
@@ -4468,6 +4479,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateMenuButton(false);
         actionBar.setDrawBlurBackground(contentView);
 
+        //配置右划内容
         rightSlidingDialogContainer = new RightSlidingDialogContainer(context) {
 
             boolean anotherFragmentOpened;
@@ -6378,6 +6390,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    //列表点击
     private void onItemClick(View view, int position, RecyclerListView.Adapter adapter) {
         if (getParentActivity() == null) {
             return;
@@ -6653,6 +6666,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateVisibleRows(MessagesController.UPDATE_MASK_SELECT_DIALOG);
     }
 
+    //列表长按
     private boolean onItemLongClick(RecyclerListView listView, View view, int position, float x, float y, int dialogsType, RecyclerListView.Adapter adapter) {
         if (getParentActivity() == null) {
             return false;
@@ -6788,6 +6802,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         showDialog(builder.create());
     }
 
+    //显示聊天预览
     public boolean showChatPreview(DialogCell cell) {
         if (cell.isDialogFolder()) {
             if (cell.getCurrentDialogFolderId() == 1) {
@@ -10293,6 +10308,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         return arrayList;
     }
 
+    //更新新建聊天按钮颜色
     private void updateFloatingButtonColor() {
         if (getParentActivity() == null || floatingButtonContainer == null) {
             return;

@@ -82,7 +82,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
             VIEW_TYPE_HEADER = 7,
             VIEW_TYPE_SHADOW = 8,
             VIEW_TYPE_ARCHIVE = 9,
-            VIEW_TYPE_LAST_EMPTY = 10,
+            VIEW_TYPE_LAST_EMPTY = 10,//最后占位消息，一直存在
             VIEW_TYPE_NEW_CHAT_HINT = 11,
             VIEW_TYPE_TEXT = 12,
             VIEW_TYPE_CONTACTS_FLICKER = 13,
