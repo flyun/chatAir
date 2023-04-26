@@ -3155,6 +3155,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             sideMenu.getAdapter().notifyDataSetChanged();
         }
 
+        //创建actionBar内容
         createActionMode(null);
 
         ContentView contentView = new ContentView(context);
@@ -5226,6 +5227,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    //ActionBar内容
     private void createActionMode(String tag) {
         if (actionBar.actionModeIsExist(tag)) {
             return;
@@ -5264,6 +5266,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         actionModeViews.add(muteItem);
         actionModeViews.add(deleteItem);
         actionModeViews.add(otherItem);
+
+        if (BuildVars.IS_CHAT_AIR) {
+            archive2Item.setVisibility(View.GONE);
+            muteItem.setVisibility(View.GONE);
+            archiveItem.setVisibility(View.GONE);
+            addToFolderItem.setVisibility(View.GONE);
+            removeFromFolderItem.setVisibility(View.GONE);
+            readItem.setVisibility(View.GONE);
+            blockItem.setVisibility(View.GONE);
+        }
 
         if (tag == null) {
             actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -7352,6 +7364,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         return dialog.pinned;
     }
 
+    //执行actionBar上面的图标
     private void performSelectedDialogsAction(ArrayList<Long> selectedDialogs, int action, boolean alert, boolean longPress) {
         if (getParentActivity() == null) {
             return;
@@ -8037,7 +8050,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 clearItem.setText(LocaleController.getString("ClearHistory", R.string.ClearHistory));
             }
         }
-        if (canUnarchiveCount != 0) {
+        if (canUnarchiveCount != 0 && !BuildVars.IS_CHAT_AIR) {
             final String contentDescription = LocaleController.getString("Unarchive", R.string.Unarchive);
             archiveItem.setTextAndIcon(contentDescription, R.drawable.msg_unarchive);
             archive2Item.setIcon(R.drawable.msg_unarchive);
@@ -8049,7 +8062,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 archiveItem.setVisibility(View.VISIBLE);
                 archive2Item.setVisibility(View.GONE);
             }
-        } else if (canArchiveCount != 0) {
+        } else if (canArchiveCount != 0 && !BuildVars.IS_CHAT_AIR) {
             final String contentDescription = LocaleController.getString("Archive", R.string.Archive);
             archiveItem.setTextAndIcon(contentDescription, R.drawable.msg_archive);
             archive2Item.setIcon(R.drawable.msg_archive);
@@ -8080,7 +8093,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (cantBlockCount != 0) {
             blockItem.setVisibility(View.GONE);
         } else {
-            blockItem.setVisibility(View.VISIBLE);
+            if (!BuildVars.IS_CHAT_AIR) blockItem.setVisibility(View.VISIBLE);
         }
         if (filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE || filterTabsView.currentTabIsDefault()) {
             removeFromFolderItem.setVisibility(View.GONE);
@@ -8099,11 +8112,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             muteItem.setIcon(R.drawable.msg_mute);
             muteItem.setContentDescription(LocaleController.getString("ChatsMute", R.string.ChatsMute));
         }
-        if (canReadCount != 0) {
+        if (canReadCount != 0 && !BuildVars.IS_CHAT_AIR) {
             readItem.setTextAndIcon(LocaleController.getString("MarkAsRead", R.string.MarkAsRead), R.drawable.msg_markread);
             readItem.setVisibility(View.VISIBLE);
         } else {
-            if (forumCount == 0) {
+            if (forumCount == 0 && !BuildVars.IS_CHAT_AIR) {
                 readItem.setTextAndIcon(LocaleController.getString("MarkAsUnread", R.string.MarkAsUnread), R.drawable.msg_markunread);
                 readItem.setVisibility(View.VISIBLE);
             } else {
