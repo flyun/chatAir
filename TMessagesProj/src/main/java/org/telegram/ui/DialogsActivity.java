@@ -2695,7 +2695,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         });
 
-        if (initialDialogsType == DIALOGS_TYPE_ADD_USERS_TO || initialDialogsType == DIALOGS_TYPE_START_ATTACH_BOT) {
+        if (BuildVars.IS_CHAT_AIR || initialDialogsType == DIALOGS_TYPE_ADD_USERS_TO || initialDialogsType == DIALOGS_TYPE_START_ATTACH_BOT) {
             searchItem.setVisibility(View.GONE);
         }
         searchItem.setSearchFieldHint(LocaleController.getString("Search", R.string.Search));
@@ -3651,6 +3651,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         }
 
+        //搜索type类型，默认0，有值1
         int type = 0;
         if (searchString != null) {
             type = 2;

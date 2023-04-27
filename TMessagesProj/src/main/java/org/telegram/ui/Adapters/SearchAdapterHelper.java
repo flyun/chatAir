@@ -10,8 +10,6 @@ package org.telegram.ui.Adapters;
 
 import android.util.Pair;
 
-import androidx.collection.LongSparseArray;
-
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLitePreparedStatement;
@@ -36,6 +34,8 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import androidx.collection.LongSparseArray;
 
 public class SearchAdapterHelper {
 
@@ -112,6 +112,8 @@ public class SearchAdapterHelper {
     public void queryServerSearch(String query, boolean allowUsername, boolean allowChats, boolean allowBots, boolean allowSelf, boolean canAddGroupsOnly, long channelId, boolean phoneNumbers, int type, int searchId, long exceptDialogId) {
         queryServerSearch(query, allowUsername, allowChats, allowBots, allowSelf, canAddGroupsOnly, channelId, phoneNumbers, type, searchId, exceptDialogId, null);
     }
+
+    //搜索主功能，通过请求网络进行搜索
     public void queryServerSearch(String query, boolean allowUsername, boolean allowChats, boolean allowBots, boolean allowSelf, boolean canAddGroupsOnly, long channelId, boolean phoneNumbers, int type, int searchId, long exceptDialogId, Runnable onEnd) {
         for (int reqId : pendingRequestIds) {
             ConnectionsManager.getInstance(currentAccount).cancelRequest(reqId, true);
