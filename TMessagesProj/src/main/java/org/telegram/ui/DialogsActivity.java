@@ -4481,7 +4481,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateMenuButton(false);
         actionBar.setDrawBlurBackground(contentView);
 
-        //配置右划内容
         rightSlidingDialogContainer = new RightSlidingDialogContainer(context) {
 
             boolean anotherFragmentOpened;

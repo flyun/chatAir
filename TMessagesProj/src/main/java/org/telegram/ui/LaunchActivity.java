@@ -8,8 +8,6 @@
 
 package org.telegram.ui;
 
-import static org.telegram.ui.Components.Premium.LimitReachedBottomSheet.TYPE_ACCOUNTS;
-
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -71,17 +69,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.arch.core.util.Function;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.pm.ShortcutInfoCompat;
-import androidx.core.content.pm.ShortcutManagerCompat;
-import androidx.core.graphics.ColorUtils;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.appindexing.Action;
@@ -202,6 +189,19 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.arch.core.util.Function;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.pm.ShortcutInfoCompat;
+import androidx.core.content.pm.ShortcutManagerCompat;
+import androidx.core.graphics.ColorUtils;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import static org.telegram.ui.Components.Premium.LimitReachedBottomSheet.TYPE_ACCOUNTS;
+
 public class LaunchActivity extends BasePermissionsActivity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate {
     public final static Pattern PREFIX_T_ME_PATTERN = Pattern.compile("^(?:http(?:s|)://|)([A-z0-9-]+?)\\.t\\.me");
 
@@ -254,7 +254,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private BlockingUpdateView blockingUpdateView;
     private AlertDialog visibleDialog;
     private AlertDialog proxyErrorDialog;
-    private RecyclerListView sideMenu;
+    private RecyclerListView sideMenu;//左划侧边栏内容
     private SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialog;
     private SideMenultItemAnimator itemAnimator;
     private FrameLayout updateLayout;
@@ -487,12 +487,16 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         layoutParams.width = AndroidUtilities.isTablet() ? AndroidUtilities.dp(320) : Math.min(AndroidUtilities.dp(320), Math.min(screenSize.x, screenSize.y) - AndroidUtilities.dp(56));
         layoutParams.height = LayoutHelper.MATCH_PARENT;
         sideMenuContainer.setLayoutParams(layoutParams);
+        //侧滑栏点击事件
         sideMenu.setOnItemClickListener((view, position, x, y) -> {
-            if (position == 0) {
+            //头像点击
+            if (position == 0 && !BuildVars.IS_CHAT_AIR) {
                 DrawerProfileCell profileCell = (DrawerProfileCell) view;
                 if (profileCell.isInAvatar(x, y)) {
+                    //点击头像
                     openSettings(profileCell.hasAvatar());
                 } else {
+                    //点击账号扩展
                     drawerLayoutAdapter.setAccountsShown(!drawerLayoutAdapter.isAccountsShown(), true);
                 }
             } else if (view instanceof DrawerUserCell) {
@@ -526,10 +530,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             } else {
                 int id = drawerLayoutAdapter.getId(position);
                 if (id == 2) {
+                    //点击新群组
                     Bundle args = new Bundle();
                     presentFragment(new GroupCreateActivity(args));
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 3) {
+                    //点击联系人
                     Bundle args = new Bundle();
                     args.putBoolean("onlyUsers", true);
                     args.putBoolean("destroyAfterSelect", true);
@@ -539,6 +545,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     presentFragment(new ContactsActivity(args));
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 4) {
+                    //点击频道
                     SharedPreferences preferences = MessagesController.getGlobalMainSettings();
                     if (!BuildVars.DEBUG_VERSION && preferences.getBoolean("channel_intro", false)) {
                         Bundle args = new Bundle();
@@ -550,25 +557,31 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     }
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 6) {
+                    //点击联系人
                     presentFragment(new ContactsActivity(null));
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 7) {
+                    //点击邀请联系人
                     presentFragment(new InviteContactsActivity());
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 8) {
+                    //点击设置
                     openSettings(false);
                 } else if (id == 9) {
+                    //点击用户指南通过浏览器
                     Browser.openUrl(LaunchActivity.this, LocaleController.getString("TelegramFaqUrl", R.string.TelegramFaqUrl));
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 10) {
                     presentFragment(new CallLogActivity());
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 11) {
+                    //点击收藏夹
                     Bundle args = new Bundle();
                     args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
                     presentFragment(new ChatActivity(args));
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 12) {
+                    //点击附近的人
                     if (Build.VERSION.SDK_INT >= 23) {
                         if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                             presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_NEARBY_LOCATION_ACCESS));
@@ -595,6 +608,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     }
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 13) {
+                    //点击进入客服频道
                     Browser.openUrl(LaunchActivity.this, LocaleController.getString("TelegramFeaturesUrl", R.string.TelegramFeaturesUrl));
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 15) {

@@ -13,15 +13,13 @@ import android.content.pm.PackageManager;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
-import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.DrawerLayoutContainer;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.DividerCell;
@@ -36,6 +34,9 @@ import org.telegram.ui.Components.SideMenultItemAnimator;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import androidx.recyclerview.widget.RecyclerView;
+
+//侧边栏
 public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
 
     private Context mContext;
@@ -160,6 +161,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         switch (holder.getItemViewType()) {
             case 0: {
                 DrawerProfileCell profileCell = (DrawerProfileCell) holder.itemView;
+                //设置用户头像和手机号
                 profileCell.setUser(MessagesController.getInstance(UserConfig.selectedAccount).getUser(UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId()), accountsShown);
                 break;
             }
@@ -230,6 +232,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         notifyItemMoved(fromIndex, toIndex);
     }
 
+    //侧边栏添加功能区
     private void resetItems() {
         accountNumbers.clear();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
@@ -263,6 +266,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         int inviteIcon;
         int helpIcon;
         int peopleNearbyIcon;
+        //不同主题下的图标
         if (eventType == 0) {
             newGroupIcon = R.drawable.msg_groups_ny;
             //newSecretIcon = R.drawable.msg_secret_ny;
@@ -317,18 +321,18 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             }
             items.add(null); // divider
         }
-        items.add(new Item(2, LocaleController.getString("NewGroup", R.string.NewGroup), newGroupIcon));
+        if (!BuildVars.IS_CHAT_AIR) items.add(new Item(2, LocaleController.getString("NewGroup", R.string.NewGroup), newGroupIcon));
         //items.add(new Item(3, LocaleController.getString("NewSecretChat", R.string.NewSecretChat), newSecretIcon));
         //items.add(new Item(4, LocaleController.getString("NewChannel", R.string.NewChannel), newChannelIcon));
-        items.add(new Item(6, LocaleController.getString("Contacts", R.string.Contacts), contactsIcon));
-        items.add(new Item(10, LocaleController.getString("Calls", R.string.Calls), callsIcon));
-        if (hasGps) {
+        if (!BuildVars.IS_CHAT_AIR) items.add(new Item(6, LocaleController.getString("Contacts", R.string.Contacts), contactsIcon));
+        if (!BuildVars.IS_CHAT_AIR) items.add(new Item(10, LocaleController.getString("Calls", R.string.Calls), callsIcon));
+        if (!BuildVars.IS_CHAT_AIR && hasGps) {
             items.add(new Item(12, LocaleController.getString("PeopleNearby", R.string.PeopleNearby), peopleNearbyIcon));
         }
-        items.add(new Item(11, LocaleController.getString("SavedMessages", R.string.SavedMessages), savedIcon));
+        if (!BuildVars.IS_CHAT_AIR) items.add(new Item(11, LocaleController.getString("SavedMessages", R.string.SavedMessages), savedIcon));
         items.add(new Item(8, LocaleController.getString("Settings", R.string.Settings), settingsIcon));
-        items.add(null); // divider
-        items.add(new Item(7, LocaleController.getString("InviteFriends", R.string.InviteFriends), inviteIcon));
+        if (!BuildVars.IS_CHAT_AIR) items.add(null); // divider
+        if (!BuildVars.IS_CHAT_AIR) items.add(new Item(7, LocaleController.getString("InviteFriends", R.string.InviteFriends), inviteIcon));
         items.add(new Item(13, LocaleController.getString("TelegramFeatures", R.string.TelegramFeatures), helpIcon));
     }
 

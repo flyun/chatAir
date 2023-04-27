@@ -31,13 +31,11 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLocation;
@@ -70,6 +68,8 @@ import org.telegram.ui.Components.SnowflakesEffect;
 import org.telegram.ui.ThemeActivity;
 
 import java.util.ArrayList;
+
+import androidx.annotation.NonNull;
 
 public class DrawerProfileCell extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
@@ -111,10 +111,12 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         shadowView.setImageResource(R.drawable.bottom_shadow);
         addView(shadowView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 70, Gravity.LEFT | Gravity.BOTTOM));
 
+        //头像
         avatarImageView = new BackupImageView(context);
         avatarImageView.getImageReceiver().setRoundRadius(AndroidUtilities.dp(32));
         addView(avatarImageView, LayoutHelper.createFrame(64, 64, Gravity.LEFT | Gravity.BOTTOM, 16, 0, 0, 67));
 
+        //名称
         nameTextView = new SimpleTextView(context) {
             @Override
             protected void onDraw(Canvas canvas) {
@@ -137,8 +139,9 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         nameTextView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
         nameTextView.setEllipsizeByGradient(true);
         nameTextView.setRightDrawableOutside(true);
-        addView(nameTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 16, 0, 52, 28));
+        addView(nameTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 16, 0, 52, BuildVars.IS_CHAT_AIR? 9 : 28));
 
+        //手机号码
         phoneTextView = new TextView(context);
         phoneTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         phoneTextView.setLines(1);
@@ -146,11 +149,14 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         phoneTextView.setSingleLine(true);
         phoneTextView.setGravity(Gravity.LEFT);
         addView(phoneTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 16, 0, 52, 9));
+        if (BuildVars.IS_CHAT_AIR) phoneTextView.setVisibility(GONE);
 
+        //其他账号扩展
         arrowView = new ImageView(context);
         arrowView.setScaleType(ImageView.ScaleType.CENTER);
         arrowView.setImageResource(R.drawable.msg_expand);
         addView(arrowView, LayoutHelper.createFrame(59, 59, Gravity.RIGHT | Gravity.BOTTOM));
+        if (BuildVars.IS_CHAT_AIR) arrowView.setVisibility(GONE);
         setArrowState(false);
 
         boolean playDrawable;
@@ -194,6 +200,7 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         if (!playDrawable && sunDrawable.getCustomEndFrame() != sunDrawable.getCurrentFrame()) {
             darkThemeView.playAnimation();
         }
+        //切换暗黑主题
         darkThemeView.setOnClickListener(v -> {
             if (switchingTheme) {
                 return;

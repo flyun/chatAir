@@ -29,7 +29,7 @@ import androidx.dynamicanimation.animation.SpringForce;
 
 import static org.telegram.ui.ActionBar.ActionBarLayout.findScrollingChild;
 
-//右划内容界面
+//弹窗界面
 public abstract class RightSlidingDialogContainer extends FrameLayout {
 
     BaseFragment currentFragment;
