@@ -613,6 +613,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 15) {
                     showSelectStatusDialog();
+                } else if (id == 30) {
+                    //点击进入聊天主题
+                    presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_BASIC));
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 31) {
+                    //点击进入选择语言
+                    presentFragment(new LanguageSelectActivity());
+                    drawerLayoutContainer.closeDrawer(false);
                 }
             }
         });

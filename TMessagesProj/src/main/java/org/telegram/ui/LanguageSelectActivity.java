@@ -18,12 +18,8 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
@@ -60,6 +56,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Timer;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+//选择语言类
 public class LanguageSelectActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
     private ListAdapter listAdapter;
@@ -72,8 +74,8 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
 
     private Timer searchTimer;
     private ArrayList<LocaleController.LocaleInfo> searchResult;
-    private ArrayList<LocaleController.LocaleInfo> sortedLanguages;
-    private ArrayList<LocaleController.LocaleInfo> unofficialLanguages;
+    private ArrayList<LocaleController.LocaleInfo> sortedLanguages;//内置语言包
+    private ArrayList<LocaleController.LocaleInfo> unofficialLanguages;//第三方语言包
 
     private ActionBarMenuItem searchItem;
     private int translateSettingsBackgroundHeight;
@@ -238,7 +240,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
                     return;
                 }
                 boolean search = listView.getAdapter() == searchListViewAdapter;
-                if (!search) {
+                if (!search && !BuildVars.IS_CHAT_AIR) {
                     position -= (7 - (!(getChatValue() || getContextValue()) ? 1 : 0) - (getMessagesController().premiumLocked ? 1 : 0));
                 }
                 LocaleController.LocaleInfo localeInfo;
@@ -523,6 +525,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
                 return searchResult.size();
             } else {
                 int count = sortedLanguages.size();
+                if (BuildVars.IS_CHAT_AIR) return count;
                 if (count != 0) {
                     count++;
                 }
@@ -582,7 +585,9 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
             switch (holder.getItemViewType()) {
                 case VIEW_TYPE_LANGUAGE: {
                     if (!search) {
-                        position -= (7 - (!(getChatValue() || getContextValue()) ? 1 : 0) - (getMessagesController().premiumLocked ? 1 : 0));
+                        if (!BuildVars.IS_CHAT_AIR) {
+                            position -= (7 - (!(getChatValue() || getContextValue()) ? 1 : 0) - (getMessagesController().premiumLocked ? 1 : 0));
+                        }
                     }
                     TextRadioCell textSettingsCell = (TextRadioCell) holder.itemView;
                     textSettingsCell.updateRTL();
@@ -694,7 +699,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
                 }
                 case VIEW_TYPE_HEADER: {
                     HeaderCell header = (HeaderCell) holder.itemView;
-                    header.setText(position == 0 ? LocaleController.getString("TranslateMessages", R.string.TranslateMessages) : LocaleController.getString("Language", R.string.Language));
+                    header.setText(position == 0 && !BuildVars.IS_CHAT_AIR ? LocaleController.getString("TranslateMessages", R.string.TranslateMessages) : LocaleController.getString("Language", R.string.Language));
                     break;
                 }
             }
@@ -705,6 +710,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
             if (search) {
                 return VIEW_TYPE_LANGUAGE;
             } else {
+                if (BuildVars.IS_CHAT_AIR) return VIEW_TYPE_LANGUAGE;
                 if (i-- == 0) return VIEW_TYPE_HEADER;
                 if (i-- == 0) return VIEW_TYPE_SWITCH;
                 if (!getMessagesController().premiumLocked) {
