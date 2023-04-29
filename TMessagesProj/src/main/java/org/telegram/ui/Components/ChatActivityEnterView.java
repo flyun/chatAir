@@ -1832,7 +1832,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         sizeNotifierLayout = parent;
         sizeNotifierLayout.setDelegate(this);
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-        sendByEnter = preferences.getBoolean("send_by_enter", false);
+        sendByEnter = preferences.getBoolean("send_by_enter", BuildVars.IS_CHAT_AIR ? true : false);
 
         //添加输入框布局
         textFieldContainer = new FrameLayout(context) {

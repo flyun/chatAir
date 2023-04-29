@@ -1052,7 +1052,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 presentFragment(new WallpapersListActivity(WallpapersListActivity.TYPE_ALL));
             } else if (position == sendByEnterRow) {
                 SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-                boolean send = preferences.getBoolean("send_by_enter", false);
+                boolean send = preferences.getBoolean("send_by_enter", BuildVars.IS_CHAT_AIR ? true : false);
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putBoolean("send_by_enter", !send);
                 editor.commit();
@@ -2285,7 +2285,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                         textCheckCell.setTextAndCheck(LocaleController.getString("EnableAnimations", R.string.EnableAnimations), preferences.getBoolean("view_animations", true), true);
                     } else if (position == sendByEnterRow) {
                         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-                        textCheckCell.setTextAndCheck(LocaleController.getString("SendByEnter", R.string.SendByEnter), preferences.getBoolean("send_by_enter", false), true);
+                        textCheckCell.setTextAndCheck(LocaleController.getString("SendByEnter", R.string.SendByEnter), preferences.getBoolean("send_by_enter", BuildVars.IS_CHAT_AIR ? true : false), true);
                     } else if (position == raiseToSpeakRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("RaiseToSpeak", R.string.RaiseToSpeak), SharedConfig.raiseToSpeak, true);
                     } else if (position == pauseOnRecordRow) {

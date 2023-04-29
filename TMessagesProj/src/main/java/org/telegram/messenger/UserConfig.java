@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+//用户配置
 public class UserConfig extends BaseController {
 
     public static int selectedAccount;
@@ -59,8 +60,8 @@ public class UserConfig extends BaseController {
 
     public boolean notificationsSettingsLoaded;
     public boolean notificationsSignUpSettingsLoaded;
-    public boolean syncContacts = true;
-    public boolean suggestContacts = true;
+    public boolean syncContacts = BuildVars.IS_CHAT_AIR ? false : true;
+    public boolean suggestContacts = BuildVars.IS_CHAT_AIR ? false : true;
     public boolean hasSecureData;
     public int loginTime;
     public TLRPC.TL_help_termsOfService unacceptedTermsOfService;
@@ -308,8 +309,8 @@ public class UserConfig extends BaseController {
             ratingLoadTime = preferences.getInt("ratingLoadTime", 0);
             botRatingLoadTime = preferences.getInt("botRatingLoadTime", 0);
             loginTime = preferences.getInt("loginTime", currentAccount);
-            syncContacts = preferences.getBoolean("syncContacts", true);
-            suggestContacts = preferences.getBoolean("suggestContacts", true);
+            syncContacts = preferences.getBoolean("syncContacts", BuildVars.IS_CHAT_AIR ? false : true);
+            suggestContacts = preferences.getBoolean("suggestContacts", BuildVars.IS_CHAT_AIR ? false : true);
             hasSecureData = preferences.getBoolean("hasSecureData", false);
             notificationsSettingsLoaded = preferences.getBoolean("notificationsSettingsLoaded3", false);
             notificationsSignUpSettingsLoaded = preferences.getBoolean("notificationsSignUpSettingsLoaded", false);

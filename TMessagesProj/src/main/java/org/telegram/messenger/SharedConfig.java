@@ -111,7 +111,7 @@ public class SharedConfig {
     public static boolean stickersReorderingHintUsed;
     public static boolean disableVoiceAudioEffects;
     public static boolean forceDisableTabletMode;
-    public static boolean updateStickersOrderOnSend = true;
+    public static boolean updateStickersOrderOnSend = BuildVars.IS_CHAT_AIR ? false: true;
     private static int lastLocalId = -210000;
 
     public static String storageCacheDir;
@@ -130,7 +130,8 @@ public class SharedConfig {
     public static boolean raiseToSpeak = false;
     public static boolean recordViaSco = false;
     public static boolean customTabs = true;
-    public static boolean directShare = true;
+    //分享显示最近分享联系人
+    public static boolean directShare = BuildVars.IS_CHAT_AIR ? false: true;
     public static boolean inappCamera = true;
     public static boolean roundCamera16to9 = true;
     public static boolean noSoundHintShowed = false;
@@ -163,6 +164,7 @@ public class SharedConfig {
 
     public static TLRPC.TL_help_appUpdate pendingAppUpdate;
     public static int pendingAppUpdateBuildVersion;
+    //上次检查更新时间
     public static long lastUpdateCheckTime;
 
     public static boolean hasEmailLogin;
@@ -176,6 +178,7 @@ public class SharedConfig {
     public static boolean useThreeLinesLayout;
     public static boolean archiveHidden;
 
+    //聊天滑动功能选项
     private static int chatSwipeAction;
 
     public static int distanceSystemType;
@@ -363,6 +366,7 @@ public class SharedConfig {
         return value;
     }
 
+    //载入默认配置
     public static void loadConfig() {
         synchronized (sync) {
             if (configLoaded || ApplicationLoader.applicationContext == null) {
@@ -452,7 +456,7 @@ public class SharedConfig {
             raiseToSpeak = preferences.getBoolean("raise_to_speak", false);
             recordViaSco = preferences.getBoolean("record_via_sco", false);
             customTabs = preferences.getBoolean("custom_tabs", true);
-            directShare = preferences.getBoolean("direct_share", true);
+            directShare = preferences.getBoolean("direct_share", BuildVars.IS_CHAT_AIR ? false: true);
             shuffleMusic = preferences.getBoolean("shuffleMusic", false);
             playOrderReversed = !shuffleMusic && preferences.getBoolean("playOrderReversed", false);
             inappCamera = preferences.getBoolean("inappCamera", true);
@@ -464,7 +468,8 @@ public class SharedConfig {
             bubbleRadius = preferences.getInt("bubbleRadius", 17);
             ivFontSize = preferences.getInt("iv_font_size", fontSize);
             allowBigEmoji = preferences.getBoolean("allowBigEmoji", true);
-            useSystemEmoji = preferences.getBoolean("useSystemEmoji", false);
+            //使用系统表情
+            useSystemEmoji = preferences.getBoolean("useSystemEmoji", BuildVars.IS_CHAT_AIR ? true: false);
             streamMedia = preferences.getBoolean("streamMedia", true);
             saveStreamMedia = preferences.getBoolean("saveStreamMedia", true);
             pauseMusicOnRecord = preferences.getBoolean("pauseMusicOnRecord", false);
@@ -472,7 +477,8 @@ public class SharedConfig {
             streamAllVideo = preferences.getBoolean("streamAllVideo", BuildVars.DEBUG_VERSION);
             streamMkv = preferences.getBoolean("streamMkv", false);
             suggestStickers = preferences.getInt("suggestStickers", 0);
-            suggestAnimatedEmoji = preferences.getBoolean("suggestAnimatedEmoji", true);
+            //是否建议动画表情
+            suggestAnimatedEmoji = preferences.getBoolean("suggestAnimatedEmoji", BuildVars.IS_CHAT_AIR ? false: true);
             overrideDevicePerformanceClass = preferences.getInt("overrideDevicePerformanceClass", -1);
             devicePerformanceClass = preferences.getInt("devicePerformanceClass", -1);
             sortContactsByName = preferences.getBoolean("sortContactsByName", false);
@@ -504,7 +510,8 @@ public class SharedConfig {
             dontAskManageStorage = preferences.getBoolean("dontAskManageStorage", false);
             hasEmailLogin = preferences.getBoolean("hasEmailLogin", false);
             isFloatingDebugActive = preferences.getBoolean("floatingDebugActive", false);
-            updateStickersOrderOnSend = preferences.getBoolean("updateStickersOrderOnSend", true);
+            //在发送时更新贴纸
+            updateStickersOrderOnSend = preferences.getBoolean("updateStickersOrderOnSend", BuildVars.IS_CHAT_AIR ? false: true);
 
             preferences = ApplicationLoader.applicationContext.getSharedPreferences("Notifications", Activity.MODE_PRIVATE);
             showNotificationsForAllAccounts = preferences.getBoolean("AllAccounts", true);

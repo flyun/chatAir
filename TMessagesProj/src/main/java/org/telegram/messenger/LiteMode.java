@@ -5,12 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Build;
-import android.os.PowerManager;
-import android.util.SparseArray;
-import android.util.SparseIntArray;
-
-import androidx.annotation.RequiresApi;
-import androidx.core.math.MathUtils;
 
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
@@ -20,9 +14,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Components.AnimatedEmojiDrawable;
+import androidx.annotation.RequiresApi;
+import androidx.core.math.MathUtils;
 
+//节电控制
 public class LiteMode {
 
     public static final int FLAG_ANIMATED_STICKERS_KEYBOARD = 1;
@@ -182,6 +177,7 @@ public class LiteMode {
         loadPreference();
     }
 
+    //载入默认配置
     public static void loadPreference() {
         int defaultValue = PRESET_HIGH, batteryDefaultValue = BATTERY_HIGH;
         if (SharedConfig.getDevicePerformanceClass() == SharedConfig.PERFORMANCE_CLASS_LOW) {
@@ -249,6 +245,8 @@ public class LiteMode {
         if (loaded) {
             onFlagsUpdate(prevValue, value);
         }
+        //默认关闭节电模式
+        if (BuildVars.IS_CHAT_AIR) batteryDefaultValue = 0;
         powerSaverLevel = preferences.getInt("lite_mode_battery_level", batteryDefaultValue);
         loaded = true;
     }
