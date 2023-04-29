@@ -119,11 +119,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+//主题预览完整设置界面，包含颜色设置、背景设置、私密聊天颜色设置
 public class ThemePreviewActivity extends BaseFragment implements DownloadController.FileDownloadProgressListener, NotificationCenter.NotificationCenterDelegate {
 
     public static final int SCREEN_TYPE_PREVIEW = 0;
-    public static final int SCREEN_TYPE_ACCENT_COLOR = 1;
-    public static final int SCREEN_TYPE_CHANGE_BACKGROUND = 2;
+    public static final int SCREEN_TYPE_ACCENT_COLOR = 1;//设置聊天颜色
+    public static final int SCREEN_TYPE_CHANGE_BACKGROUND = 2;//设置聊天背景颜色
 
     private final int screenType;
     public boolean useDefaultThemeForButtons = true;
@@ -375,29 +376,31 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
             actionBar.setOccupyStatusBar(false);
         }
         page1 = new FrameLayout(context);
-        ActionBarMenu menu = actionBar.createMenu();
-        final ActionBarMenuItem item = menu.addItem(0, R.drawable.ic_ab_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
-            @Override
-            public void onSearchExpand() {
+        if (!BuildVars.IS_CHAT_AIR) {
+            ActionBarMenu menu = actionBar.createMenu();
+            final ActionBarMenuItem item = menu.addItem(0, R.drawable.ic_ab_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
+                @Override
+                public void onSearchExpand() {
 
-            }
+                }
 
-            @Override
-            public boolean canCollapseSearch() {
-                return true;
-            }
+                @Override
+                public boolean canCollapseSearch() {
+                    return true;
+                }
 
-            @Override
-            public void onSearchCollapse() {
+                @Override
+                public void onSearchCollapse() {
 
-            }
+                }
 
-            @Override
-            public void onTextChanged(EditText editText) {
+                @Override
+                public void onTextChanged(EditText editText) {
 
-            }
-        });
-        item.setSearchFieldHint(LocaleController.getString("Search", R.string.Search));
+                }
+            });
+            item.setSearchFieldHint(LocaleController.getString("Search", R.string.Search));
+        }
 
         actionBar.setBackButtonDrawable(new MenuDrawable());
         actionBar.setAddToContainer(false);
@@ -764,7 +767,7 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
         } else {
             if (screenType == SCREEN_TYPE_CHANGE_BACKGROUND) {
                 actionBar2.setTitle(LocaleController.getString("BackgroundPreview", R.string.BackgroundPreview));
-                if (BuildVars.DEBUG_PRIVATE_VERSION && Theme.getActiveTheme().getAccent(false) != null || currentWallpaper instanceof WallpapersListActivity.ColorWallpaper && !Theme.DEFAULT_BACKGROUND_SLUG.equals(((WallpapersListActivity.ColorWallpaper) currentWallpaper).slug) || currentWallpaper instanceof TLRPC.TL_wallPaper) {
+                if (!BuildVars.IS_CHAT_AIR && (BuildVars.DEBUG_PRIVATE_VERSION && Theme.getActiveTheme().getAccent(false) != null || currentWallpaper instanceof WallpapersListActivity.ColorWallpaper && !Theme.DEFAULT_BACKGROUND_SLUG.equals(((WallpapersListActivity.ColorWallpaper) currentWallpaper).slug) || currentWallpaper instanceof TLRPC.TL_wallPaper)) {
                     ActionBarMenu menu2 = actionBar2.createMenu();
                     menu2.addItem(5, R.drawable.msg_share_filled);
                 }
@@ -4005,6 +4008,7 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
             TLRPC.Message message;
             MessageObject messageObject;
             if (screenType == SCREEN_TYPE_CHANGE_BACKGROUND) {
+                //改变背景
                 message = new TLRPC.TL_message();
                 if (currentWallpaper instanceof WallpapersListActivity.ColorWallpaper) {
                     message.message = LocaleController.getString("BackgroundColorSinglePreviewLine2", R.string.BackgroundColorSinglePreviewLine2);
@@ -4046,6 +4050,8 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
                 messageObject.resetLayout();
                 messages.add(messageObject);
             } else if (screenType == SCREEN_TYPE_ACCENT_COLOR) {
+                //设置颜色界面
+                //音频文件
                 message = new TLRPC.TL_message();
                 message.media = new TLRPC.TL_messageMediaDocument();
                 message.media.document = new TLRPC.TL_document();
@@ -4099,7 +4105,7 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
                     entityUrl.offset = index1;
                     entityUrl.length = index2 - index1 - 1;
                     entityUrl.url = "https://telegram.org";
-                    message.entities.add(entityUrl);
+                    if (!BuildVars.IS_CHAT_AIR) message.entities.add(entityUrl);
                 }
                 message.message = builder.toString();
                 message.date = date + 960;
@@ -4126,8 +4132,10 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
                 message.flags = 257 + 8;
                 message.from_id = new TLRPC.TL_peerUser();
                 message.id = 1;
-                message.reply_to = new TLRPC.TL_messageReplyHeader();
-                message.reply_to.reply_to_msg_id = 5;
+                if (!BuildVars.IS_CHAT_AIR) {
+                    message.reply_to = new TLRPC.TL_messageReplyHeader();
+                    message.reply_to.reply_to_msg_id = 5;
+                }
                 message.media = new TLRPC.TL_messageMediaEmpty();
                 message.out = false;
                 message.peer_id = new TLRPC.TL_peerUser();
@@ -4137,12 +4145,15 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
                 message1.customReplyName = "Test User";
                 message2.eventId = 1;
                 message2.resetLayout();
-                message2.replyMessageObject = replyMessageObject;
-                message1.replyMessageObject = message2;
+                if (!BuildVars.IS_CHAT_AIR) {
+                    message2.replyMessageObject = replyMessageObject;
+                    message1.replyMessageObject = message2;
+                }
                 messages.add(message2);
 
-                messages.add(replyMessageObject);
+                if (!BuildVars.IS_CHAT_AIR) messages.add(replyMessageObject);
 
+                //音频录音
                 message = new TLRPC.TL_message();
                 message.date = date + 120;
                 message.dialog_id = 1;
@@ -4170,8 +4181,9 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
                 messageObject.audioProgressSec = 1;
                 messageObject.audioProgress = 0.3f;
                 messageObject.useCustomPhoto = true;
-                messages.add(messageObject);
+                if (!BuildVars.IS_CHAT_AIR) messages.add(messageObject);
             } else {
+                //其他界面
                 if (showSecretMessages) {
                     TLRPC.TL_user user1 = new TLRPC.TL_user();
                     user1.id = Integer.MAX_VALUE;

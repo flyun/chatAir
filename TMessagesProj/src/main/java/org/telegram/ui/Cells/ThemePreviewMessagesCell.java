@@ -16,9 +16,8 @@ import android.view.MotionEvent;
 import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 
-import androidx.core.content.ContextCompat;
-
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
@@ -34,6 +33,9 @@ import org.telegram.ui.Components.MotionBackgroundDrawable;
 import org.telegram.ui.Components.Reactions.ReactionsEffectOverlay;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 
+import androidx.core.content.ContextCompat;
+
+//预览界面聊天类
 public class ThemePreviewMessagesCell extends LinearLayout {
 
     public final static int TYPE_REACTIONS_DOUBLE_TAP = 2;
@@ -169,8 +171,10 @@ public class ThemePreviewMessagesCell extends LinearLayout {
             message.flags = 257 + 8;
             message.from_id = new TLRPC.TL_peerUser();
             message.id = 1;
-            message.reply_to = new TLRPC.TL_messageReplyHeader();
-            message.reply_to.reply_to_msg_id = 5;
+            if (!BuildVars.IS_CHAT_AIR) {
+                message.reply_to = new TLRPC.TL_messageReplyHeader();
+                message.reply_to.reply_to_msg_id = 5;
+            }
             message.media = new TLRPC.TL_messageMediaEmpty();
             message.out = false;
             message.peer_id = new TLRPC.TL_peerUser();
@@ -183,7 +187,7 @@ public class ThemePreviewMessagesCell extends LinearLayout {
             }
             message2.eventId = 1;
             message2.resetLayout();
-            message2.replyMessageObject = replyMessageObject;
+            if (!BuildVars.IS_CHAT_AIR) message2.replyMessageObject = replyMessageObject;
         }
 
         for (int a = 0; a < cells.length; a++) {

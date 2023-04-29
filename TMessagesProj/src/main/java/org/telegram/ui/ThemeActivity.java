@@ -106,6 +106,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
+//主题页面
 public class ThemeActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
     public final static int THEME_TYPE_BASIC = 0;
@@ -253,6 +254,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
 
     private class TextSizeCell extends FrameLayout {
 
+        //预览界面聊天类
         private ThemePreviewMessagesCell messagesCell;
         private SeekBarView sizeBar;
         private int startFontSize = 12;
@@ -480,6 +482,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         return false;
     }
 
+    //更新列表内容
     private void updateRows(boolean notify) {
         int oldRowCount = rowCount;
 
@@ -573,12 +576,14 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         Collections.sort(defaultThemes, (o1, o2) -> Integer.compare(o1.sortIndex, o2.sortIndex));
 
         if (currentType == THEME_TYPE_THEMES_BROWSER) {
+            //设置主题详细配置
             selectThemeHeaderRow = rowCount++;
             themeListRow2 = rowCount++;
             chatListInfoRow = rowCount++;
 
             themePreviewRow = rowCount++;
             themeHeaderRow = rowCount++;
+            //主题类型选择
             themeListRow = rowCount++;
             hasThemeAccents = Theme.getCurrentTheme().hasAccentColors();
             if (themesHorizontalListCell != null) {
@@ -597,6 +602,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             createNewThemeRow = rowCount++;
             lastShadowRow = rowCount++;
         } else if (currentType == THEME_TYPE_BASIC) {
+            //基本主题设置
             textSizeHeaderRow = rowCount++;
             textSizeRow = rowCount++;
             backgroundRow = rowCount++;
@@ -610,39 +616,65 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             bubbleRadiusRow = rowCount++;
             bubbleRadiusInfoRow = rowCount++;
 
-            chatListHeaderRow = rowCount++;
-            chatListRow = rowCount++;
-            chatListInfoRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) {
+                //设置主页聊天行数
+                chatListHeaderRow = rowCount++;
+                chatListRow = rowCount++;
+                chatListInfoRow = rowCount++;
+            }
 
-            appIconHeaderRow = rowCount++;
-            appIconSelectorRow = rowCount++;
-            appIconShadowRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) {
+                appIconHeaderRow = rowCount++;
+                appIconSelectorRow = rowCount++;
+                appIconShadowRow = rowCount++;
+            }
 
-            swipeGestureHeaderRow = rowCount++;
-            swipeGestureRow = rowCount++;
-            swipeGestureInfoRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) {
+                //设置主页面滑动手势
+                swipeGestureHeaderRow = rowCount++;
+                swipeGestureRow = rowCount++;
+                swipeGestureInfoRow = rowCount++;
+            }
 
-            liteModeRow = rowCount++;
-            liteModeInfoRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) {
+                //设置动画类型
+                liteModeRow = rowCount++;
+                liteModeInfoRow = rowCount++;
+            }
 
-            stickersRow = rowCount++;
-            stickersInfoRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) {
+                stickersRow = rowCount++;
+                stickersInfoRow = rowCount++;
+            }
 
             settingsRow = rowCount++;
             nightThemeRow = rowCount++;
             customTabsRow = rowCount++;
-            directShareRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) {
+                //设置分享中显示最近联系人
+                directShareRow = rowCount++;
+            }
 //            enableAnimationsRow = rowCount++;
-            raiseToSpeakRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) {
+                //提升说话声音
+                raiseToSpeakRow = rowCount++;
+            }
             sendByEnterRow = rowCount++;
-            pauseOnRecordRow = rowCount++;
-            bluetoothScoRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) {
+                pauseOnRecordRow = rowCount++;
+                //设置语音输出方式
+                bluetoothScoRow = rowCount++;
+            }
 //            if (SharedConfig.canBlurChat()) {
 //                chatBlurRow = rowCount++;
 //            }
-            distanceRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) {
+                //设置距离单位类型
+                distanceRow = rowCount++;
+            }
             settings2Row = rowCount++;
         } else {
+            //暗黑模式设置
             nightDisabledRow = rowCount++;
             nightScheduledRow = rowCount++;
             nightAutomaticRow = rowCount++;
@@ -1319,7 +1351,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         Theme.ThemeInfo themeInfo = Theme.getCurrentTheme();
         Theme.ThemeAccent accent = themeInfo.getAccent(false);
         if (themeInfo.themeAccents != null && !themeInfo.themeAccents.isEmpty() && accent != null && accent.id >= 100) {
-            menuItem.showSubItem(share_theme);
+            if (!BuildVars.IS_CHAT_AIR) menuItem.showSubItem(share_theme);
             menuItem.showSubItem(edit_theme);
         } else {
             menuItem.hideSubItem(share_theme);
@@ -1696,25 +1728,25 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
-        private final static int TYPE_TEXT_SETTING = 1;
+        private final static int TYPE_TEXT_SETTING = 1;//基本设置菜单，弹出窗口类型
         private final static int TYPE_TEXT_INFO_PRIVACY = 2;
         private final static int TYPE_SHADOW = 3;
-        private final static int TYPE_THEME_TYPE = 4;
-        private final static int TYPE_HEADER = 5;
+        private final static int TYPE_THEME_TYPE = 4;//未使用
+        private final static int TYPE_HEADER = 5;//设置子标题
         private final static int TYPE_BRIGHTNESS = 6;
-        private final static int TYPE_TEXT_CHECK = 7;
-        private final static int TYPE_TEXT_SIZE = 8;
-        private final static int TYPE_CHAT_LIST = 9;
+        private final static int TYPE_TEXT_CHECK = 7;//基本设置菜单，切换开关类型
+        private final static int TYPE_TEXT_SIZE = 8;//字体大小设置以及聊天列表预览
+        private final static int TYPE_CHAT_LIST = 9;//聊天二三行切换
         private final static int TYPE_NIGHT_THEME = 10;
-        private final static int TYPE_THEME_LIST = 11;
-        private final static int TYPE_THEME_ACCENT_LIST = 12;
-        private final static int TYPE_BUBBLE_RADIUS = 13;
-        private final static int TYPE_TEXT_PREFERENCE = 14;
-        private final static int TYPE_SWIPE_GESTURE = 15;
-        private final static int TYPE_THEME_PREVIEW = 16;
-        private final static int TYPE_DEFAULT_THEMES_PREVIEW = 17;
+        private final static int TYPE_THEME_LIST = 11;//主题编辑设置中主题基本类型选择
+        private final static int TYPE_THEME_ACCENT_LIST = 12;//主题颜色设置
+        private final static int TYPE_BUBBLE_RADIUS = 13;//设置聊天列表圆角
+        private final static int TYPE_TEXT_PREFERENCE = 14;//基本设置菜单，带图标类型
+        private final static int TYPE_SWIPE_GESTURE = 15;//设置首页聊天滑动
+        private final static int TYPE_THEME_PREVIEW = 16;//未使用
+        private final static int TYPE_DEFAULT_THEMES_PREVIEW = 17;//聊天主题类型预览
         private final static int TYPE_SAVE_TO_GALLERY = 19;
-        private final static int TYPE_APP_ICON = 20;
+        private final static int TYPE_APP_ICON = 20;//软件图标设置
 
         private Context mContext;
         private boolean first = true;
@@ -1736,6 +1768,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                     type == TYPE_TEXT_PREFERENCE || type == 18 || type == TYPE_APP_ICON;
         }
 
+        //显示主题长按弹窗选项
         private void showOptionsForTheme(Theme.ThemeInfo themeInfo) {
             if (getParentActivity() == null || themeInfo.info != null && !themeInfo.themeLoaded || currentType == THEME_TYPE_NIGHT) {
                 return;
@@ -1746,6 +1779,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             int[] icons;
             boolean hasDelete;
             if (themeInfo.pathToFile == null) {
+                if (BuildVars.IS_CHAT_AIR) return;
                 hasDelete = false;
                 items = new CharSequence[]{
                         null,
@@ -1758,10 +1792,10 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             } else {
                 hasDelete = themeInfo.info == null || !themeInfo.info.isDefault;
                 items = new CharSequence[]{
-                        LocaleController.getString("ShareFile", R.string.ShareFile),
-                        LocaleController.getString("ExportTheme", R.string.ExportTheme),
+                        BuildVars.IS_CHAT_AIR ? null : LocaleController.getString("ShareFile", R.string.ShareFile),
+                        BuildVars.IS_CHAT_AIR ? null : LocaleController.getString("ExportTheme", R.string.ExportTheme),
                         themeInfo.info == null || !themeInfo.info.isDefault && themeInfo.info.creator ? LocaleController.getString("Edit", R.string.Edit) : null,
-                        themeInfo.info != null && themeInfo.info.creator ? LocaleController.getString("ThemeSetUrl", R.string.ThemeSetUrl) : null,
+                        BuildVars.IS_CHAT_AIR ? null : (themeInfo.info != null && themeInfo.info.creator ? LocaleController.getString("ThemeSetUrl", R.string.ThemeSetUrl) : null),
                         hasDelete ? LocaleController.getString("Delete", R.string.Delete) : null};
                 icons = new int[]{
                         R.drawable.msg_share,
@@ -2023,8 +2057,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                             CharSequence[] items = new CharSequence[]{
                                     LocaleController.getString("OpenInEditor", R.string.OpenInEditor),
-                                    LocaleController.getString("ShareTheme", R.string.ShareTheme),
-                                    accent.info != null && accent.info.creator ? LocaleController.getString("ThemeSetUrl", R.string.ThemeSetUrl) : null,
+                                    BuildVars.IS_CHAT_AIR ? null : LocaleController.getString("ShareTheme", R.string.ShareTheme),
+                                    BuildVars.IS_CHAT_AIR ? null : (accent.info != null && accent.info.creator ? LocaleController.getString("ThemeSetUrl", R.string.ThemeSetUrl) : null),
                                     LocaleController.getString("DeleteTheme", R.string.DeleteTheme)
                             };
                             int[] icons = new int[]{

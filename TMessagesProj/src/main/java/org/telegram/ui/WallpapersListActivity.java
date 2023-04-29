@@ -40,11 +40,9 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
@@ -85,6 +83,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+//设置聊天背景，以及颜色选择背景
 public class WallpapersListActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
     private int rowCount;
@@ -630,7 +632,7 @@ public class WallpapersListActivity extends BaseFragment implements Notification
             }
         });
 
-        if (currentType == TYPE_ALL) {
+        if (currentType == TYPE_ALL && !BuildVars.IS_CHAT_AIR) {
             ActionBarMenu menu = actionBar.createMenu();
             searchItem = menu.addItem(0, R.drawable.ic_ab_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
                 @Override
@@ -1315,7 +1317,7 @@ public class WallpapersListActivity extends BaseFragment implements Notification
         if (currentType == TYPE_ALL) {
             uploadImageRow = rowCount++;
             setColorRow = rowCount++;
-            sectionRow = rowCount++;
+            if (!BuildVars.IS_CHAT_AIR) sectionRow = rowCount++;
         } else {
             uploadImageRow = -1;
             setColorRow = -1;
@@ -1324,11 +1326,11 @@ public class WallpapersListActivity extends BaseFragment implements Notification
         if (!wallPapers.isEmpty()) {
             totalWallpaperRows = (int) Math.ceil(wallPapers.size() / (float) columnsCount);
             wallPaperStartRow = rowCount;
-            rowCount += totalWallpaperRows;
+            if (!BuildVars.IS_CHAT_AIR || currentType != TYPE_ALL) rowCount += totalWallpaperRows;
         } else {
             wallPaperStartRow = -1;
         }
-        if (currentType == TYPE_ALL) {
+        if (currentType == TYPE_ALL && !BuildVars.IS_CHAT_AIR) {
             resetSectionRow = rowCount++;
             resetRow = rowCount++;
             resetInfoRow = rowCount++;
