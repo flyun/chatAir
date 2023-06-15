@@ -13,19 +13,18 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.text.TextUtils;
 
-import androidx.annotation.Nullable;
-
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.MessageObject;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SvgHelper;
 import org.telegram.messenger.Utilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import androidx.annotation.Nullable;
 
 //所有通信静态类
 public class TLRPC {
@@ -6485,6 +6484,7 @@ public class TLRPC {
         }
     }
 
+    //聊天事件动作
     public static abstract class SendMessageAction extends TLObject {
         public int progress;
 
@@ -6685,6 +6685,7 @@ public class TLRPC {
         }
     }
 
+    //取消发送消息状态的消息
     public static class TL_sendMessageCancelAction extends SendMessageAction {
         public static int constructor = 0xfd5ec8f5;
 
@@ -22005,7 +22006,8 @@ public class TLRPC {
         }
     }
 
-    public static class TL_help_termsOfServiceUpdateEmpty extends help_TermsOfServiceUpdate {
+    public static class
+    TL_help_termsOfServiceUpdateEmpty extends help_TermsOfServiceUpdate {
         public static int constructor = 0xe3309f7f;
 
         public int expires;
@@ -24524,6 +24526,8 @@ public class TLRPC {
                     break;
                 case 0xfe77345d:
                     result = new TL_messageActionRequestedPeer();
+                case 0xe7e75f96:
+                    result = new TL_messageActionClearContext();
                     break;
             }
             if (result == null && exception) {
@@ -30745,6 +30749,9 @@ public class TLRPC {
 
     public static abstract class UserStatus extends TLObject {
         public int expires;
+        public int contextNum;
+        public long tokens;
+        public long words;
 
         public static UserStatus TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             UserStatus result = null;
@@ -30766,6 +30773,9 @@ public class TLRPC {
                     break;
                 case 0xe26f42f1:
                     result = new TL_userStatusRecently();
+                    break;
+                case 0xe26f42f2:
+                    result = new TL_userStatusChatAir();
                     break;
             }
             if (result == null && exception) {
@@ -30839,6 +30849,26 @@ public class TLRPC {
 
         public void serializeToStream(AbstractSerializedData stream) {
             stream.writeInt32(constructor);
+        }
+    }
+
+    public static class TL_userStatusChatAir extends UserStatus {
+        public static int constructor = 0xe26f42f2;
+
+
+        public void readParams(AbstractSerializedData stream, boolean exception) {
+            expires = stream.readInt32(exception);
+            contextNum = stream.readInt32(exception);
+            tokens = stream.readInt64(exception);
+            words = stream.readInt64(exception);
+        }
+
+        public void serializeToStream(AbstractSerializedData stream) {
+            stream.writeInt32(constructor);
+            stream.writeInt32(expires);
+            stream.writeInt32(contextNum);
+            stream.writeInt64(tokens);
+            stream.writeInt64(words);
         }
     }
 
@@ -48011,6 +48041,10 @@ public class TLRPC {
         public int seq_start;
         public int ttl_period;
 
+        public boolean chat_air;
+        public long promptTokens;
+        public long completionTokens;
+
         public static Updates TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             Updates result = null;
             switch (constructor) {
@@ -52232,6 +52266,7 @@ public class TLRPC {
         }
     }
 
+    //基本消息网络类
     public static class TL_messages_sendMessage extends TLObject {
         public static int constructor = 0x1cc20387;
 
@@ -59909,6 +59944,10 @@ public class TLRPC {
         public String translatedToLanguage; //custom
         public TL_textWithEntities translatedText; // custom
 
+        public boolean chat_air;
+        public long promptTokens;
+        public long completionTokens;
+
         public static Message TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             Message result = null;
             switch (constructor) {
@@ -60691,6 +60730,7 @@ public class TLRPC {
         }
     }
 
+    //基本聊天类
     public static class TL_message extends Message {
         public static int constructor = 0x38116ee0;
 
@@ -60707,6 +60747,7 @@ public class TLRPC {
             pinned = (flags & 16777216) != 0;
             noforwards = (flags & 67108864) != 0;
             topic_start = (flags & 134217728) != 0;
+            chat_air = (flags & 268435456) != 0;
             id = stream.readInt32(exception);
             if ((flags & 256) != 0) {
                 from_id = Peer.TLdeserialize(stream, stream.readInt32(exception), exception);
@@ -60793,6 +60834,11 @@ public class TLRPC {
             if ((flags & 33554432) != 0) {
                 ttl_period = stream.readInt32(exception);
             }
+
+            if (BuildVars.IS_CHAT_AIR && ((flags & 268435456) != 0)) {
+                promptTokens = stream.readInt64(exception);
+                completionTokens = stream.readInt64(exception);
+            }
         }
 
         public void serializeToStream(AbstractSerializedData stream) {
@@ -60808,6 +60854,7 @@ public class TLRPC {
             flags = pinned ? (flags | 16777216) : (flags &~ 16777216);
             flags = noforwards ? (flags | 67108864) : (flags &~ 67108864);
             flags = topic_start ? (flags | 134217728) : (flags &~ 134217728);
+            flags = chat_air ? (flags | 268435456) : (flags &~ 268435456);
             stream.writeInt32(flags);
             stream.writeInt32(id);
             if ((flags & 256) != 0) {
@@ -60871,6 +60918,13 @@ public class TLRPC {
             if ((flags & 33554432) != 0) {
                 stream.writeInt32(ttl_period);
             }
+
+            if (BuildVars.IS_CHAT_AIR && (flags & 268435456) != 0) {
+
+                stream.writeInt64(promptTokens);
+                stream.writeInt64(completionTokens);
+            }
+
             writeAttachPath(stream);
         }
     }
@@ -66826,6 +66880,19 @@ public class TLRPC {
             stream.writeInt32(constructor);
             stream.writeInt32(button_id);
             peer.serializeToStream(stream);
+        }
+    }
+
+    //清除聊天上下文
+    public static class TL_messageActionClearContext extends MessageAction {
+        public static int constructor = 0xe7e75f96;
+
+
+        public void readParams(AbstractSerializedData stream, boolean exception) {
+        }
+
+        public void serializeToStream(AbstractSerializedData stream) {
+            stream.writeInt32(constructor);
         }
     }
 

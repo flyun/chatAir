@@ -367,6 +367,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private ActionBarMenuItem searchIconItem;
     private ActionBarMenu.LazyItem audioCallIconItem;
     private boolean searchItemVisible;
+    private ActionBarMenu.LazyItem contextClearIconItem;
     private RadialProgressView progressBar;
     private ActionBarMenuItem.Item addContactItem;
     private ActionBarMenuItem.Item clearHistoryItem;
@@ -716,6 +717,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private int loadsCount;
     private int last_message_id = 0;
     private long mergeDialogId;
+    private int lastMessagesCount;
 
     private long startMessageAppearTransitionMs;
     private List<MessageSkeleton> messageSkeletons = new ArrayList<>();
@@ -1290,6 +1292,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int translate = 62;
 
     private final static int share = 81;
+    private final static int context_clear = 82;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -1550,6 +1553,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             return sendAsPeersObj;
         }
 
+        //消息已经发送，更新设置
         @Override
         public void onMessageSend(CharSequence message, boolean notify, int scheduleDate) {
             if (chatListItemAnimator != null) {
@@ -1558,6 +1562,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     chatActivityEnterViewAnimateBeforeSending = true;
                 }
             }
+            //提及内容添加数据库
             if (mentionContainer != null && mentionContainer.getAdapter() != null) {
                 mentionContainer.getAdapter().addHashtagsFromMessage(message);
             }
@@ -1574,6 +1579,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 updateScheduledInterface(false);
             }
+            //设置转发消息
             if (!TextUtils.isEmpty(message) && forwardingMessages != null && !forwardingMessages.messages.isEmpty()) {
                 ArrayList<MessageObject> messagesToForward = new ArrayList<>();
                 forwardingMessages.getSelectedMessages(messagesToForward);
@@ -1594,6 +1600,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             }
+            //设置引用消息
             if (ChatObject.isForum(currentChat) && !isTopic && replyingMessageObject != null) {
                 int topicId = replyingMessageObject.replyToForumTopic != null ? replyingMessageObject.replyToForumTopic.id : MessageObject.getTopicId(replyingMessageObject.messageOwner, true);
                 if (topicId != 0) {
@@ -1603,6 +1610,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             //隐藏输入框上方UI
             hideFieldPanel(notify, scheduleDate, true);
+            //发送表情
             if (chatActivityEnterView != null && chatActivityEnterView.getEmojiView() != null) {
                 chatActivityEnterView.getEmojiView().onMessageSend();
             }
@@ -2385,6 +2393,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     mergeDialogId = migrated_to;
                     getMessagesController().loadMessages(mergeDialogId, 0, loadInfo, loadingFromOldPosition ? 50 : (AndroidUtilities.isTablet() || (isThreadChat() && !isTopic) ? 30 : 20), startLoadFromMessageId, 0, true, 0, classGuid, 3, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
                 } else {
+                    //点击聊天窗口载入老数据
                     getMessagesController().loadMessages(dialog_id, mergeDialogId, loadInfo, loadingFromOldPosition ? 50 : (AndroidUtilities.isTablet() || (isThreadChat() && !isTopic)  ? 30 : 20), startLoadFromMessageId, 0, true, 0, classGuid, 3, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
                 }
             } else {
@@ -2392,7 +2401,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     lastLoadIndex++;
                 } else {
                     //核心，载入消息，然后由数据层将数据从新发送回来
-                    getMessagesController().loadMessages(dialog_id, mergeDialogId, loadInfo, AndroidUtilities.isTablet() || (isThreadChat() && !isTopic)  ? 30 : 20, startLoadFromMessageId, 0, true, 0, classGuid, 2, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
+                    getMessagesController().loadMessages(dialog_id, mergeDialogId, loadInfo, BuildVars.IS_CHAT_AIR ? 50 : (AndroidUtilities.isTablet() || (isThreadChat() && !isTopic)  ? 30 : 20), startLoadFromMessageId, 0, true, 0, classGuid, 2, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
                 }
             }
         }
@@ -3008,7 +3017,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (currentUser != null && getParentActivity() != null) {
                         VoIPHelper.startCall(currentUser, id == video_call, userInfo != null && userInfo.video_calls_available, getParentActivity(), getMessagesController().getUserFull(currentUser.id), getAccountInstance());
                     }
-                } else if (id == text_bold) {
+                } else if (id == context_clear) {
+                    getMessagesController().clearContext(dialog_id);
+                }
+                else if (id == text_bold) {
                     if (chatActivityEnterView != null && chatActivityEnterView.getEditField() != null) {
                         chatActivityEnterView.getEditField().setSelectionOverride(editTextStart, editTextEnd);
                         chatActivityEnterView.getEditField().makeSelectedBold();
@@ -3226,6 +3238,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         }
 
+        if (BuildVars.IS_CHAT_AIR) {
+            contextClearIconItem = menu.lazilyAddItem(context_clear, R.drawable.msg_clear, themeDelegate);
+            contextClearIconItem.setContentDescription(LocaleController.getString("ContextClear", R.string.ContextClear));
+            contextClearIconItem.setVisibility(View.VISIBLE);
+            contextClearIconItem.setTag(null);
+        }
+
         editTextItem = menu.lazilyAddItem(chat_menu_edit_text_options, R.drawable.ic_ab_other, themeDelegate);
         editTextItem.setContentDescription(LocaleController.getString("AccDescrMoreOptions", R.string.AccDescrMoreOptions));
         editTextItem.setTag(null);
@@ -3350,7 +3369,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 viewAsTopics = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString("TopicViewAsTopics", R.string.TopicViewAsTopics));
             }
             if (!isTopic) {
-                clearHistoryItem = headerItem.lazilyAddSubItem(clear_history, R.drawable.msg_clear, LocaleController.getString("ClearHistory", R.string.ClearHistory));
+                clearHistoryItem = headerItem.lazilyAddSubItem(clear_history, !BuildVars.IS_CHAT_AIR ? R.drawable.msg_clear : R.drawable.msg_clear_input, LocaleController.getString("ClearHistory", R.string.ClearHistory));
             }
             if (themeDelegate.isThemeChangeAvailable()) {
                 headerItem.lazilyAddSubItem(change_colors, R.drawable.msg_colors, LocaleController.getString("ChangeColors", R.string.ChangeColors));
@@ -10637,6 +10656,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (messagesByDays.size() != 0) {
                         getMessagesController().loadMessages(dialog_id, mergeDialogId, false, 50, maxMessageId[0], 0, !cacheEndReached[0], minDate[0], classGuid, 0, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
                     } else {
+                        //检查滚动时载入聊天数据
                         getMessagesController().loadMessages(dialog_id, mergeDialogId, false, 50, 0, 0, !cacheEndReached[0], minDate[0], classGuid, 0, 0, chatMode, threadMessageId, replyMaxReadId, lastLoadIndex++, isTopic);
                     }
                 } else if (mergeDialogId != 0 && !endReached[1]) {
@@ -14207,7 +14227,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (messageObject.isEditing()) {
                 return -1;
             } else if (messageObject.getId() <= 0 && messageObject.isOut()) {
-                //发送失败
+                //发送失败，Id为负值为本地生成，网络获取为正
                 if (messageObject.isSendError()) {
                     if (!messageObject.isMediaEmpty()) {
                         //普通聊天类型发送失败
@@ -16633,6 +16653,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     flagSecure.invalidate();
                 }
             }
+
+            if (BuildVars.IS_CHAT_AIR && !updateSubtitle && lastMessagesCount != messages.size()) {
+                lastMessagesCount = messages.size();
+                updateSubtitle = true;
+            }
+
             if (avatarContainer != null && updateSubtitle) {
                 avatarContainer.updateSubtitle(true);
             }
@@ -25556,7 +25582,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         boolean preserveDim = false;
         switch (option) {
             case OPTION_RETRY: {
-                //引用
+                //重试
                 if (selectedObjectGroup != null) {
                     boolean success = true;
                     for (int a = 0; a < selectedObjectGroup.messages.size(); a++) {
@@ -26666,6 +26692,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             if (audioCallIconItem != null && showAudioCallAsIcon) {
                 audioCallIconItem.setVisibility(View.GONE);
+            }
+            if (contextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
+                contextClearIconItem.setVisibility(View.GONE);
             }
             searchItemVisible = true;
             updateSearchButtons(0, 0, -1);
@@ -28990,6 +29019,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (audioCallIconItem != null && showAudioCallAsIcon) {
                     audioCallIconItem.setVisibility(View.GONE);
                 }
+                if (contextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
+                    contextClearIconItem.setVisibility(View.GONE);
+                }
             } else if (chatActivityEnterView.hasText() && TextUtils.isEmpty(chatActivityEnterView.getSlowModeTimer()) && (currentChat == null || ChatObject.canSendPlain(currentChat))) {
                 if (headerItem != null) {
                     headerItem.setVisibility(View.GONE);
@@ -29006,6 +29038,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (audioCallIconItem != null && showAudioCallAsIcon) {
                     audioCallIconItem.setVisibility(View.GONE);
                 }
+                if (contextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
+                    contextClearIconItem.setVisibility(View.GONE);
+                }
             } else {
                 if (headerItem != null) {
                     headerItem.setVisibility(View.VISIBLE);
@@ -29021,6 +29056,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 if (attachItem != null) {
                     attachItem.setVisibility(View.GONE);
+                }
+                if (contextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
+                    contextClearIconItem.setVisibility(View.VISIBLE);
                 }
             }
             if (threadMessageId == 0 && !UserObject.isReplyUser(currentUser) || threadMessageObject != null && threadMessageObject.getRepliesCount() < 10) {

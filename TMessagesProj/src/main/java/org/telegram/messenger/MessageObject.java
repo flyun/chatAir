@@ -76,10 +76,10 @@ import androidx.collection.LongSparseArray;
 //消息bean类
 public class MessageObject {
 
-    public static final int MESSAGE_SEND_STATE_SENT = 0;
-    public static final int MESSAGE_SEND_STATE_SENDING = 1;
-    public static final int MESSAGE_SEND_STATE_SEND_ERROR = 2;
-    public static final int MESSAGE_SEND_STATE_EDITING = 3;
+    public static final int MESSAGE_SEND_STATE_SENT = 0;//消息已发送
+    public static final int MESSAGE_SEND_STATE_SENDING = 1;//消息发送中
+    public static final int MESSAGE_SEND_STATE_SEND_ERROR = 2;//消息发送错误
+    public static final int MESSAGE_SEND_STATE_EDITING = 3;//消息编辑
 
     public static final int TYPE_TEXT = 0;
     public static final int TYPE_PHOTO = 1;
@@ -90,7 +90,7 @@ public class MessageObject {
     public static final int TYPE_LOADING = 6;
     public static final int TYPE_GIF = 8;
     public static final int TYPE_FILE = 9;
-    public static final int TYPE_DATE = 10;
+    public static final int TYPE_DATE = 10;//日期
     public static final int TYPE_ACTION_PHOTO = 11;
     public static final int TYPE_CONTACT = 12;
     public static final int TYPE_STICKER = 13;
@@ -3138,6 +3138,7 @@ public class MessageObject {
         return chat;
     }
 
+    //设置各种消息文本
     private void updateMessageText(AbstractMap<Long, TLRPC.User> users, AbstractMap<Long, TLRPC.Chat> chats, LongSparseArray<TLRPC.User> sUsers, LongSparseArray<TLRPC.Chat> sChats) {
         TLRPC.User fromUser = null;
         TLRPC.Chat fromChat = null;
@@ -3544,6 +3545,8 @@ public class MessageObject {
                     }
                 } else if (messageOwner.action instanceof TLRPC.TL_messageActionChatMigrateTo) {
                     messageText = LocaleController.getString("ActionMigrateFromGroup", R.string.ActionMigrateFromGroup);
+                } else if (messageOwner.action instanceof TLRPC.TL_messageActionClearContext) {
+                    messageText = LocaleController.getString("ActionContextClear", R.string.ActionContextClear);
                 } else if (messageOwner.action instanceof TLRPC.TL_messageActionChannelMigrateFrom) {
                     messageText = LocaleController.getString("ActionMigrateFromGroup", R.string.ActionMigrateFromGroup);
                 } else if (messageOwner.action instanceof TLRPC.TL_messageActionPinMessage) {
@@ -3884,6 +3887,7 @@ public class MessageObject {
         return messageOwner.media != null && messageOwner.media.extended_media instanceof TLRPC.TL_messageExtendedMediaPreview;
     }
 
+    //设置消息需要展示的类型
     public void setType() {
         int oldType = type;
         type = 1000;
@@ -5990,6 +5994,7 @@ public class MessageObject {
         return false;
     }
 
+    //消息发送失败
     public boolean isSendError() {
         return messageOwner.send_state == MESSAGE_SEND_STATE_SEND_ERROR && messageOwner.id < 0 || scheduled && messageOwner.id > 0 && messageOwner.date < ConnectionsManager.getInstance(currentAccount).getCurrentTime() - 60;
     }

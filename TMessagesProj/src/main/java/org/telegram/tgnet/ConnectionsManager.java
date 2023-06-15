@@ -125,7 +125,7 @@ public class ConnectionsManager extends BaseController {
     private boolean forceTryIpV6;
 
     //屏蔽思路：使用return屏蔽公共方法，涉及具体调用时用到，则手动注释
-    private static final boolean CLOSE = true;
+    private static final boolean CLOSE = false;
 
     //定义线程池
     static {
@@ -616,6 +616,7 @@ public class ConnectionsManager extends BaseController {
         }
     }
 
+    //接收从服务器发来的更新数据，来自ndk层
     public static void onUnparsedMessageReceived(long address, final int currentAccount, long messageId) {
         if (CLOSE) return;
         try {

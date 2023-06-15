@@ -8428,6 +8428,7 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    //获取对应dialogId的聊天信息
     public void getMessages(long dialogId, long mergeDialogId, boolean loadInfo, int count, int max_id, int offset_date, int minDate, int classGuid, int load_type, boolean scheduled, int replyMessageId, int loadIndex, boolean processMessages, boolean isTopic) {
         storageQueue.postRunnable(() -> {
             Runnable processMessagesRunnable = getMessagesInternal(dialogId, mergeDialogId, count, max_id, offset_date, minDate, classGuid, load_type, scheduled, replyMessageId, loadIndex, processMessages, isTopic);
@@ -11648,6 +11649,7 @@ public class MessagesStorage extends BaseController {
                     } else {
                         state.bindInteger(1, 0);
                     }
+                    //进行修改，增加配置
                     state.bindLong(2, user.id);
                     state.step();
                 }

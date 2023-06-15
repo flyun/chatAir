@@ -443,6 +443,9 @@ public class ActionBar extends FrameLayout {
     }
 
     public void setTitle(CharSequence value, Drawable rightDrawable) {
+//        for (StackTraceElement i : Thread.currentThread().getStackTrace()) {
+//            Log.i("test", "stack" + i.toString());
+//        }
         if (value != null && titleTextView[0] == null) {
             createTitleTextView(0);
         }

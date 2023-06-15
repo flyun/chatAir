@@ -1,0 +1,52 @@
+apply plugin: 'com.android.library'
+//apply plugin: "com.vanniktech.maven.publish"
+
+repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    api project(':openai_client')
+    api project(':base')
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.20'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    api 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-jackson:2.9.0'
+
+    testImplementation(platform('org.junit:junit-bom:5.8.2'))
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.squareup.retrofit2:retrofit-mock:2.9.0'
+
+}
+
+android {
+    compileSdkVersion 33
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 19
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+
+//compileJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}
+
+//test {
+//    useJUnitPlatform()
+//}

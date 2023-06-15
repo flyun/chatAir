@@ -34,7 +34,7 @@ public class UserConfig extends BaseController {
     private volatile boolean configLoaded;
     private TLRPC.User currentUser;
     public boolean registeredForPush;
-    public int lastSendMessageId = -210000;
+    public int lastSendMessageId = !BuildVars.IS_CHAT_AIR ? -210000 : 1000;
     public int lastBroadcastId = -1;
     public int contactsSavedCount;
     public long clientUserId;
@@ -126,11 +126,19 @@ public class UserConfig extends BaseController {
         return hasPremiumOnAccounts() ? 5 : 3;
     }
 
+    //本地默认聊天id，最终需要从服务器重新更新
     public int getNewMessageId() {
         int id;
         synchronized (sync) {
             id = lastSendMessageId;
-            lastSendMessageId--;
+            if (BuildVars.IS_CHAT_AIR) {
+
+                if (lastSendMessageId <= 0) lastSendMessageId = 1000;
+                lastSendMessageId++;
+
+            } else {
+                lastSendMessageId--;
+            }
         }
         return id;
     }
@@ -298,7 +306,7 @@ public class UserConfig extends BaseController {
                 selectedAccount = preferences.getInt("selectedAccount", 0);
             }
             registeredForPush = preferences.getBoolean("registeredForPush", false);
-            lastSendMessageId = preferences.getInt("lastSendMessageId", -210000);
+            lastSendMessageId = preferences.getInt("lastSendMessageId", !BuildVars.IS_CHAT_AIR ? -210000 : 1000);
             contactsSavedCount = preferences.getInt("contactsSavedCount", 0);
             lastBroadcastId = preferences.getInt("lastBroadcastId", -1);
             lastContactsSyncTime = preferences.getInt("lastContactsSyncTime", (int) (System.currentTimeMillis() / 1000) - 23 * 60 * 60);
@@ -476,7 +484,7 @@ public class UserConfig extends BaseController {
         clientUserId = 0;
         registeredForPush = false;
         contactsSavedCount = 0;
-        lastSendMessageId = -210000;
+        lastSendMessageId = !BuildVars.IS_CHAT_AIR ? -210000 : 1000;
         lastBroadcastId = -1;
         notificationsSettingsLoaded = false;
         notificationsSignUpSettingsLoaded = false;

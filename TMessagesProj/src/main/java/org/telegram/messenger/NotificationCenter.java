@@ -25,11 +25,11 @@ import androidx.annotation.UiThread;
 public class NotificationCenter {
 
     private final static long EXPIRE_NOTIFICATIONS_TIME = 5017;
-    private static int totalEvents = 1;
+    private static int totalEvents = 1;//29+linNum
 
     public static final int didReceiveNewMessages = totalEvents++;//接受新消息
-    public static final int updateInterfaces = totalEvents++;
-    public static final int dialogsNeedReload = totalEvents++;
+    public static final int updateInterfaces = totalEvents++;//更新各种状态
+    public static final int dialogsNeedReload = totalEvents++;//更新消息
     public static final int closeChats = totalEvents++;//关闭聊天
     public static final int messagesDeleted = totalEvents++;
     public static final int historyCleared = totalEvents++;
@@ -44,7 +44,7 @@ public class NotificationCenter {
     public static final int messagesDidLoadWithoutProcess = totalEvents++;
     public static final int loadingMessagesFailed = totalEvents++;
     public static final int messageReceivedByAck = totalEvents++;
-    public static final int messageReceivedByServer = totalEvents++;
+    public static final int messageReceivedByServer = totalEvents++;//接收来自服务器的消息
     public static final int messageSendError = totalEvents++;
     public static final int forceImportContactsStart = totalEvents++;
     public static final int contactsDidLoad = totalEvents++;
@@ -102,7 +102,7 @@ public class NotificationCenter {
     public static final int needReloadRecentDialogsSearch = totalEvents++;
     public static final int peerSettingsDidLoad = totalEvents++;
     public static final int wasUnableToFindCurrentLocation = totalEvents++;
-    public static final int reloadHints = totalEvents++;
+    public static final int reloadHints = totalEvents++;//更新搜索栏中用户状态
     public static final int reloadInlineHints = totalEvents++;
     public static final int newDraftReceived = totalEvents++;
     public static final int recentDocumentsDidLoad = totalEvents++;

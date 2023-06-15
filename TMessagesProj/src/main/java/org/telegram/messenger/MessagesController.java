@@ -6563,6 +6563,36 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
+    //发送清除上下文的消息
+    public void clearContext(long dialog_id) {
+
+        TLRPC.TL_messageService newMsg = new TLRPC.TL_messageService();
+
+        newMsg.action = new TLRPC.TL_messageActionClearContext();
+        newMsg.local_id = newMsg.id = getUserConfig().getNewMessageId();
+        newMsg.from_id = new TLRPC.TL_peerUser();
+        newMsg.from_id.user_id = getUserConfig().getClientUserId();
+        newMsg.unread = true;
+        newMsg.out = true;
+        newMsg.flags = TLRPC.MESSAGE_FLAG_HAS_FROM_ID;
+        newMsg.dialog_id = dialog_id;
+        newMsg.date = getConnectionsManager().getCurrentTime();
+        newMsg.id = getUserConfig().getNewMessageId();
+
+        newMsg.peer_id = new TLRPC.TL_peerUser();
+        newMsg.peer_id.user_id = dialog_id;
+        getUserConfig().saveConfig(false);
+
+        ArrayList<MessageObject> objArr = new ArrayList<>();
+        objArr.add(new MessageObject(AccountInstance.getInstance(UserConfig.selectedAccount).getCurrentAccount(), newMsg, true, true));
+
+        ArrayList<TLRPC.Message> arr = new ArrayList<>();
+        arr.add(newMsg);
+
+        getMessagesStorage().putMessages(arr, false, true, true, 0, false, 0);
+        getMessagesController().updateInterfaceWithMessages(dialog_id, objArr, false);
+    }
+
     public void saveGif(Object parentObject, TLRPC.Document document) {
         if (parentObject == null || !MessageObject.isGifDocument(document)) {
             return;
@@ -7342,6 +7372,7 @@ public class MessagesController extends BaseController implements NotificationCe
         return "";
     }
 
+    //更新输入状态
     private void updatePrintingStrings() {
         LongSparseArray<SparseArray<CharSequence>> newStrings = new LongSparseArray<>();
         LongSparseArray<SparseArray<Integer>> newTypes = new LongSparseArray<>();
@@ -7544,6 +7575,7 @@ public class MessagesController extends BaseController implements NotificationCe
         return sendTyping(dialogId, threadMsgId, action, null, classGuid);
     }
 
+    //发送输入状态
     public boolean sendTyping(long dialogId, int threadMsgId, int action, String emojicon, int classGuid) {
         if (action < 0 || action >= sendingTypings.length || dialogId == 0) {
             return false;
@@ -7669,6 +7701,7 @@ public class MessagesController extends BaseController implements NotificationCe
         loadMessagesInternal(dialogId, mergeDialogId, loadInfo, count, max_id, offset_date, fromCache, midDate, classGuid, load_type, last_message_id, mode, threadMessageId, loadIndex, first_unread, unread_count, last_date, queryFromServer, mentionsCount, true, true, isTopic);
     }
 
+    //根据dialogId从数据库读取聊天数据
     private void loadMessagesInternal(long dialogId, long mergeDialogId, boolean loadInfo, int count, int max_id, int offset_date, boolean fromCache, int minDate, int classGuid, int load_type, int last_message_id, int mode, int threadMessageId, int loadIndex, int first_unread, int unread_count, int last_date, boolean queryFromServer, int mentionsCount, boolean loadDialog, boolean processMessages, boolean isTopic) {
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("load messages in chat " + dialogId + " topic_id " + threadMessageId + " count " + count + " max_id " + max_id + " cache " + fromCache + " mindate = " + minDate + " guid " + classGuid + " load_type " + load_type + " last_message_id " + last_message_id + " mode " + mode + " index " + loadIndex + " firstUnread " + first_unread + " unread_count " + unread_count + " last_date " + last_date + " queryFromServer " + queryFromServer + " isTopic " + isTopic);
@@ -8067,6 +8100,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
 
         getFileLoader().checkMediaExistance(objects);
+        //核心，数据已经整理完毕
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("process time = " + (SystemClock.elapsedRealtime() - startProcessTime) + " file time = " + fileProcessTime + " for dialog = " + dialogId);
         }
@@ -13121,6 +13155,8 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
+    //接收新的更新消息
+    //默认聊天消息TL_updateShortMessage
     public void processUpdates(final TLRPC.Updates updates, boolean fromQueue) {
         ArrayList<Long> needGetChannelsDiff = null;
         boolean needGetDiff = false;
@@ -13131,6 +13167,9 @@ public class MessagesController extends BaseController implements NotificationCe
             arr.add(updates.update);
             processUpdateArray(arr, null, null, false, updates.date);
         } else if (updates instanceof TLRPC.TL_updateShortChatMessage || updates instanceof TLRPC.TL_updateShortMessage) {
+
+
+            //配置消息
             long userId = updates instanceof TLRPC.TL_updateShortChatMessage ? updates.from_id : updates.user_id;
             TLRPC.User user = getUser(userId);
             TLRPC.User user2 = null;
@@ -13222,6 +13261,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 needGetDiff = true;
             } else {
                 if (getMessagesStorage().getLastPtsValue() + updates.pts_count == updates.pts) {
+                    //如果本地顺序与服务器顺序一致则进行消息配置
                     TLRPC.TL_message message = new TLRPC.TL_message();
                     message.id = updates.id;
                     long clientUserId = getUserConfig().getClientUserId();
@@ -13257,6 +13297,12 @@ public class MessagesController extends BaseController implements NotificationCe
                     message.ttl_period = updates.ttl_period;
                     message.media = new TLRPC.TL_messageMediaEmpty();
 
+                    if (BuildVars.IS_CHAT_AIR) {
+                        message.chat_air = updates.chat_air;
+                        message.promptTokens = updates.promptTokens;
+                        message.completionTokens = updates.completionTokens;
+                    }
+
                     ConcurrentHashMap<Long, Integer> read_max = message.out ? dialogs_read_outbox_max : dialogs_read_inbox_max;
                     Integer value = read_max.get(message.dialog_id);
                     if (value == null) {
@@ -13279,15 +13325,18 @@ public class MessagesController extends BaseController implements NotificationCe
                     ArrayList<TLRPC.Message> arr = new ArrayList<>();
                     arr.add(message);
                     if (updates instanceof TLRPC.TL_updateShortMessage) {
+                        //获取输入状态
                         boolean printUpdate = !updates.out && updatePrintingUsersWithNewMessages(updates.user_id, objArr);
                         if (printUpdate) {
                             updatePrintingStrings();
                         }
                         AndroidUtilities.runOnUIThread(() -> {
                             if (printUpdate) {
+                                //更新输入状态
                                 getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, UPDATE_MASK_USER_PRINT);
                             }
                             updateInterfaceWithMessages(userId, objArr, false);
+                            //消息重新载入
                             getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
                         });
                     } else {
@@ -13309,6 +13358,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                     getMessagesStorage().putMessages(arr, false, true, false, 0, false, 0);
                 } else if (getMessagesStorage().getLastPtsValue() != updates.pts) {
+                    //如果本地与服务器顺序不一致则进行重新测算
                     if (BuildVars.LOGS_ENABLED) {
                         FileLog.d("need get diff short message, pts: " + getMessagesStorage().getLastPtsValue() + " " + updates.pts + " count = " + updates.pts_count);
                     }
@@ -13373,6 +13423,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
             }
             if (!needGetDiff) {
+                //如果不需要重新计算，则将信息写入TL_updateShortMessage
                 getMessagesStorage().putUsersAndChats(updates.users, updates.chats, true, true);
                 Collections.sort(updates.updates, updatesComparator);
                 for (int a = 0; a < updates.updates.size(); a++) {

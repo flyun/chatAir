@@ -36,6 +36,7 @@ import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
@@ -52,6 +53,7 @@ import org.telegram.ui.ChatActivity;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.TopicsFragment;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.core.content.ContextCompat;
@@ -704,6 +706,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
     //更新副标题
     //初始化，接受消息，发送信息时回调用
     public void updateSubtitle(boolean animated) {
+
         if (parentFragment == null) {
             return;
         }
@@ -861,7 +864,76 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                     useOnlineColor = isOnline[0];
                 }
                 newSubtitle = newStatus;
-            } else {
+            } else if (BuildVars.IS_CHAT_AIR && animated) {
+
+//                int contextNum = 0;
+//                long tokens = 0;
+//                long words = 0;
+
+//                if (user != null) {
+//                    contextNum = user.status.contextNum;
+//                    tokens = user.status.tokens;
+//                    words = user.status.words;
+//                }
+
+                //todo 暂时方案，虽然加上数据变动才会变化，但是也会频繁刷新。
+                // 后期改为数据变动发送user数据，这里读取user数据，就不会出现打开聊天界面延时显示问题
+                ArrayList<MessageObject> messages = parentFragment.messages;
+                int tempContextNum = 0;
+                long tempTokens = 0;
+                long tempWords = 0;
+
+                if (messages != null && !messages.isEmpty()) {
+
+                    for (MessageObject message : messages) {
+
+                        if (message != null) {
+
+                            if (message.type == 10 && message.messageOwner.action
+                                    instanceof TLRPC.TL_messageActionClearContext) {
+                                break;
+                            }
+
+                            if (message.type == 0){
+                                tempContextNum++;
+
+                                //todo 如果删掉聊天中间的一部分，会造成token不准
+                                if (tempTokens == 0) {
+                                    tempTokens = message.messageOwner.promptTokens + message.messageOwner.completionTokens;
+                                }
+
+                                tempWords = tempWords + message.messageText.length();
+
+                            }
+                        }
+                    }
+
+                    //数据变动则更新
+//                    if (contextNum != tempContextNum || tokens != tempTokens || words != tempWords) {
+//                        ArrayList<TLRPC.Update> arrayList = new ArrayList<>();
+//
+//                        TLRPC.TL_updateUserStatus userStatus = new TLRPC.TL_updateUserStatus();
+//
+//                        userStatus.user_id = user.id;
+//                        userStatus.disableFree = user.disableFree;
+//                        userStatus.networkType = user.networkType;
+//                        userStatus.status =new TLRPC.TL_userStatusChatAir();
+//                        userStatus.status.expires = user.status.expires;
+//                        userStatus.status.contextNum = contextNum;
+//                        userStatus.status.tokens = tokens;
+//                        userStatus.status.words = words;
+//
+//                        arrayList.add(userStatus);
+//
+//                        parentFragment.getMessagesController().processUpdateArray(arrayList, null, null, false, 0);
+//
+//                    }
+                }
+
+                newSubtitle = "N:" + tempContextNum + " T:" + tempTokens + " W:" + tempWords;
+
+            }
+            else {
                 newSubtitle = "";
             }
         } else {

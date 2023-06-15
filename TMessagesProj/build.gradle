@@ -44,6 +44,9 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10'
     implementation 'com.google.guava:guava:31.1-android'
 
+    implementation project(':openai_service')
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 }
 

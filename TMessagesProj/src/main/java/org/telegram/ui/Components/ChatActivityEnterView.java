@@ -5119,6 +5119,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     }
 
     private boolean premiumEmojiBulletin = true;
+    //发送消息
     private void sendMessageInternal(boolean notify, int scheduleDate) {
         if (slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode()) {
             if (delegate != null) {
@@ -5126,6 +5127,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
             return;
         }
+        //配置消息静音
         if (parentFragment != null) {
             TLRPC.Chat chat = parentFragment.getCurrentChat();
             TLRPC.User user = parentFragment.getCurrentUser();
@@ -5133,6 +5135,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 MessagesController.getNotificationsSettings(currentAccount).edit().putBoolean("silent_" + dialog_id, !notify).commit();
             }
         }
+        //贴纸
         if (stickersExpanded) {
             setStickersExpanded(false, true, false);
             if (searchingType != 0 && emojiView != null) {
@@ -5140,6 +5143,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 emojiView.hideSearchKeyboard();
             }
         }
+        //音视频处理
         if (videoToSendMessageObject != null) {
             delegate.needStartRecordVideo(4, notify, scheduleDate);
             hideRecordedAudioPanel(true);
@@ -5171,9 +5175,11 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
             }
         }
+        //付费表情处理
         if (checkPremiumAnimatedEmoji(currentAccount, dialog_id, parentFragment, null, message)) {
             return;
         }
+        //发送消息给服务器
         if (processSendingText(message, notify, scheduleDate)) {
             if (delegate.hasForwardingMessages() || (scheduleDate != 0 && !isInScheduleMode()) || isInScheduleMode()) {
                 if (messageEditText != null) {
@@ -5351,6 +5357,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         setEditingMessageObject(null, false);
     }
 
+    //发送消息给服务器
     public boolean processSendingText(CharSequence text, boolean notify, int scheduleDate) {
         int[] emojiOnly = new int[1];
         Emoji.parseEmojis(text, emojiOnly);
@@ -5358,9 +5365,12 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         if (!hasOnlyEmoji) {
             text = AndroidUtilities.getTrimmedString(text);
         }
+        //是否是加密消息
         boolean supportsNewEntities = supportsSendingNewEntities();
+        //获取最大发送字符，默认4096
         int maxLength = accountInstance.getMessagesController().maxMessageLength;
         if (text.length() != 0) {
+            //设置延时发送
             if (delegate != null && parentFragment != null && (scheduleDate != 0) == parentFragment.isInScheduleMode()) {
                 delegate.prepareMessageSending();
             }
@@ -5402,6 +5412,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     end = whitespaceIndex;
                 }
 
+                //字符数超过最大，则只截取最大
                 CharSequence part = text.subSequence(start, end);
                 if (!hasOnlyEmoji) {
                     part = AndroidUtilities.getTrimmedString(part);
@@ -5410,6 +5421,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 ArrayList<TLRPC.MessageEntity> entities = MediaDataController.getInstance(currentAccount).getEntities(message, supportsNewEntities);
                 MessageObject.SendAnimationData sendAnimationData = null;
 
+                //配置发送动画数据
                 if (!delegate.hasForwardingMessages()) {
                     sendAnimationData = new MessageObject.SendAnimationData();
                     sendAnimationData.width = sendAnimationData.height = AndroidUtilities.dp(22);
@@ -5423,11 +5435,38 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                     }
                 }
 
+                //是否需要更新贴纸
                 boolean updateStickersOrder = false;
                 updateStickersOrder = SendMessagesHelper.checkUpdateStickersOrder(text);
 
 
-                SendMessagesHelper.getInstance(currentAccount).sendMessage(message[0].toString(), dialog_id, replyingMessageObject, getThreadMessage(), messageWebPage, messageWebPageSearch, entities, null, null, notify, scheduleDate, sendAnimationData, updateStickersOrder);
+                //发送给服务器
+
+               if (!BuildVars.IS_CHAT_AIR) {
+                   SendMessagesHelper.getInstance(currentAccount).sendMessage(message[0].toString(), dialog_id, replyingMessageObject, getThreadMessage(), messageWebPage, messageWebPageSearch, entities, null, null, notify, scheduleDate, sendAnimationData, updateStickersOrder);
+               } else {
+
+                   //发送消息后，必须更新消息或者消息失败，才能进行下一次发送，否则发送功能失效
+                   ArrayList<MessageObject> messages = getParentFragment().messages;
+                   ArrayList<TLRPC.Message> messageOwners = new ArrayList<>();
+
+                   for (MessageObject messageObject : messages) {
+                       //聊天类型以及其他特殊事件类型
+
+                       if (messageObject.type == 10 && messageObject.messageOwner.action
+                               instanceof TLRPC.TL_messageActionClearContext) {
+                           break;
+                       }
+
+                       if (messageObject.type == 0) {
+                           messageOwners.add(messageObject.messageOwner);
+                       }
+                   }
+
+                   SendMessagesHelper.getInstance(currentAccount).sendMessage(message[0].toString(), messageOwners, dialog_id, replyingMessageObject, getThreadMessage(), messageWebPage, messageWebPageSearch, entities, null, null, notify, scheduleDate, sendAnimationData, updateStickersOrder);
+               }
+
+                //超过最大或者其他表情等则分段发送
                 start = end + 1;
             } while (end != text.length());
             return true;
@@ -6392,6 +6431,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             if (recordInterfaceState == 0) {
                 return;
             }
+            //取消发送状态
             accountInstance.getMessagesController().sendTyping(dialog_id, getThreadMessageId(), 2, 0);
             recordInterfaceState = 0;
             if (emojiView != null) {

@@ -146,6 +146,7 @@ public class ApplicationLoader extends Application {
         return new File("/data/data/info.flyun.chatair/files");
     }
 
+    //初始化各种模块
     public static void postInitApplication() {
         if (applicationInited || applicationContext == null) {
             return;
@@ -159,6 +160,7 @@ public class ApplicationLoader extends Application {
         }
 
         try {
+            //网络连接变动初始化
             connectivityManager = (ConnectivityManager) ApplicationLoader.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE);
             BroadcastReceiver networkStateReceiver = new BroadcastReceiver() {
                 @Override
@@ -201,6 +203,7 @@ public class ApplicationLoader extends Application {
             e.printStackTrace();
         }
 
+        //初始化配置文件
         SharedConfig.loadConfig();
         SharedPrefsHelper.init(applicationContext);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
@@ -218,18 +221,24 @@ public class ApplicationLoader extends Application {
             }
         }
 
+        //初始化推送
         ApplicationLoader app = (ApplicationLoader) ApplicationLoader.applicationContext;
         app.initPushServices();
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("app initied");
         }
 
+        //媒体初始化
         MediaController.getInstance();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
+            //账号初始化
             ContactsController.getInstance(a).checkAppAccount();
+            //下载初始化
             DownloadController.getInstance(a);
         }
+        //主题初始化
         ChatThemeController.init();
+        //付费VIP初始化
         BillingController.getInstance().startConnection();
     }
 

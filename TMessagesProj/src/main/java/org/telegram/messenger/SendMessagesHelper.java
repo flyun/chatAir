@@ -43,9 +43,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.UiThread;
-import androidx.collection.LongSparseArray;
-import androidx.core.view.inputmethod.InputContentInfoCompat;
+import com.flyun.base.BaseMessage;
+import com.theokanning.openai.OpenAiHttpException;
+import com.theokanning.openai.completion.chat.ChatCompletionChoice;
+import com.theokanning.openai.completion.chat.ChatCompletionRequest;
+import com.theokanning.openai.completion.chat.ChatCompletionResult;
+import com.theokanning.openai.completion.chat.ChatMessage;
+import com.theokanning.openai.completion.chat.ChatMessageRole;
+import com.theokanning.openai.service.OpenAiService;
 
 import org.json.JSONObject;
 import org.telegram.messenger.audioinfo.AudioInfo;
@@ -91,6 +96,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import androidx.annotation.UiThread;
+import androidx.collection.LongSparseArray;
+import androidx.core.view.inputmethod.InputContentInfoCompat;
+
+//服务器发送类
 public class SendMessagesHelper extends BaseController implements NotificationCenter.NotificationCenterDelegate {
 
     private HashMap<String, ArrayList<DelayedMessage>> delayedMessages = new HashMap<>();
@@ -98,6 +108,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     private SparseArray<TLRPC.Message> sendingMessages = new SparseArray<>();
     private SparseArray<TLRPC.Message> editingMessages = new SparseArray<>();
     private SparseArray<TLRPC.Message> uploadMessages = new SparseArray<>();
+    private ArrayList<TLRPC.Message> contextMessages = new ArrayList<>();
     private LongSparseArray<Integer> sendingMessagesIdDialogs = new LongSparseArray<>();
     private LongSparseArray<Integer> uploadingMessagesIdDialogs = new LongSparseArray<>();
     private HashMap<String, MessageObject> waitingForLocation = new HashMap<>();
@@ -110,6 +121,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
     private HashMap<String, ImportingStickers> importingStickersFiles = new HashMap<>();
     private HashMap<String, ImportingStickers> importingStickersMap = new HashMap<>();
+
+    private OpenAiService openAiService;
 
     public static boolean checkUpdateStickersOrder(CharSequence text) {
         if (text instanceof Spannable) {
@@ -808,6 +821,12 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.httpFileDidLoad);
             getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.fileLoaded);
             getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.fileLoadFailed);
+
+            if (BuildVars.IS_CHAT_AIR) {
+                //初始化openAi
+                String token = "";
+                openAiService = new OpenAiService(token, 60);
+            }
         });
     }
 
@@ -1380,6 +1399,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
     }
 
+    //重试发送消息
     public boolean retrySendMessage(MessageObject messageObject, boolean unsent) {
         if (messageObject.getId() >= 0) {
             if (messageObject.isEditing()) {
@@ -3300,6 +3320,15 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         sendMessage(message, null, null, null, null, null, null, null, null, null, peer, null, replyToMsg, replyToTopMsg, webPage, searchLinks, null, entities, replyMarkup, params, notify, scheduleDate, 0, null, sendAnimationData, updateStickersOrder);
     }
 
+    public void sendMessage(String message, ArrayList<TLRPC.Message> messages, long peer, MessageObject replyToMsg, MessageObject replyToTopMsg, TLRPC.WebPage webPage, boolean searchLinks, ArrayList<TLRPC.MessageEntity> entities, TLRPC.ReplyMarkup replyMarkup, HashMap<String, String> params, boolean notify, int scheduleDate, MessageObject.SendAnimationData sendAnimationData, boolean updateStickersOrder) {
+        if (contextMessages != null) {
+            contextMessages.clear();
+            if (messages != null) contextMessages.addAll(messages);
+        }
+
+        sendMessage(message, null, null, null, null, null, null, null, null, null, peer, null, replyToMsg, replyToTopMsg, webPage, searchLinks, null, entities, replyMarkup, params, notify, scheduleDate, 0, null, sendAnimationData, updateStickersOrder);
+    }
+
     public void sendMessage(TLRPC.MessageMedia location, long peer, MessageObject replyToMsg, MessageObject replyToTopMsg, TLRPC.ReplyMarkup replyMarkup, HashMap<String, String> params, boolean notify, int scheduleDate) {
         sendMessage(null, null, location, null, null, null, null, null, null, null, peer, null, replyToMsg, replyToTopMsg, null, true, null, null, replyMarkup, params, notify, scheduleDate, 0, null, null, false);
     }
@@ -3324,7 +3353,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         sendMessage(message, caption, location, photo, videoEditedInfo, user, document, game, poll, invoice, peer, path, replyToMsg, replyToTopMsg, webPage, searchLinks, retryMessageObject, entities, replyMarkup, params, notify, scheduleDate, ttl, parentObject, sendAnimationData, updateStickersOrder, false);
     }
 
+    //发送消息
     private void sendMessage(String message, String caption, TLRPC.MessageMedia location, TLRPC.TL_photo photo, VideoEditedInfo videoEditedInfo, TLRPC.User user, TLRPC.TL_document document, TLRPC.TL_game game, TLRPC.TL_messageMediaPoll poll, TLRPC.TL_messageMediaInvoice invoice, long peer, String path, MessageObject replyToMsg, MessageObject replyToTopMsg, TLRPC.WebPage webPage, boolean searchLinks, MessageObject retryMessageObject, ArrayList<TLRPC.MessageEntity> entities, TLRPC.ReplyMarkup replyMarkup, HashMap<String, String> params, boolean notify, int scheduleDate, int ttl, Object parentObject, MessageObject.SendAnimationData sendAnimationData, boolean updateStickersOrder, boolean hasMediaSpoilers) {
+        //用户手机号为空则退出
         if (user != null && user.phone == null) {
             return;
         }
@@ -3352,6 +3383,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         TLRPC.EncryptedChat encryptedChat = null;
         TLRPC.InputPeer sendToPeer = !DialogObject.isEncryptedDialog(peer) ? getMessagesController().getInputPeer(peer) : null;
         long myId = getUserConfig().getClientUserId();
+        //处理加密以及隐藏消息
         if (DialogObject.isEncryptedDialog(peer)) {
             encryptedChat = getMessagesController().getEncryptedChat(DialogObject.getEncryptedChatId(peer));
             if (encryptedChat == null) {
@@ -3460,6 +3492,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     canSendStickers = ChatObject.canSendStickers(chat);
                 }
                 if (message != null) {
+                    //处理聊天消息
                     if (encryptedChat != null) {
                         newMsg = new TLRPC.TL_message_secret();
                     } else {
@@ -3491,11 +3524,13 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         if (params != null && params.containsKey("query_id")) {
                             type = 9;
                         } else {
+                            //设定为聊天消息
                             type = 0;
                         }
                         newMsg.message = message;
                     }
                 } else if (poll != null) {
+                    //处理调查消息
                     if (encryptedChat != null) {
                         newMsg = new TLRPC.TL_message_secret();
                     } else {
@@ -3504,6 +3539,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     newMsg.media = poll;
                     type = 10;
                 } else if (location != null) {
+                    //处理位置消息
                     if (encryptedChat != null) {
                         newMsg = new TLRPC.TL_message_secret();
                     } else {
@@ -3516,6 +3552,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         type = 1;
                     }
                 } else if (photo != null) {
+                    //处理照片消息
                     if (encryptedChat != null) {
                         newMsg = new TLRPC.TL_message_secret();
                     } else {
@@ -3544,6 +3581,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         newMsg.attachPath = FileLoader.getInstance(currentAccount).getPathToAttach(location1, true).toString();
                     }
                 } else if (game != null) {
+                    //处理游戏消息
                     newMsg = new TLRPC.TL_message();
                     newMsg.media = new TLRPC.TL_messageMediaGame();
                     newMsg.media.game = game;
@@ -3551,6 +3589,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         type = 9;
                     }
                 } else if (invoice != null) {
+                    //处理发票消息
                     newMsg = new TLRPC.TL_message();
                     newMsg.media = invoice;
                     if (params != null && params.containsKey("query_id")) {
@@ -3584,6 +3623,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         type = 6;
                     }
                 } else if (document != null) {
+                    //处理文档消息
                     if (encryptedChat != null) {
                         newMsg = new TLRPC.TL_message_secret();
                     } else {
@@ -3677,7 +3717,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 if (newMsg.attachPath == null) {
                     newMsg.attachPath = "";
                 }
+                //设定聊天发送id
                 newMsg.local_id = newMsg.id = getUserConfig().getNewMessageId();
+                //设定为发出消息
                 newMsg.out = true;
                 if (isChannel && sendToPeer != null) {
                     newMsg.from_id = new TLRPC.TL_peerChannel();
@@ -3834,7 +3876,14 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             if (newMsg.from_id == null) {
                 newMsg.from_id = newMsg.peer_id;
             }
-            newMsg.send_state = MessageObject.MESSAGE_SEND_STATE_SENDING;
+            if (BuildVars.IS_CHAT_AIR) {
+                newMsg.send_state = MessageObject.MESSAGE_SEND_STATE_SENT;
+//                newMsg.send_state = MessageObject.MESSAGE_SEND_STATE_SEND_ERROR;
+            } else {
+                //设置为正在发送中，如果收到服务器回执则改为已发送
+                newMsg.send_state = MessageObject.MESSAGE_SEND_STATE_SENDING;
+
+            }
 
             long groupId = 0;
             boolean isFinalGroupMedia = false;
@@ -3864,16 +3913,19 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             }
 
             if (groupId == 0) {
+                //非群组消息
                 ArrayList<MessageObject> objArr = new ArrayList<>();
                 objArr.add(newMsgObj);
                 ArrayList<TLRPC.Message> arr = new ArrayList<>();
                 arr.add(newMsg);
+                //发送消息写入数据库并且发送更新消息命令
                 MessagesStorage.getInstance(currentAccount).putMessages(arr, false, true, false, 0, scheduleDate != 0, 0);
                 MessagesController.getInstance(currentAccount).updateInterfaceWithMessages(peer, objArr, scheduleDate != 0);
                 if (scheduleDate == 0) {
                     NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.dialogsNeedReload);
                 }
             } else {
+                //群组消息
                 String key = "group_" + groupId;
                 ArrayList<DelayedMessage> arrayList = delayedMessages.get(key);
                 if (arrayList != null) {
@@ -3903,7 +3955,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             boolean performMediaUpload = false;
 
             if (type == 0 || type == 9 && message != null && encryptedChat != null) {
+                //聊天消息type=0
                 if (encryptedChat == null) {
+                    //发送消息类
                     TLRPC.TL_messages_sendMessage reqSend = new TLRPC.TL_messages_sendMessage();
                     reqSend.message = message;
                     reqSend.clear_draft = retryMessageObject == null;
@@ -3935,6 +3989,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         reqSend.schedule_date = scheduleDate;
                         reqSend.flags |= 1024;
                     }
+                    //执行发送服务器请求
                     performSendMessageRequest(reqSend, newMsgObj, null, null, parentObject, params, scheduleDate != 0);
                     if (retryMessageObject == null) {
                         getMediaDataController().cleanDraft(peer, replyToTopMsg != null ? replyToTopMsg.getId() : 0, false);
@@ -5552,6 +5607,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         return maxDelayedMessage;
     }
 
+    volatile boolean isFirst = false;
+
+    //发送请求
     protected void performSendMessageRequest(final TLObject req, final MessageObject msgObj, final String originalPath, DelayedMessage parentMessage, boolean check, DelayedMessage delayedMessage, Object parentObject, HashMap<String, String> params, boolean scheduled) {
         if (!(req instanceof TLRPC.TL_messages_editMessage)) {
             if (check) {
@@ -5567,7 +5625,125 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
         final TLRPC.Message newMsgObj = msgObj.messageOwner;
         putToSendingMessages(newMsgObj, scheduled);
+
+        if (BuildVars.IS_CHAT_AIR) {
+
+
+            List<ChatMessage> chatMessageList = new ArrayList<>();
+
+            for (int i = contextMessages.size() - 1; i >= 0; i --){
+                ChatMessage chatMessage = new ChatMessage();
+                TLRPC.Message message = contextMessages.get(i);
+
+                chatMessage.setRole(message.out ? ChatMessageRole.USER.value()
+                        : ChatMessageRole.ASSISTANT.value());
+                chatMessage.setContent(message.message);
+                chatMessageList.add(chatMessage);
+            }
+
+            ChatMessage sendChatMessage = new ChatMessage();
+            sendChatMessage.setRole(ChatMessageRole.USER.value());
+            sendChatMessage.setContent(msgObj.messageOwner.message);
+            chatMessageList.add(sendChatMessage);
+
+
+
+            ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
+                .model("gpt-3.5-turbo")
+                .messages(chatMessageList).build();
+
+
+            BaseMessage baseMessage = new BaseMessage();
+            baseMessage.setDialog_id(newMsgObj.dialog_id);
+
+
+            openAiService.createChatCompletion(chatCompletionRequest, baseMessage, new OpenAiService.ResultCallBack() {
+                @Override
+                public void onSuccess(ChatCompletionResult result) {
+
+                 for (ChatCompletionChoice completionChoice : result.getChoices()) {
+
+                    KeepAliveJob.finishJob();
+
+                    Utilities.stageQueue.postRunnable(() -> {
+
+                        TLRPC.TL_updateShortMessage message = new TLRPC.TL_updateShortMessage();
+                        message.chat_id = currentAccount;
+                        message.date = (int)(System.currentTimeMillis() / 1000);
+
+                        message.id = getUserConfig().getNewMessageId();
+                        if (completionChoice.getMessage() == null) return;
+                        message.message = completionChoice.getMessage().getContent();
+                        message.out = false;
+                        message.pts = getMessagesStorage().getLastPtsValue() + 1;
+                        message.pts_count = 1;
+                        message.silent = false;
+                        message.user_id = baseMessage.getDialog_id();
+
+                        if (result.getUsage() == null) return;
+                        message.chat_air = true;
+                        message.promptTokens = result.getUsage().getPromptTokens();
+                        message.completionTokens = result.getUsage().getCompletionTokens();
+
+                        //保存聊天id
+                        getUserConfig().saveConfig(false);
+
+                        AccountInstance.getInstance(currentAccount).getMessagesController().processUpdates(message, false);
+                    });
+
+                 }
+
+                }
+
+                @Override
+                public void onError(OpenAiHttpException error, Throwable throwable) {
+
+                    if (error != null) {
+
+//                        Log.e("test","openAiErr:"
+//                                + " ,statusCode:"+ error.statusCode
+//                                + " ,code:"+ error.code
+//                                + " ,param:"+ error.param
+//                                + " ,type:"+ error.type);
+
+                        Toast.makeText(ApplicationLoader.applicationContext.getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
+                    } else {
+
+//                        Log.e("test","err:" + throwable);
+                        Toast.makeText(ApplicationLoader.applicationContext.getApplicationContext(), throwable.toString(), Toast.LENGTH_LONG).show();
+
+                    }
+                }
+
+                @Override
+                public void onLoading(boolean isLoading) {
+
+                    TLRPC.TL_updateShort updateShort = new TLRPC.TL_updateShort();
+                    updateShort.chat_id = currentAccount;
+                    updateShort.date = (int)(System.currentTimeMillis() / 1000);
+
+                    TLRPC.TL_updateUserTyping message = new TLRPC.TL_updateUserTyping();
+
+                    if (isLoading) {
+                        message.action = new TLRPC.TL_sendMessageTypingAction();
+                    } else {
+                        message.action = new TLRPC.TL_sendMessageCancelAction();
+                    }
+                    message.user_id = baseMessage.getDialog_id();
+                    updateShort.update = message;
+
+                    AccountInstance.getInstance(currentAccount).getMessagesController().processUpdates(updateShort, false);
+
+                }
+            });
+
+            return;
+
+
+        }
+
         newMsgObj.reqId = getConnectionsManager().sendRequest(req, (response, error) -> {
+            //处理发送错误
             if (error != null && (req instanceof TLRPC.TL_messages_sendMedia || req instanceof TLRPC.TL_messages_editMessage) && FileRefController.isFileRefError(error.text)) {
                 if (parentObject != null) {
                     getFileRefController().requestReference(parentObject, req, msgObj, originalPath, parentMessage, check, delayedMessage, scheduled);
@@ -5597,6 +5773,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 }
             }
             if (req instanceof TLRPC.TL_messages_editMessage) {
+                //编辑消息类
                 AndroidUtilities.runOnUIThread(() -> {
                     if (error == null) {
                         final String attachPath = newMsgObj.attachPath;
@@ -5644,6 +5821,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     }
                 });
             } else {
+                //其他消息类
                 AndroidUtilities.runOnUIThread(() -> {
 
                     boolean currentSchedule = scheduled;
@@ -5655,9 +5833,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         final int existFlags;
                         boolean scheduledOnline = newMsgObj.date == 0x7FFFFFFE;
                         if (response instanceof TLRPC.TL_updateShortSentMessage) {
+                            //消息是否发出回执
                             final TLRPC.TL_updateShortSentMessage res = (TLRPC.TL_updateShortSentMessage) response;
                             updateMediaPaths(msgObj, null, res.id, null, false);
                             existFlags = msgObj.getMediaExistanceFlags();
+                            //从服务器获取消息更新新消息
                             newMsgObj.local_id = newMsgObj.id = res.id;
                             newMsgObj.date = res.date;
                             newMsgObj.entities = res.entities;
@@ -5689,6 +5869,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             Utilities.stageQueue.postRunnable(() -> getMessagesController().processNewDifferenceParams(-1, res.pts, res.date, res.pts_count));
                             sentMessages.add(newMsgObj);
                         } else if (response instanceof TLRPC.Updates) {
+                            //服务器返回的更新消息列表
                             final TLRPC.Updates updates = (TLRPC.Updates) response;
                             ArrayList<TLRPC.Update> updatesArr = ((TLRPC.Updates) response).updates;
                             TLRPC.Message message = null;
@@ -5787,6 +5968,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                         if (!isSentError) {
                             getStatsController().incrementSentItemsCount(ApplicationLoader.getCurrentNetworkType(), StatsController.TYPE_MESSAGES, 1);
+                            //获得消息回执后，将消息由发送中设置为已发送
                             newMsgObj.send_state = MessageObject.MESSAGE_SEND_STATE_SENT;
                             if (scheduled && !currentSchedule) {
                                 ArrayList<Integer> messageIds = new ArrayList<>();
@@ -5807,6 +5989,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                     }
                                 });
                             } else {
+                                //更新来自服务器的消息
                                 getNotificationCenter().postNotificationName(NotificationCenter.messageReceivedByServer, oldId, newMsgObj.id, newMsgObj, newMsgObj.dialog_id, 0L, existFlags, scheduled);
                                 getMessagesStorage().getStorageQueue().postRunnable(() -> {
                                     getMessagesStorage().updateMessageStateAndId(newMsgObj.random_id, MessageObject.getPeerId(newMsgObj.peer_id), oldId, newMsgObj.id, 0, false, scheduled ? 1 : 0);
@@ -5817,6 +6000,33 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                         processSentMessage(oldId);
                                         removeFromSendingMessages(oldId, scheduled);
                                     });
+
+//                                    if (response instanceof TLRPC.TL_updateShortSentMessage &&
+//                                            req instanceof TLRPC.TL_messages_sendMessage) {
+//                                        final TLRPC.TL_updateShortSentMessage res = (TLRPC.TL_updateShortSentMessage) response;
+//                                        final TLRPC.TL_messages_sendMessage reqTl = (TLRPC.TL_messages_sendMessage) req;
+//
+//                                        TLRPC.TL_updateShortMessage message = new TLRPC.TL_updateShortMessage();
+//                                        message.chat_id = res.chat_id;
+//                                        message.date = (int)(System.currentTimeMillis() / 1000);
+//                                        message.id = res.id + 1;
+//                                        message.message = "replay";
+//                                        message.out = false;
+//                                        message.pts = getMessagesStorage().getLastPtsValue() + 1;
+//                                        message.pts_count = 1;
+//                                        message.silent = false;
+////                                        message.user_id = 374536413;
+//                                        message.user_id = reqTl.peer.user_id;
+//
+//                                        KeepAliveJob.finishJob();
+//                                        Utilities.stageQueue.postRunnable(() -> AccountInstance.getInstance(currentAccount).getMessagesController().processUpdates((TLRPC.Updates) message, false));
+//                                    }
+
+
+
+
+
+
                                     if (MessageObject.isVideoMessage(newMsgObj) || MessageObject.isRoundVideoMessage(newMsgObj) || MessageObject.isNewGifMessage(newMsgObj)) {
                                         stopVideoService(attachPath);
                                     }
@@ -5824,9 +6034,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             }
                         }
                     } else {
+                        //处理发送消息错误
                         AlertsCreator.processError(currentAccount, error, null, req);
                         isSentError = true;
                     }
+                    //处理发送消息错误
                     if (isSentError) {
                         getMessagesStorage().markMessageAsSendError(newMsgObj, scheduled);
                         newMsgObj.send_state = MessageObject.MESSAGE_SEND_STATE_SEND_ERROR;
@@ -6120,6 +6332,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         getMessagesStorage().getUnsentMessages(1000);
     }
 
+    //重试发送但是未发出的信息
     protected void processUnsentMessages(final ArrayList<TLRPC.Message> messages, final ArrayList<TLRPC.Message> scheduledMessages, final ArrayList<TLRPC.User> users, final ArrayList<TLRPC.Chat> chats, final ArrayList<TLRPC.EncryptedChat> encryptedChats) {
         AndroidUtilities.runOnUIThread(() -> {
             getMessagesController().putUsers(users, true);

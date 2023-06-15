@@ -1,0 +1,40 @@
+apply plugin: 'java-library'
+//apply plugin: "com.vanniktech.maven.publish"
+
+repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.0'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    testImplementation(platform('org.junit:junit-bom:5.8.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+
+}
+
+//android {
+//    compileSdkVersion 19
+//    compileOptions {
+//        targetCompatibility JavaVersion.VERSION_1_8
+//        sourceCompatibility JavaVersion.VERSION_1_8
+//    }
+//
+//    defaultConfig {
+//        minSdkVersion 19
+//    }
+//
+//}
+
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+//test {
+//    useJUnitPlatform()
+//}
