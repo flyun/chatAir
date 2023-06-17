@@ -3036,8 +3036,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 instanceof TLRPC.TL_messageActionClearContext) {
                             ArrayList<Integer> arr = new ArrayList<>();
                             arr.add(messageObject.messageOwner.id);
+                            //cacheOnly为true则不向服务器发送删除数据
                             getMessagesController()
-                                    .deleteMessages(arr, null, null, dialog_id, false, false);
+                                .deleteMessages(arr, null, null, dialog_id, false, false, true, 0, null);
                         }
                     }
                 }
@@ -19903,7 +19904,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return sponsoredMessagesCount;
     }
 
-    //本地删除，不统一，不会发送更新接口
+    //本地删除，只删除页面messages数据，不处理数据库
     private void processDeletedMessages(ArrayList<Integer> markAsDeletedMessages, long channelId) {
         ArrayList<Integer> removedIndexes = new ArrayList<>();
         int loadIndex = 0;

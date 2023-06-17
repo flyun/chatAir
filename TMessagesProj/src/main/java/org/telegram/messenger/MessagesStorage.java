@@ -11915,6 +11915,7 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    //删除消息
     private ArrayList<Long> markMessagesAsDeletedInternal(long dialogId, ArrayList<Integer> messages, boolean deleteFiles, boolean scheduled) {
         SQLiteCursor cursor = null;
         SQLitePreparedStatement state = null;
@@ -11974,6 +11975,7 @@ public class MessagesStorage extends BaseController {
                         }
                         mids.add(mid);
                         if (did != currentUser) {
+                            //0未读1已读
                             int read_state = cursor.intValue(2);
                             if (cursor.intValue(3) == 0) {
                                 Integer[] unread_count = dialogsToUpdate.get(did);
@@ -11989,6 +11991,7 @@ public class MessagesStorage extends BaseController {
                                 }
                             }
                         }
+                        //如果不是删除文件则跳过下面处理删除文件的步骤
                         if (!DialogObject.isEncryptedDialog(did) && !deleteFiles) {
                             continue;
                         }
@@ -12099,6 +12102,7 @@ public class MessagesStorage extends BaseController {
                 AndroidUtilities.runOnUIThread(() -> getFileLoader().cancelLoadFiles(namesToDelete));
                 getFileLoader().deleteFiles(filesToDelete, 0);
 
+                //更新数据库的已读未读数据
                 for (int a = 0; a < dialogsToUpdate.size(); a++) {
                     long did = dialogsToUpdate.keyAt(a);
                     Integer[] counts = dialogsToUpdate.valueAt(a);
@@ -12183,6 +12187,7 @@ public class MessagesStorage extends BaseController {
                     }
                 }
 
+                //删除聊天数据
                 for (int a = 0, N = messagesByDialogs.size(); a < N; a++) {
                     long did = messagesByDialogs.keyAt(a);
                     ArrayList<Integer> mids = messagesByDialogs.valueAt(a);
@@ -12216,6 +12221,7 @@ public class MessagesStorage extends BaseController {
                         cursor.dispose();
                         cursor = null;
                     }
+                    //从数据库删除聊天数据
                     database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     database.executeFast(String.format(Locale.US, "DELETE FROM polls_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();

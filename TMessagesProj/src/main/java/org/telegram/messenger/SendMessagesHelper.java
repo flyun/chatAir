@@ -5688,6 +5688,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         //保存聊天id
                         getUserConfig().saveConfig(false);
 
+                        //发送接收后，考虑改为已读状态
                         AccountInstance.getInstance(currentAccount).getMessagesController().processUpdates(message, false);
                     });
 

@@ -6577,7 +6577,6 @@ public class MessagesController extends BaseController implements NotificationCe
         newMsg.flags = TLRPC.MESSAGE_FLAG_HAS_FROM_ID;
         newMsg.dialog_id = dialog_id;
         newMsg.date = getConnectionsManager().getCurrentTime();
-        newMsg.id = getUserConfig().getNewMessageId();
 
         newMsg.peer_id = new TLRPC.TL_peerUser();
         newMsg.peer_id.user_id = dialog_id;
