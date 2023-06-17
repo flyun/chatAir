@@ -472,6 +472,7 @@ public class NotificationCenter {
         return observers.get(id);
     }
 
+    //发送各种事件消息
     public void postNotificationName(int id, Object... args) {
         boolean allowDuringAnimation = id == startAllHeavyOperations || id == stopAllHeavyOperations || id == didReplacedPhotoInMemCache || id == closeChats || id == invalidateMotionBackground;
         ArrayList<Integer> expiredIndices = null;

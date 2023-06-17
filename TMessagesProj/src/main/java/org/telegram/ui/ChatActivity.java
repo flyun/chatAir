@@ -368,6 +368,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private ActionBarMenu.LazyItem audioCallIconItem;
     private boolean searchItemVisible;
     private ActionBarMenu.LazyItem contextClearIconItem;
+    private ActionBarMenu.LazyItem undoContextClearIconItem;
     private RadialProgressView progressBar;
     private ActionBarMenuItem.Item addContactItem;
     private ActionBarMenuItem.Item clearHistoryItem;
@@ -1031,6 +1032,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private ValueAnimator searchExpandAnimator;
     private float searchExpandProgress;
 
+    private boolean isContextClear = true;
+
     public void deleteHistory(int dateSelectedStart, int dateSelectedEnd, boolean forAll) {
         chatAdapter.frozenMessages.clear();
         for (int i = 0; i < messages.size(); i++) {
@@ -1293,6 +1296,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     private final static int share = 81;
     private final static int context_clear = 82;
+    private final static int undo_context_clear = 83;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -3018,7 +3022,24 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         VoIPHelper.startCall(currentUser, id == video_call, userInfo != null && userInfo.video_calls_available, getParentActivity(), getMessagesController().getUserFull(currentUser.id), getAccountInstance());
                     }
                 } else if (id == context_clear) {
-                    getMessagesController().clearContext(dialog_id);
+
+                    if (messages != null && messages.size() > 0 && messages.get(0).type == 0) {
+                        getMessagesController().clearContext(dialog_id);
+                    }
+
+                } else if (id == undo_context_clear) {
+
+                    if (messages != null && messages.size() > 0) {
+                        MessageObject messageObject = messages.get(0);
+
+                        if (messageObject.type == 10 && messageObject.messageOwner.action
+                                instanceof TLRPC.TL_messageActionClearContext) {
+                            ArrayList<Integer> arr = new ArrayList<>();
+                            arr.add(messageObject.messageOwner.id);
+                            getMessagesController()
+                                    .deleteMessages(arr, null, null, dialog_id, false, false);
+                        }
+                    }
                 }
                 else if (id == text_bold) {
                     if (chatActivityEnterView != null && chatActivityEnterView.getEditField() != null) {
@@ -3241,8 +3262,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (BuildVars.IS_CHAT_AIR) {
             contextClearIconItem = menu.lazilyAddItem(context_clear, R.drawable.msg_clear, themeDelegate);
             contextClearIconItem.setContentDescription(LocaleController.getString("ContextClear", R.string.ContextClear));
-            contextClearIconItem.setVisibility(View.VISIBLE);
+            contextClearIconItem.setVisibility(isContextClear ? View.VISIBLE: View.GONE);
             contextClearIconItem.setTag(null);
+
+            undoContextClearIconItem = menu.lazilyAddItem(undo_context_clear, R.drawable.chats_undo, themeDelegate);
+            undoContextClearIconItem.setContentDescription(LocaleController.getString("UndoContextClear", R.string.UndoContextClear));
+            undoContextClearIconItem.setVisibility(!isContextClear ? View.VISIBLE: View.GONE);
+            undoContextClearIconItem.setTag(null);
         }
 
         editTextItem = menu.lazilyAddItem(chat_menu_edit_text_options, R.drawable.ic_ab_other, themeDelegate);
@@ -15483,6 +15509,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     //核心，接收全局消息
     @Override
     public void didReceivedNotification(int id, int account, final Object... args) {
+
         if (id == NotificationCenter.messagesDidLoad) {
             int guid = (Integer) args[10];
             if (guid != classGuid) {
@@ -16654,10 +16681,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
 
-            if (BuildVars.IS_CHAT_AIR && !updateSubtitle && lastMessagesCount != messages.size()) {
-                lastMessagesCount = messages.size();
-                updateSubtitle = true;
-            }
+            //如果updateSubtitle为true，则不需要更新，下面会更新
+            updateMessageStatus(!updateSubtitle);
 
             if (avatarContainer != null && updateSubtitle) {
                 avatarContainer.updateSubtitle(true);
@@ -16940,6 +16965,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             long channelId = (Long) args[1];
             processDeletedMessages(markAsDeletedMessages, channelId);
+            updateMessageStatus(true);
         } else if (id == NotificationCenter.messageReceivedByServer) {
             //接收来自服务器的消息
             Boolean scheduled = (Boolean) args[6];
@@ -19877,6 +19903,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return sponsoredMessagesCount;
     }
 
+    //本地删除，不统一，不会发送更新接口
     private void processDeletedMessages(ArrayList<Integer> markAsDeletedMessages, long channelId) {
         ArrayList<Integer> removedIndexes = new ArrayList<>();
         int loadIndex = 0;
@@ -26696,6 +26723,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (contextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
                 contextClearIconItem.setVisibility(View.GONE);
             }
+            if (undoContextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
+                undoContextClearIconItem.setVisibility(View.GONE);
+            }
             searchItemVisible = true;
             updateSearchButtons(0, 0, -1);
             updateBottomOverlay();
@@ -29022,6 +29052,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (contextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
                     contextClearIconItem.setVisibility(View.GONE);
                 }
+                if (undoContextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
+                    undoContextClearIconItem.setVisibility(View.GONE);
+                }
             } else if (chatActivityEnterView.hasText() && TextUtils.isEmpty(chatActivityEnterView.getSlowModeTimer()) && (currentChat == null || ChatObject.canSendPlain(currentChat))) {
                 if (headerItem != null) {
                     headerItem.setVisibility(View.GONE);
@@ -29041,6 +29074,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (contextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
                     contextClearIconItem.setVisibility(View.GONE);
                 }
+                if (undoContextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
+                    undoContextClearIconItem.setVisibility(View.GONE);
+                }
             } else {
                 if (headerItem != null) {
                     headerItem.setVisibility(View.VISIBLE);
@@ -29057,8 +29093,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (attachItem != null) {
                     attachItem.setVisibility(View.GONE);
                 }
+                //todo 添加转换判断
                 if (contextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
-                    contextClearIconItem.setVisibility(View.VISIBLE);
+                    contextClearIconItem.setVisibility(isContextClear ? View.VISIBLE: View.GONE);
+                }
+                if (undoContextClearIconItem != null && BuildVars.IS_CHAT_AIR) {
+                    undoContextClearIconItem.setVisibility(!isContextClear ? View.VISIBLE: View.GONE);
                 }
             }
             if (threadMessageId == 0 && !UserObject.isReplyUser(currentUser) || threadMessageObject != null && threadMessageObject.getRepliesCount() < 10) {
@@ -32050,6 +32090,47 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
             cell.setClickable(false);
         }
+    }
+
+    //更新聊天列表自定义接口状态
+    private boolean updateMessageStatus(boolean updateSubtitle) {
+
+        if (BuildVars.IS_CHAT_AIR && lastMessagesCount != messages.size()) {
+            lastMessagesCount = messages.size();
+
+            if (avatarContainer != null && updateSubtitle) {
+                avatarContainer.updateSubtitle(true);
+            }
+
+            changeContextClearShow();
+
+            return true;
+        }
+        return false;
+
+    }
+
+    //改变上下文按钮显示
+    private void changeContextClearShow() {
+        if (messages != null && messages.size() > 0) {
+            MessageObject messageObject = messages.get(0);
+
+            if (messageObject.type == 10 && messageObject.messageOwner.action
+                    instanceof TLRPC.TL_messageActionClearContext) {
+                isContextClear = false;
+            } else {
+                isContextClear = true;
+            }
+
+        } else {
+            isContextClear = true;
+        }
+
+        if (contextClearIconItem != null)
+            contextClearIconItem.setVisibility(isContextClear ? View.VISIBLE: View.GONE);
+        if (undoContextClearIconItem != null)
+            undoContextClearIconItem.setVisibility(!isContextClear ? View.VISIBLE: View.GONE);
+
     }
 
     @Override

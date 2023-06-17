@@ -3524,6 +3524,7 @@
     <string name="Send">Send</string>
     <string name="Call">Call</string>
     <string name="ContextClear">ClearContext</string>
+    <string name="UndoContextClear">UndoClearContext</string>
     <string name="ActionContextClear">Context Clear</string>
     <string name="VideoCall">Video Call</string>
     <string name="Copy">Copy</string>
