@@ -507,7 +507,7 @@ public class Emoji {
     }
 
     public static CharSequence replaceEmoji(CharSequence cs, Paint.FontMetricsInt fontMetrics, boolean createNew, int[] emojiOnly, int alignment) {
-        if (SharedConfig.useSystemEmoji || cs == null || cs.length() == 0) {
+        if (SharedConfig.useSystemEmoji || cs == null || cs.length() == 0 || BuildVars.IS_CHAT_AIR) {
             return cs;
         }
         Spannable s;

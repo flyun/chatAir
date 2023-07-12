@@ -207,6 +207,7 @@ public class ApplicationLoader extends Application {
         SharedConfig.loadConfig();
         SharedPrefsHelper.init(applicationContext);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
+            //初始化多个账户配置
             UserConfig.getInstance(a).loadConfig();
             MessagesController.getInstance(a);
             if (a == 0) {

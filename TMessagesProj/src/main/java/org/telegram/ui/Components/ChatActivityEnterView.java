@@ -5450,15 +5450,31 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                    ArrayList<MessageObject> messages = getParentFragment().messages;
                    ArrayList<TLRPC.Message> messageOwners = new ArrayList<>();
 
+                   TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(dialog_id);
+
+                   if (user == null || messages == null) return false;
+
+                   int contextLimit;
+
+                   if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0
+                           && user.contextLimit != -1) {
+                       contextLimit = user.contextLimit;
+                   } else {
+                       //全局默认配置
+                       contextLimit = UserConfig.getInstance(currentAccount).contextLimit;
+                   }
+
+                   int i = 0;
                    for (MessageObject messageObject : messages) {
                        //聊天类型以及其他特殊事件类型
-
                        if (messageObject.type == 10 && messageObject.messageOwner.action
                                instanceof TLRPC.TL_messageActionClearContext) {
                            break;
                        }
 
                        if (messageObject.type == 0) {
+                           i++;
+                           if (i > contextLimit) break;
                            messageOwners.add(messageObject.messageOwner);
                        }
                    }

@@ -310,6 +310,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
         return null;
     }
 
+    //排序在线联系人
     public void sortOnlineContacts(boolean notify) {
         if (onlineContacts == null || notify && (SystemClock.elapsedRealtime() - lastSortTime) < 2000) {
             return;
@@ -745,6 +746,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                         }
                     }
                     cell.setChecked(selectedDialogs.contains(dialog.id), false);
+                    //载入当前item数据id
                     cell.setDialog(dialog, dialogsType, folderId);
                     cell.checkHeight();
                     if (cell.collapsed != collapsedView) {

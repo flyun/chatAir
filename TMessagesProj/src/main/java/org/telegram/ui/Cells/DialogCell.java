@@ -864,6 +864,7 @@ public class DialogCell extends BaseCell {
             return;
         }
         if (isDialogCell) {
+            //是否需要更新页面
             boolean needUpdate = updateHelper.update();
             if (!needUpdate && currentDialogFolderId == 0 && encryptedChat == null) {
                 return;
@@ -4861,6 +4862,7 @@ public class DialogCell extends BaseCell {
         public int lastTopicsCount;
         public boolean lastDrawnPinned;
         public boolean lastDrawnHasCall;
+        public int lastNameHash;
 
 
         public float typingProgres;
@@ -4870,6 +4872,7 @@ public class DialogCell extends BaseCell {
         long startWaitingTime;
 
 
+        //根据自定义，数据是否变动更新item内容
         public boolean update() {
             TLRPC.Dialog dialog = MessagesController.getInstance(currentAccount).dialogs_dict.get(currentDialogId);
             if (dialog == null) {
@@ -4912,6 +4915,8 @@ public class DialogCell extends BaseCell {
             }
             int draftHash = draftMessage == null ? 0 : draftMessage.message.hashCode() + (draftMessage.reply_to_msg_id << 16);
             boolean hasCall = chat != null && chat.call_active && chat.call_not_empty;
+            int nameHash = (BuildVars.IS_CHAT_AIR
+                    && user != null && !TextUtils.isEmpty(user.first_name)) ? user.first_name.hashCode() : 0;
             if (lastDrawnSizeHash == sizeHash &&
                     lastDrawnMessageId == messageHash &&
                     lastDrawnDialogId == currentDialogId &&
@@ -4921,7 +4926,8 @@ public class DialogCell extends BaseCell {
                     lastTopicsCount == topicCount &&
                     draftHash == lastDrawnDraftHash &&
                     lastDrawnPinned == drawPin &&
-                    lastDrawnHasCall == hasCall) {
+                    lastDrawnHasCall == hasCall &&
+                    lastNameHash == nameHash) {
                 return false;
             }
 
@@ -4956,6 +4962,7 @@ public class DialogCell extends BaseCell {
             lastTopicsCount = topicCount;
             lastDrawnPinned = drawPin;
             lastDrawnHasCall = hasCall;
+            lastNameHash = nameHash;
 
             return true;
         }

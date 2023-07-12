@@ -285,6 +285,7 @@ public class MessagesController extends BaseController implements NotificationCe
     private Theme.OverrideWallpaperInfo uploadingWallpaperInfo;
 
     private boolean loadingAppConfig;
+    //从远程或者本地读取系统配置
     private Fetcher<Integer, TLRPC.TL_help_appConfig> appConfigFetcher = new Fetcher<Integer, TLRPC.TL_help_appConfig>() {
         @Override
         protected void getRemote(int currentAccount, Integer arguments, long hash, Utilities.Callback3<Boolean, TLRPC.TL_help_appConfig, Long> onResult) {
@@ -472,9 +473,9 @@ public class MessagesController extends BaseController implements NotificationCe
     public String premiumBotUsername;
     public String premiumInvoiceSlug;
 
-    private SharedPreferences notificationsPreferences;
-    private SharedPreferences mainPreferences;
-    private SharedPreferences emojiPreferences;
+    private SharedPreferences notificationsPreferences;//通知配置
+    private SharedPreferences mainPreferences;//系统配置
+    private SharedPreferences emojiPreferences;//表情配置
 
     public volatile boolean ignoreSetOnline;
     public boolean premiumLocked;
@@ -876,6 +877,13 @@ public class MessagesController extends BaseController implements NotificationCe
     public static int PROMO_TYPE_PROXY = 0;
     public static int PROMO_TYPE_PSA = 1;
     public static int PROMO_TYPE_OTHER = 2;
+
+    public static int UPDATE_MASK_CHAT_AIR_PROMPT = 1024;
+    public static int UPDATE_MASK_CHAT_AIR_AI_MODEL = 2048;
+    public static int UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE = 4096;
+    public static int UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT = 8192;
+    public static int UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT = 16384;
+    public static int UPDATE_MASK_CHAT_AIR_AI_ALL_PROFILE = UPDATE_MASK_CHAT_AIR_AI_MODEL | UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE | UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT | UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT;
 
     private static class ReadTask {
         public long dialogId;
@@ -3215,6 +3223,7 @@ public class MessagesController extends BaseController implements NotificationCe
         });
     }
 
+    //核心，添加默认超级用户
     public void addSupportUser() {
         TLRPC.TL_userForeign_old2 user = new TLRPC.TL_userForeign_old2();
         user.phone = "333";
@@ -4068,6 +4077,7 @@ public class MessagesController extends BaseController implements NotificationCe
         return putUser(user, fromCache, false);
     }
 
+    //添加用户
     public boolean putUser(TLRPC.User user, boolean fromCache, boolean force) {
         if (user == null) {
             return false;
@@ -4756,8 +4766,9 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
+    //载入用户全部的信息，用于服务器更新用户最新数据
     public void loadFullUser(final TLRPC.User user, int classGuid, boolean force) {
-        if (user == null || loadingFullUsers.contains(user.id) || !force && loadedFullUsers.get(user.id) > 0) {
+        if (BuildVars.IS_CHAT_AIR ||user == null || loadingFullUsers.contains(user.id) || !force && loadedFullUsers.get(user.id) > 0) {
             return;
         }
         loadingFullUsers.add(user.id);
@@ -4767,6 +4778,7 @@ public class MessagesController extends BaseController implements NotificationCe
         if (dialogs_read_inbox_max.get(dialogId) == null || dialogs_read_outbox_max.get(dialogId) == null) {
             reloadDialogsReadValue(null, dialogId);
         }
+        //从服务器获取最新的用户状态数据，进行刷新
         int reqId = getConnectionsManager().sendRequest(req, (response, error) -> {
             if (error == null) {
                 TLRPC.TL_users_userFull res = (TLRPC.TL_users_userFull) response;
@@ -6705,10 +6717,13 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
+    //刷新用户数据
     public void processUserInfo(TLRPC.User user, TLRPC.UserFull info, boolean fromCache, boolean force, int classGuid, ArrayList<Integer> pinnedMessages, HashMap<Integer, MessageObject> pinnedMessagesMap, int totalPinnedCount, boolean pinnedEndReached) {
         AndroidUtilities.runOnUIThread(() -> {
+            //如果来自缓存，则从服务器进行刷新
             if (fromCache) {
                 long lastLoadedTime = loadedFullUsers.get(user.id, 0);
+                //如果最后刷新时间小于60秒，则重新从服务器刷新用户状态
                 if (System.currentTimeMillis() - lastLoadedTime > 60 * 1000) {
                     loadFullUser(user, classGuid, force);
                 }
@@ -7705,7 +7720,8 @@ public class MessagesController extends BaseController implements NotificationCe
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("load messages in chat " + dialogId + " topic_id " + threadMessageId + " count " + count + " max_id " + max_id + " cache " + fromCache + " mindate = " + minDate + " guid " + classGuid + " load_type " + load_type + " last_message_id " + last_message_id + " mode " + mode + " index " + loadIndex + " firstUnread " + first_unread + " unread_count " + unread_count + " last_date " + last_date + " queryFromServer " + queryFromServer + " isTopic " + isTopic);
         }
-        if ((threadMessageId == 0 || isTopic) && mode != 2 && (fromCache || DialogObject.isEncryptedDialog(dialogId))) {
+        //强制从数据库读取，而不从服务器获取更新
+        if (BuildVars.IS_CHAT_AIR ||(threadMessageId == 0 || isTopic) && mode != 2 && (fromCache || DialogObject.isEncryptedDialog(dialogId))) {
             //核心，从数据库读取记录
             getMessagesStorage().getMessages(dialogId, mergeDialogId, loadInfo, count, max_id, offset_date, minDate, classGuid, load_type, mode == 1, threadMessageId, loadIndex, processMessages, isTopic);
         } else {

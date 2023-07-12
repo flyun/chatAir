@@ -22548,6 +22548,11 @@ public class TLRPC {
         public boolean attach_menu_enabled;
         public EmojiStatus emoji_status;
         public ArrayList<TL_username> usernames = new ArrayList<>();
+        public String prompt;
+        public int aiModel;
+        public double temperature;
+        public int contextLimit;
+        public int tokenLimit;
 
         public static User TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             User result = null;
@@ -22783,6 +22788,23 @@ public class TLRPC {
                     usernames.add(object);
                 }
             }
+            if (BuildVars.IS_CHAT_AIR) {
+                if ((flags2 & 1024) != 0) {
+                    prompt = stream.readString(exception);
+                }
+                if ((flags2 & 2048) != 0) {
+                    aiModel = stream.readInt32(exception);
+                }
+                if ((flags2 & 4096) != 0) {
+                    temperature = stream.readDouble(exception);
+                }
+                if ((flags2 & 8192) != 0) {
+                    contextLimit = stream.readInt32(exception);
+                }
+                if ((flags2 & 16384) != 0) {
+                    tokenLimit = stream.readInt32(exception);
+                }
+            }
         }
 
         public void serializeToStream(AbstractSerializedData stream) {
@@ -22858,6 +22880,25 @@ public class TLRPC {
                 stream.writeInt32(count);
                 for (int a = 0; a < count; a++) {
                     usernames.get(a).serializeToStream(stream);
+                }
+            }
+
+            if (BuildVars.IS_CHAT_AIR) {
+                //需要自己手动添加，就不另单独做bool值
+                if ((flags2 & 1024) != 0) {
+                    stream.writeString(prompt);
+                }
+                if ((flags2 & 2048) != 0) {
+                    stream.writeInt32(aiModel);
+                }
+                if ((flags2 & 4096) != 0) {
+                    stream.writeDouble(temperature);
+                }
+                if ((flags2 & 8192) != 0) {
+                    stream.writeInt32(contextLimit);
+                }
+                if ((flags2 & 16384) != 0) {
+                    stream.writeInt32(tokenLimit);
                 }
             }
         }
@@ -47062,6 +47103,7 @@ public class TLRPC {
         }
     }
 
+    //自身的用户信息
     public static abstract class UserFull extends TLObject {
 
         public int flags;

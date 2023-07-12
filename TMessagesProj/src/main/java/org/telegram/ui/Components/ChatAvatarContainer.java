@@ -171,7 +171,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         if (avatarClickable) {
             //头像点击
             avatarImageView.setOnClickListener(v -> {
-                if (!onAvatarClick() && !BuildVars.IS_CHAT_AIR) {
+                if (!onAvatarClick()) {
                     openProfile(true);
                 }
             });
@@ -366,6 +366,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             } else {
                 args.putLong("user_id", user.id);
                 args.putBoolean("reportSpam", parentFragment.hasReportSpam());
+                args.putBoolean("isChatAirUser", BuildVars.IS_CHAT_AIR);
                 if (timeItem != null) {
                     args.putLong("dialog_id", parentFragment.getDialogId());
                 }
@@ -883,6 +884,18 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 long tempTokens = 0;
                 long tempWords = 0;
 
+                int contextLimit;
+                if (user != null && (user.flags2
+                        & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0) {
+                    contextLimit = user.contextLimit;
+                } else {
+                    contextLimit = UserConfig.getInstance(currentAccount).contextLimit;
+                }
+
+                if (!TextUtils.isEmpty(user.prompt)) {
+                    tempWords += user.prompt.length();
+                }
+
                 if (messages != null && !messages.isEmpty()) {
 
                     for (MessageObject message : messages) {
@@ -895,6 +908,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                             }
 
                             if (message.type == 0){
+                                if (tempContextNum >= contextLimit) break;
                                 tempContextNum++;
 
                                 //todo 如果删掉聊天中间的一部分，会造成token不准
@@ -902,8 +916,8 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                                     tempTokens = message.messageOwner.promptTokens + message.messageOwner.completionTokens;
                                 }
 
-                                tempWords = tempWords + message.messageText.length();
-
+                                tempWords = tempWords
+                                        + message.messageText.length();
                             }
                         }
                     }
@@ -930,7 +944,12 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 //                    }
                 }
 
-                newSubtitle = "N:" + tempContextNum + " T:" + tempTokens + " W:" + tempWords;
+                newSubtitle = LocaleController.formatUserStatus(tempContextNum, contextLimit,
+                        tempTokens, tempWords);
+
+                user.status.contextNum = tempContextNum;
+                user.status.tokens = tempTokens;
+                user.status.words = tempWords;
 
             }
             else {

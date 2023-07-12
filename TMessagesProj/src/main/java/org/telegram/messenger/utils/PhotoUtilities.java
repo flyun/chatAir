@@ -151,6 +151,7 @@ public class PhotoUtilities {
         }
     }
 
+    //传入头像风格参数，从网络获取更新的头像，并且写入数据库
     public static void showAvatartConstructorForUpdateUserPhoto(ChatActivity chatActivity, TLRPC.VideoSize emojiMarkup) {
         ImageUpdater imageUpdater = new ImageUpdater(true, ImageUpdater.FOR_TYPE_USER, true);
         imageUpdater.parentFragment = chatActivity;

@@ -2305,6 +2305,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.dialogIsTranslatable);
         getNotificationCenter().addObserver(this, NotificationCenter.messageTranslated);
         getNotificationCenter().addObserver(this, NotificationCenter.messageTranslating);
+        getNotificationCenter().addObserver(this, NotificationCenter.showAlert);
 
         super.onFragmentCreate();
 
@@ -2358,6 +2359,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         boolean loadInfo = false;
         //如果当前聊天不为空，则加载当前聊天记录
         if (currentChat != null) {
+            //载入群聊
             chatInfo = getMessagesController().getChatFull(currentChat.id);
             groupCall = getMessagesController().getGroupCall(currentChat.id, true);
             if (ChatObject.isChannel(currentChat) && !getMessagesController().isChannelAdminsLoaded(currentChat.id)) {
@@ -2374,6 +2376,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             loadInfo = chatInfo == null;
             checkGroupCallJoin(false);
         } else if (currentUser != null) {
+            //载入当前用户
             if (chatMode != MODE_PINNED) {
                 getMessagesController().loadUserInfo(currentUser, true, classGuid, startLoadFromMessageId);
             }
@@ -2658,6 +2661,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogIsTranslatable);
         getNotificationCenter().removeObserver(this, NotificationCenter.messageTranslated);
         getNotificationCenter().removeObserver(this, NotificationCenter.messageTranslating);
+        getNotificationCenter().removeObserver(this, NotificationCenter.showAlert);
         if (currentEncryptedChat != null) {
             getNotificationCenter().removeObserver(this, NotificationCenter.didVerifyMessagesStickers);
         }
@@ -3090,7 +3094,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     updateBottomOverlay();
                     updateTopPanel(true);
                 } else if (id == open_forum) {
-                    TopicsFragment.prepareToSwitchAnimation(ChatActivity.this);
+//                    TopicsFragment.prepareToSwitchAnimation(ChatActivity.this);
 //                    Bundle bundle = new Bundle();
 //                    bundle.putLong("chat_id", -dialog_id);
 //                    presentFragment(new TopicsFragment(bundle));
@@ -3225,6 +3229,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         ActionBarMenu menu = actionBar.createMenu();
 
+        //搜索按钮
         if (!BuildVars.IS_CHAT_AIR && currentEncryptedChat == null && chatMode == 0 && reportType < 0) {
             searchIconItem = menu.addItem(search, R.drawable.ic_ab_search);
             searchIconItem.setContentDescription(LocaleController.getString("Search", R.string.Search));
@@ -3360,7 +3365,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 });
                 muteItemGap = headerItem.lazilyAddColoredGap();
             }
-            if (currentUser != null) {
+            if (currentUser != null && !BuildVars.IS_CHAT_AIR) {
                 headerItem.lazilyAddSubItem(call, R.drawable.msg_callback, LocaleController.getString("Call", R.string.Call));
                 if (Build.VERSION.SDK_INT >= 18) {
                     headerItem.lazilyAddSubItem(video_call, R.drawable.msg_videocall, LocaleController.getString("VideoCall", R.string.VideoCall));
@@ -7588,7 +7593,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         if (currentEncryptedChat == null) {
             if (!BuildVars.IS_CHAT_AIR) actionModeViews.add(actionMode.addItemWithWidth(save_to, R.drawable.msg_download, AndroidUtilities.dp(54), LocaleController.getString("SaveToMusic", R.string.SaveToMusic)));
-            actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.msg_edit, AndroidUtilities.dp(54), LocaleController.getString("Edit", R.string.Edit)));
+            if (!BuildVars.IS_CHAT_AIR) actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.msg_edit, AndroidUtilities.dp(54), LocaleController.getString("Edit", R.string.Edit)));
             actionModeViews.add(actionMode.addItemWithWidth(star, R.drawable.msg_fave, AndroidUtilities.dp(54), LocaleController.getString("AddToFavorites", R.string.AddToFavorites)));
             actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.msg_copy, AndroidUtilities.dp(54), LocaleController.getString("Copy", R.string.Copy)));
             if (!BuildVars.IS_CHAT_AIR) actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, AndroidUtilities.dp(54), LocaleController.getString("Forward", R.string.Forward)));
@@ -7600,7 +7605,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.msg_copy, AndroidUtilities.dp(54), LocaleController.getString("Copy", R.string.Copy)));
             actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, AndroidUtilities.dp(54), LocaleController.getString("Delete", R.string.Delete)));
         }
-        actionMode.getItem(edit).setVisibility(canEditMessagesCount == 1 && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() == 1 ? View.VISIBLE : View.GONE);
+        if (!BuildVars.IS_CHAT_AIR) actionMode.getItem(edit).setVisibility(canEditMessagesCount == 1 && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() == 1 ? View.VISIBLE : View.GONE);
         actionMode.getItem(copy).setVisibility(!getMessagesController().isChatNoForwards(currentChat) && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
         if (BuildVars.IS_CHAT_AIR) actionMode.getItem(share).setVisibility(!getMessagesController().isChatNoForwards(currentChat) && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
         actionMode.getItem(star).setVisibility(selectedMessagesCanStarIds[0].size() + selectedMessagesCanStarIds[1].size() != 0 ? View.VISIBLE : View.GONE);
@@ -14857,7 +14862,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 avatarContainer.setTitle(LocaleController.getString("SavedMessages", R.string.SavedMessages));
             } else if (!MessagesController.isSupportUser(currentUser) && getContactsController().contactsDict.get(currentUser.id) == null && (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
                 //普通用户
-                if (!TextUtils.isEmpty(currentUser.phone)) {
+                if (!TextUtils.isEmpty(currentUser.phone) && !BuildVars.IS_CHAT_AIR) {
                     //拥有电话
                     avatarContainer.setTitle(PhoneFormat.getInstance().format("+" + currentUser.phone), currentUser.scam, currentUser.fake, currentUser.verified, getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
                 } else {
@@ -18668,6 +18673,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             updateTopPanel(true);
             updateTranslateItemVisibility();
+        } else if (id == NotificationCenter.showAlert) {
+            int type = (int) args[0];
+            switch (type) {
+                case AlertsCreator.TYPE_ALERT_ERROR:
+                    AlertsCreator.processError((String) args[1], this);
+                    break;
+            }
         }
     }
 
@@ -23302,6 +23314,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (finalSelectedObject == null && (selectedMessagesIds[0].size() + selectedMessagesIds[1].size()) == 0) {
             return;
         }
+        //todo 在聊天记录中穿插删除后会出现多个context clear相连的情况，这里对selectedMessagesIds[index]重新计算，添加需要删除的聊天
         AlertsCreator.createDeleteMessagesAlert(this, currentUser, currentChat, currentEncryptedChat, chatInfo, mergeDialogId, finalSelectedObject, selectedMessagesIds, finalSelectedGroup, chatMode == MODE_SCHEDULED, loadParticipant, () -> {
             hideActionMode();
             updatePinnedMessageView(true);

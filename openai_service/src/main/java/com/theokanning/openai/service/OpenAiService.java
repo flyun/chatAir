@@ -54,6 +54,7 @@ import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.HttpException;
 import retrofit2.Retrofit;
@@ -456,8 +457,15 @@ public class OpenAiService {
     }
 
     public static OkHttpClient defaultClient(String token, long second) {
+
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(s -> {
+//            Log.i("test",s);
+        });
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
         return new OkHttpClient.Builder()
                 .addInterceptor(new AuthenticationInterceptor(token))
+                .addInterceptor(loggingInterceptor)
                 .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
                 .readTimeout(second * 1000, TimeUnit.MILLISECONDS)
                 .build();

@@ -106,6 +106,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.tgnet.AiModelBean;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
@@ -135,6 +136,7 @@ import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextDetailCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
+import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Cells.UserCell;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
@@ -200,9 +202,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -335,6 +339,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private boolean needSendMessage;
     private boolean hasVoiceChatItem;
     private boolean isTopic;
+    private boolean isChatAirUser;
 
     private boolean scrolling;
 
@@ -513,6 +518,29 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int unblockRow;
     private int joinRow;
     private int lastSectionRow;
+
+    private int titleHeaderRow;
+    private int titleUsernameRow;
+    private int titleSectionRow;
+
+    private int promptHeaderRow;
+    private int promptRow;
+    private int promptRowSectionRow;
+
+    private int aiParametersHeaderRow;
+    private int aiModelRow;
+    private int aiModelTipsRow;
+    private int temperatureRow;
+    private int temperatureTipsRow;
+    private int contextRow;
+    private int contextTipsRow;
+    private int tokenLimitRow;
+    private int tokenLimitTipsRow;
+    private int aiParametersSectionRow;
+
+    private int defaultHeaderRow;
+    private int defaultRow;
+    private int defaultSectionRow;
 
     private int transitionIndex;
     private final ArrayList<TLRPC.ChatParticipant> visibleChatParticipants = new ArrayList<>();
@@ -1489,6 +1517,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         vcardFirstName = arguments.getString("vcard_first_name");
         vcardLastName = arguments.getString("vcard_last_name");
         reportSpam = arguments.getBoolean("reportSpam", false);
+        isChatAirUser = arguments.getBoolean("isChatAirUser", false);
         if (!expandPhoto) {
             expandPhoto = arguments.getBoolean("expandPhoto", false);
             if (expandPhoto) {
@@ -1522,6 +1551,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 getMediaDataController().loadBotInfo(user.id, user.id, true, classGuid);
             }
             userInfo = getMessagesController().getUserFull(userId);
+            //每次打开用户界面就刷新用户最新状态
             getMessagesController().loadFullUser(getMessagesController().getUser(userId), classGuid, true);
             participantsMap = null;
 
@@ -2248,6 +2278,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             did = -chatId;
         }
 
+        //主页面为可以监测滚动通知的页面
         fragmentView = new NestedFrameLayout(context) {
 
             @Override
@@ -3311,6 +3342,289 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 onWriteButtonClick();
             } else if (position == premiumRow) {
                 presentFragment(new PremiumPreviewFragment("settings"));
+            } else if (position == titleUsernameRow) {
+                TLRPC.User user = getMessagesController().getUser(userId);
+                if (user != null) {
+                    Bundle args = new Bundle();
+                    args.putLong("user_id", user.id);
+                    ChangeChatNameActivity fragment = new ChangeChatNameActivity(args);
+                    presentFragment(fragment);
+                }
+            } else if (position == promptRow) {
+                TLRPC.User user = getMessagesController().getUser(userId);
+                if (user != null) {
+                    Bundle args = new Bundle();
+                    args.putLong("user_id", user.id);
+                    ChangePromptActivity fragment = new ChangePromptActivity(args);
+                    presentFragment(fragment);
+                }
+            } else if (position == aiModelRow) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle(LocaleController.getString("AiModelTitle", R.string.AiModelTitle));
+
+                LinkedHashMap<Integer, AiModelBean> aiModelList
+                        = UserConfig.getInstance(currentAccount).aiModelList;
+                if (aiModelList != null && !aiModelList.isEmpty()) {
+
+                    ArrayList<Integer> list = new ArrayList<>();
+                    CharSequence[] charSequences = new CharSequence[aiModelList.size()];
+
+                    int i = 0;
+                    for (Map.Entry<Integer, AiModelBean> entry : aiModelList.entrySet()){
+                        list.add(entry.getKey());
+                        charSequences[i] = entry.getValue().name;
+                        i++;
+                    }
+
+                    //todo 通过listModels接口检测是否具有模型能力
+
+                    builder.setItems(charSequences, (dialog, which) -> {
+                        TLRPC.User user = getMessagesController().getUser(userId);
+                        user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL;
+                        user.aiModel = list.get(which);
+                        setAIConfig(user);
+
+                        ArrayList<TLRPC.User> userArrayList = new ArrayList<>();
+                        userArrayList.add(user);
+
+                        getMessagesStorage().updateUsers(userArrayList, false, true, true, true);
+
+                        listAdapter.notifyItemChanged(position);
+                        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
+                    });
+                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                    showDialog(builder.create());
+                }
+            } else if (position == temperatureRow) {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle(LocaleController.getString("TemperatureTitle", R.string.TemperatureTitle));
+
+                builder.setItems(new CharSequence[]{
+                        "0.0" + " ("+ LocaleController.getString("TemperatureLowValue", R.string.TemperatureLowValue)+")",
+                        "0.1",
+                        "0.2",
+                        "0.3",
+                        "0.4",
+                        "0.5",
+                        "0.6",
+                        "0.7" + " ("+ LocaleController.getString("Default", R.string.Default)+")",
+                        "0.8",
+                        "0.9",
+                        "1.0",
+                        "1.1",
+                        "1.2",
+                        "1.3",
+                        "1.4",
+                        "1.5",
+                        "1.6",
+                        "1.7",
+                        "1.8",
+                        "1.9",
+                        "2.0" + " ("+ LocaleController.getString("TemperatureHighValue", R.string.TemperatureHighValue)+")"
+                }, (dialog, which) -> {
+                    double type = 0;
+                    if (which == 0) {
+                        type = 0;
+                    } else if (which == 1) {
+                        type = 0.1;
+                    } else if (which == 2) {
+                        type = 0.2;
+                    } else if (which == 3) {
+                        type = 0.3;
+                    } else if (which == 4) {
+                        type = 0.4;
+                    } else if (which == 5) {
+                        type = 0.5;
+                    } else if (which == 6) {
+                        type = 0.6;
+                    } else if (which == 7) {
+                        type = 0.7;
+                    } else if (which == 8) {
+                        type = 0.8;
+                    } else if (which == 9) {
+                        type = 0.9;
+                    } else if (which == 10) {
+                        type = 1.0;
+                    } else if (which == 11) {
+                        type = 1.1;
+                    } else if (which == 12) {
+                        type = 1.2;
+                    } else if (which == 13) {
+                        type = 1.3;
+                    } else if (which == 14) {
+                        type = 1.4;
+                    } else if (which == 15) {
+                        type = 1.5;
+                    } else if (which == 16) {
+                        type = 1.6;
+                    } else if (which == 17) {
+                        type = 1.7;
+                    } else if (which == 18) {
+                        type = 1.8;
+                    } else if (which == 19) {
+                        type = 1.9;
+                    } else if (which == 20) {
+                        type = 2.0;
+                    }
+
+                    TLRPC.User user = getMessagesController().getUser(userId);
+                    user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE;
+                    user.temperature = type;
+                    setAIConfig(user);
+
+                    ArrayList<TLRPC.User> userArrayList = new ArrayList<>();
+                    userArrayList.add(user);
+
+                    getMessagesStorage().updateUsers(userArrayList, false, true, true, true);
+
+                    listAdapter.notifyItemChanged(position);
+                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
+                });
+                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                showDialog(builder.create());
+
+            } else if (position == contextRow) {
+
+                //todo 优化：通过操作messageList插入删除contextClear来加入提示，注意删除、发送，检查列表的情况
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle(LocaleController.getString("ContextTitle", R.string.ContextTitle));
+
+                builder.setItems(new CharSequence[]{
+                        "0",
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9",
+                        "10",
+                        "11",
+                        "12",
+                        "13",
+                        "14",
+                        "15",
+                        "16",
+                        "17",
+                        "18",
+                        "19",
+                        "20",
+                        "30",
+                        "40"
+                }, (dialog, which) -> {
+                    int type = which;
+                    if (which == 21) {
+                        type = 30;
+                    } else if (which == 22) {
+                        type = 40;
+                    }
+
+                    TLRPC.User user = getMessagesController().getUser(userId);
+                    user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT;
+                    user.contextLimit = type;
+                    setAIConfig(user);
+
+                    ArrayList<TLRPC.User> userArrayList = new ArrayList<>();
+                    userArrayList.add(user);
+
+                    getMessagesStorage().updateUsers(userArrayList, false, true, true, true);
+
+                    listAdapter.notifyItemChanged(position);
+                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
+                });
+                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                showDialog(builder.create());
+
+            } else if (position == tokenLimitRow) {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle(LocaleController.getString("TokenLimitTitle", R.string.TokenLimitTitle));
+
+                builder.setItems(new CharSequence[]{
+                        LocaleController.getString("RepeatDisabled", R.string.RepeatDisabled),
+                        "256 " + LocaleController.getString("TokenText", R.string.TokenText),
+                        "512 " + LocaleController.getString("TokenText", R.string.TokenText),
+                        "1024 " + LocaleController.getString("TokenText", R.string.TokenText),
+                        "2048 " + LocaleController.getString("TokenText", R.string.TokenText),
+                        "4096 " + LocaleController.getString("TokenText", R.string.TokenText)
+                }, (dialog, which) -> {
+                    int type = 0;
+                    if (which == 0) {
+                        type = -100;
+                    } else if (which == 1) {
+                        type = 256;
+                    } else if (which == 2) {
+                        type = 512;
+                    } else if (which == 3) {
+                        type = 1024;
+                    } else if (which == 4) {
+                        type = 2048;
+                    } else if (which == 5) {
+                        type = 4096;
+                    }
+
+                    TLRPC.User user = getMessagesController().getUser(userId);
+                    user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT;
+                    user.tokenLimit = type;
+                    setAIConfig(user);
+
+                    ArrayList<TLRPC.User> userArrayList = new ArrayList<>();
+                    userArrayList.add(user);
+
+                    getMessagesStorage().updateUsers(userArrayList, false, true, true, true);
+
+                    listAdapter.notifyItemChanged(position);
+                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
+                });
+                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                showDialog(builder.create());
+
+            } else if (position == defaultRow) {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle(LocaleController.getString("ResetAiParameters", R.string.ResetAiParameters));
+                builder.setMessage(LocaleController.getString("ResetAiParametersTips", R.string.ResetAiParametersTips));
+                builder.setPositiveButton(LocaleController.getString("Reset", R.string.Reset), (dialogInterface, i) -> {
+
+                    TLRPC.User user = getMessagesController().getUser(userId);
+                    //更新数据库
+                    TLRPC.User updateUser = new TLRPC.TL_user();
+                    updateUser.id = userId;
+                    updateUser.flags2 = MessagesController.UPDATE_MASK_CHAT_AIR_AI_ALL_PROFILE;
+                    updateUser.aiModel = -1;
+                    updateUser.temperature = -1;
+                    updateUser.contextLimit = -1;
+                    updateUser.tokenLimit = -1;
+
+                    ArrayList<TLRPC.User> userArrayList = new ArrayList<>();
+                    userArrayList.add(updateUser);
+                    getMessagesStorage().updateUsers(userArrayList, false, true, true, true);
+
+                    //更新内存
+                    //只有更新数据库需要判断哪个参数更新，需要flag。如果这个参数为默认状态，则默认的flag需要去除
+                    user.flags2 = user.flags2 &~ MessagesController.UPDATE_MASK_CHAT_AIR_AI_ALL_PROFILE;
+
+                    listAdapter.notifyItemChanged(aiModelRow);
+                    listAdapter.notifyItemChanged(temperatureRow);
+                    listAdapter.notifyItemChanged(contextRow);
+                    listAdapter.notifyItemChanged(tokenLimitRow);
+
+                    if (getParentActivity() != null) {
+                        Toast toast = Toast.makeText(getParentActivity(), LocaleController.getString("ResetAiParametersText", R.string.ResetAiParametersText), Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
+                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
+                });
+                builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                AlertDialog alertDialog = builder.create();
+                showDialog(alertDialog);
+                TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                if (button != null) {
+                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed));
+                }
             } else {
                 processOnClickOrPress(position, view, x, y);
             }
@@ -4081,7 +4395,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         avatarContainer2.addView(mediaCounterTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 118, 0, 8, 0));
         updateProfileData(true);
 
+        //聊天按钮
         writeButton = new RLottieImageView(context);
+        if (isChatAirUser) writeButton.setVisibility(View.GONE);
 
         Drawable shadowDrawable = context.getResources().getDrawable(R.drawable.floating_shadow_profile).mutate();
         shadowDrawable.setColorFilter(new PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY));
@@ -4265,6 +4581,26 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         contentView.blurBehindViews.add(sharedMediaLayout);
         updateTtlIcon();
         return fragmentView;
+    }
+
+    //只要修改过其中一个参数，则将默认参数写入到个人配置中
+    private void setAIConfig(TLRPC.User user) {
+        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL) == 0 ) {
+            user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL;
+            user.aiModel = UserConfig.getInstance(currentAccount).aiModel;
+        }
+        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE) == 0 ) {
+            user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE;
+            user.temperature = UserConfig.getInstance(currentAccount).temperature;
+        }
+        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) == 0 ) {
+            user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT;
+            user.contextLimit = UserConfig.getInstance(currentAccount).contextLimit;
+        }
+        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT) == 0 ) {
+            user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT;
+            user.tokenLimit = UserConfig.getInstance(currentAccount).tokenLimit;
+        }
     }
 
     private void setAvatarExpandProgress(float animatedFracture) {
@@ -5485,6 +5821,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         presentFragment(fragment);
     }
 
+    //检测列表滚动
     private void checkListViewScroll() {
         if (listView.getVisibility() != View.VISIBLE) {
             return;
@@ -5565,6 +5902,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    //更改页面样式
     private void needLayout(boolean animated) {
         final int newTop = (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + ActionBar.getCurrentActionBarHeight();
 
@@ -6084,7 +6422,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     public void didReceivedNotification(int id, int account, final Object... args) {
         if (id == NotificationCenter.updateInterfaces) {
             int mask = (Integer) args[0];
-            boolean infoChanged = (mask & MessagesController.UPDATE_MASK_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_NAME) != 0 || (mask & MessagesController.UPDATE_MASK_STATUS) != 0 || (mask & MessagesController.UPDATE_MASK_EMOJI_STATUS) != 0;
+            boolean infoChanged = (mask & MessagesController.UPDATE_MASK_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_NAME) != 0 || (mask & MessagesController.UPDATE_MASK_STATUS) != 0 || (mask & MessagesController.UPDATE_MASK_EMOJI_STATUS) != 0 || (BuildVars.IS_CHAT_AIR && (mask & MessagesController.UPDATE_MASK_USER_PRINT) != 0);
             if (userId != 0) {
                 if (infoChanged) {
                     updateProfileData(true);
@@ -6835,6 +7173,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void updateOnlineCount(boolean notify) {
+        if (true) return;
         onlineCount = 0;
         int currentTime = getConnectionsManager().getCurrentTime();
         sortedUsers.clear();
@@ -6970,6 +7309,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return chatId != 0;
     }
 
+    //核心，更新设置列表内容
     private void updateRowsIds() {
         int prevRowsCount = rowCount;
         rowCount = 0;
@@ -7043,6 +7383,29 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         membersSectionRow = -1;
         sharedMediaRow = -1;
         notificationsSimpleRow = -1;
+
+        titleHeaderRow = -1;
+        titleUsernameRow = -1;
+        titleSectionRow = -1;
+
+        promptHeaderRow = -1;
+        promptRow = -1;
+        promptRowSectionRow = -1;
+
+        aiParametersHeaderRow = -1;
+        aiModelRow = -1;
+        aiModelTipsRow = -1;
+        temperatureRow = -1;
+        temperatureTipsRow = -1;
+        contextRow = -1;
+        contextTipsRow = -1;
+        tokenLimitRow = -1;
+        tokenLimitTipsRow = -1;
+        aiParametersSectionRow = -1;
+
+        defaultRow = -1;
+        defaultHeaderRow = -1;
+        defaultSectionRow = -1;
 
         unblockRow = -1;
         joinRow = -1;
@@ -7123,6 +7486,32 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     switchBackendRow = rowCount++;
                 }
                 versionRow = rowCount++;
+            } else if (isChatAirUser) {
+
+                titleHeaderRow = rowCount++;
+                titleUsernameRow = rowCount++;
+                titleSectionRow = rowCount++;
+
+                promptHeaderRow = rowCount++;
+                promptRow = rowCount++;
+                promptRowSectionRow = rowCount++;
+
+                aiParametersHeaderRow = rowCount++;
+                aiModelRow = rowCount++;
+                aiModelTipsRow = rowCount++;
+                temperatureRow = rowCount++;
+                temperatureTipsRow = rowCount++;
+                contextRow = rowCount++;
+                contextTipsRow = rowCount++;
+                tokenLimitRow = rowCount++;
+                tokenLimitTipsRow = rowCount++;
+//                aiParametersSectionRow = rowCount++;
+
+                defaultHeaderRow = rowCount++;
+                defaultRow = rowCount++;
+                defaultSectionRow = rowCount++;
+//                lastSectionRow = rowCount++;
+
             } else {
                 String username = UserObject.getPublicUsername(user);
                 boolean hasInfo = userInfo != null && !TextUtils.isEmpty(userInfo.about) || user != null && !TextUtils.isEmpty(username);
@@ -7411,6 +7800,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         );
     }
 
+    //更新个人信息
     private void updateProfileData(boolean reload) {
         if (avatarContainer == null || nameTextView == null || getParentActivity() == null) {
             return;
@@ -7502,7 +7892,18 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 newString2 = LocaleController.getString("Bot", R.string.Bot);
             } else {
                 isOnline[0] = false;
-                newString2 = LocaleController.formatUserStatus(currentAccount, user, isOnline, shortStatus ? new boolean[1] : null);
+                if (BuildVars.IS_CHAT_AIR) {
+                    int contextLimit;
+                    if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0) {
+                        contextLimit = user.contextLimit;
+                    } else {
+                        contextLimit = UserConfig.getInstance(currentAccount).contextLimit;
+                    }
+                    newString2 = LocaleController.formatUserStatus(user.status.contextNum, contextLimit,
+                            user.status.tokens, user.status.words);
+                } else {
+                    newString2 = LocaleController.formatUserStatus(currentAccount, user, isOnline, shortStatus ? new boolean[1] : null);
+                }
                 if (onlineTextView[1] != null && !mediaHeaderVisible) {
                     String key = isOnline[0] ? Theme.key_profile_status : Theme.key_avatar_subtitleInProfileBlue;
                     onlineTextView[1].setTag(key);
@@ -7520,7 +7921,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (nameTextView[a] == null) {
                     continue;
                 }
-                if (a == 0 && user.id != getUserConfig().getClientUserId() && user.id / 1000 != 777 && user.id / 1000 != 333 && user.phone != null && user.phone.length() != 0 && getContactsController().contactsDict.get(user.id) == null &&
+                if (!BuildVars.IS_CHAT_AIR && a == 0 && user.id != getUserConfig().getClientUserId() && user.id / 1000 != 777 && user.id / 1000 != 333 && user.phone != null && user.phone.length() != 0 && getContactsController().contactsDict.get(user.id) == null &&
                         (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
                     String phoneString = PhoneFormat.getInstance().format("+" + user.phone);
                     nameTextView[a].setText(phoneString);
@@ -8062,6 +8463,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             otherItem.hideSubItem(edit_avatar);
             otherItem.hideSubItem(delete_avatar);
         }
+
+        if (isChatAirUser) {
+            mediaHeaderVisible = false;
+            callItemVisible = false;
+            videoCallItemVisible = false;
+            editItemVisible = false;
+            otherItem.setVisibility(View.GONE);
+        }
+
         if (!mediaHeaderVisible) {
             if (callItemVisible) {
                 if (callItem.getVisibility() != View.VISIBLE) {
@@ -8769,7 +9179,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 VIEW_TYPE_ADDTOGROUP_INFO = 17,
                 VIEW_TYPE_PREMIUM_TEXT_CELL = 18,
                 VIEW_TYPE_TEXT_DETAIL_MULTILINE = 19,
-                VIEW_TYPE_NOTIFICATIONS_CHECK_SIMPLE = 20;
+                VIEW_TYPE_NOTIFICATIONS_CHECK_SIMPLE = 20,
+                VIEW_TYPE_DETAIL_TIPS = 31,
+                VIEW_TYPE_SELECT = 32;
 
         private Context mContext;
 
@@ -8812,6 +9224,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 case VIEW_TYPE_TEXT: {
                     view = new TextCell(mContext, resourcesProvider);
+                    break;
+                }
+                case VIEW_TYPE_SELECT: {
+                    view = new TextSettingsCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 }
                 case VIEW_TYPE_DIVIDER: {
@@ -8889,6 +9306,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     view = sharedMediaLayout;
                     break;
                 }
+                case VIEW_TYPE_DETAIL_TIPS:
                 case VIEW_TYPE_ADDTOGROUP_INFO: {
                     view = new TextInfoPrivacyCell(mContext, resourcesProvider);
                     break;
@@ -8993,6 +9411,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         headerCell.setText(LocaleController.getString("SettingsHelp", R.string.SettingsHelp));
                     } else if (position == debugHeaderRow) {
                         headerCell.setText(LocaleController.getString("SettingsDebug", R.string.SettingsDebug));
+                    } else if (position == titleHeaderRow) {
+                        headerCell.setText(LocaleController.getString("TitleHeaderSetting", R.string.TitleHeaderSetting));
+                    } else if (position == promptHeaderRow) {
+                        headerCell.setText(LocaleController.getString("PromptHeader", R.string.PromptHeader));
+                    } else if (position == aiParametersHeaderRow) {
+                        headerCell.setText(LocaleController.getString("AiParametersHeader", R.string.AiParametersHeader));
+                    } else if (position == defaultHeaderRow) {
+                        headerCell.setText(LocaleController.getString("Reset", R.string.Reset));
                     }
                     break;
                 case VIEW_TYPE_TEXT_DETAIL_MULTILINE:
@@ -9115,6 +9541,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         }
                         detailCell.setTextAndValue(text, value, true);
                         detailCell.setContentDescriptionValueFirst(true);
+                    } else if (position == titleUsernameRow) {
+                        TLRPC.User user = getMessagesController().getUser(userId);
+                        String value;
+                        if (user != null && user.first_name != null && user.first_name.length() != 0) {
+                            value = user.first_name;
+                        } else {
+                            value = LocaleController.getString("NumberUnknown", R.string.NumberUnknown);
+                        }
+                        detailCell.setTextAndValue(value, LocaleController.getString("ChatUsernameTips", R.string.ChatUsernameTips), true);
+                        detailCell.setContentDescriptionValueFirst(true);
+                    } else if (position == defaultRow) {
+                        detailCell.setTextAndValue(LocaleController.getString("ResetAiParameters", R.string.ResetAiParameters),
+                                LocaleController.getString("ResetAiParametersTips", R.string.ResetAiParametersTips),
+                                 false);
+                        detailCell.setContentDescriptionValueFirst(true);
                     }
                     detailCell.setTag(position);
                     break;
@@ -9141,7 +9582,110 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             currentBio = null;
                         }
                         aboutLinkCell.setMoreButtonDisabled(true);
+                    } else if (position == promptRow) {
+                        TLRPC.User user = getMessagesController().getUser(userId);
+                        String value;
+
+                        if (user != null && (user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT) != 0) {
+                            if (!TextUtils.isEmpty(user.prompt)) {
+                                value = user.prompt;
+                            } else {
+                                value = LocaleController.getString("PromptUnknown", R.string.PromptUnknown);
+                            }
+                        } else {
+                            //全局默认的情况
+                            value = LocaleController.getString("PromptUnknown", R.string.PromptUnknown);
+                        }
+
+                        aboutLinkCell.setTextAndValue(value, LocaleController.getString("ChangePrompt", R.string.ChangePrompt), false);
+                        aboutLinkCell.setMoreButtonDisabled(true);
+
                     }
+                    break;
+                case VIEW_TYPE_DETAIL_TIPS:
+                    TextInfoPrivacyCell textInfoPrivacyCell = (TextInfoPrivacyCell) holder.itemView;
+                    textInfoPrivacyCell.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, getThemedColor(Theme.key_windowBackgroundGrayShadow)));
+                    String tips;
+                    if (position == promptRowSectionRow) {
+                        tips = LocaleController.getString("PromptTips", R.string.PromptTips);
+                    } else if (position == aiModelTipsRow) {
+                        tips = LocaleController.getString("AiModelTips", R.string.AiModelTips);
+                    } else if (position == contextTipsRow) {
+                        tips = LocaleController.getString("ContextTips", R.string.ContextTips);
+                    } else if (position == temperatureTipsRow) {
+                        tips = LocaleController.getString("TemperatureTips", R.string.TemperatureTips);
+                    } else if (position == tokenLimitTipsRow) {
+                        tips = LocaleController.getString("TokenLimitTips", R.string.TokenLimitTips);
+                    } else {
+                        tips = "";
+                    }
+                    textInfoPrivacyCell.setText(tips);
+                    break;
+                case VIEW_TYPE_SELECT:
+                    TextSettingsCell textSettingsCell = (TextSettingsCell) holder.itemView;
+                    String selectText;
+                    String selectValue;
+
+                    if (position == aiModelRow) {
+                        selectText = LocaleController.getString("AiModelTitle", R.string.AiModelTitle);
+
+                        TLRPC.User user = getMessagesController().getUser(userId);
+                        int aiModel;
+
+                        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL) != 0) {
+                            //用户已经自定义
+                            aiModel = user.aiModel;
+                        } else {
+                            //使用默认
+                            aiModel = UserConfig.getInstance(currentAccount).aiModel;
+                        }
+
+                        LinkedHashMap<Integer, AiModelBean> aiModelList
+                                = UserConfig.getInstance(currentAccount).aiModelList;
+                        if (aiModelList != null && aiModelList.containsKey(aiModel)) {
+                            selectValue = aiModelList.get(aiModel).name;
+                        } else {
+                            selectValue = "";
+                        }
+
+                    } else if (position == temperatureRow){
+                        selectText = LocaleController.getString("TemperatureTitle", R.string.TemperatureTitle);
+                        TLRPC.User user = getMessagesController().getUser(userId);
+                        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE) != 0) {
+                            selectValue = Double.toString(user.temperature);
+                        } else {
+                            selectValue = Double.toString(UserConfig.getInstance(currentAccount).temperature);
+                        }
+                    } else if (position == contextRow){
+                        selectText = LocaleController.getString("ContextTitle", R.string.ContextTitle);
+                        TLRPC.User user = getMessagesController().getUser(userId);
+                        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0) {
+                            selectValue = Integer.toString(user.contextLimit);
+                        } else {
+                            selectValue = Integer.toString(UserConfig.getInstance(currentAccount).contextLimit);
+                        }
+                    } else if (position == tokenLimitRow){
+                        selectText = LocaleController.getString("TokenLimitTitle", R.string.TokenLimitTitle);
+                        TLRPC.User user = getMessagesController().getUser(userId);
+                        int tokenLimit;
+                        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT) != 0) {
+                            tokenLimit = user.tokenLimit;
+                        } else {
+                            tokenLimit = UserConfig.getInstance(currentAccount).tokenLimit;
+                        }
+                        if (tokenLimit != -100) {
+                            selectValue = Integer.toString(tokenLimit);
+                        } else {
+                            selectValue = LocaleController.getString("RepeatDisabled", R.string.RepeatDisabled);
+                        }
+
+                    } else {
+                        selectText = "";
+                        selectValue = "";
+                    }
+
+                    textSettingsCell.setTextAndValue(selectText, selectValue, false, false);
+
                     break;
                 case VIEW_TYPE_PREMIUM_TEXT_CELL:
                 case VIEW_TYPE_TEXT:
@@ -9501,13 +10045,29 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         @Override
         public int getItemViewType(int position) {
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
-                    position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow) {
+                    position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow ||
+                    position == titleHeaderRow || position == promptHeaderRow || position == aiParametersHeaderRow ||
+                    position == defaultHeaderRow
+            ) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow) {
+            } else if (position == phoneRow || position == locationRow || position == numberRow ||
+                    position == titleUsernameRow || position == defaultRow
+            ) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
-            } else if (position == userInfoRow || position == channelInfoRow || position == bioRow) {
+            } else if (position == promptRowSectionRow || position == aiModelTipsRow ||
+                    position == temperatureTipsRow || position == contextTipsRow ||
+                    position == tokenLimitTipsRow
+            ) {
+                return VIEW_TYPE_DETAIL_TIPS;
+            } else if (position == aiModelRow || position == temperatureRow ||
+                    position == contextRow || position == tokenLimitRow
+            ) {
+                return VIEW_TYPE_SELECT;
+            } else if (position == userInfoRow || position == channelInfoRow || position == bioRow ||
+                    position == promptRow
+            ) {
                 return VIEW_TYPE_ABOUT_LINK;
             } else if (position == settingsTimerRow || position == settingsKeyRow || position == reportRow || position == reportReactionRow ||
                     position == subscribersRow || position == subscribersRequestsRow || position == administratorsRow || position == blockedUsersRow ||
@@ -9528,7 +10088,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }else if (position == infoSectionRow || position == lastSectionRow || position == membersSectionRow ||
                     position == secretSettingsSectionRow || position == settingsSectionRow || position == devicesSectionRow ||
                     position == helpSectionCell || position == setAvatarSectionRow || position == passwordSuggestionSectionRow ||
-                    position == phoneSuggestionSectionRow || position == premiumSectionsRow || position == reportDividerRow) {
+                    position == phoneSuggestionSectionRow || position == premiumSectionsRow || position == reportDividerRow ||
+                    position == titleSectionRow || position == aiParametersSectionRow ||
+                    position == defaultSectionRow
+            ) {
                 return VIEW_TYPE_SHADOW;
             } else if (position >= membersStartRow && position < membersEndRow) {
                 return VIEW_TYPE_USER;
@@ -10413,6 +10976,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         arrayList.add(new ThemeDescription(searchListView, 0, new Class[]{SettingsSearchCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
         arrayList.add(new ThemeDescription(searchListView, 0, new Class[]{SettingsSearchCell.class}, new String[]{"imageView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayIcon));
 
+        arrayList.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        arrayList.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        arrayList.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
+
         if (mediaHeaderVisible) {
             arrayList.add(new ThemeDescription(nameTextView[1], 0, null, null, new Drawable[]{verifiedCheckDrawable}, null, Theme.key_player_actionBarTitle));
             arrayList.add(new ThemeDescription(nameTextView[1], 0, null, null, new Drawable[]{verifiedDrawable}, null, Theme.key_windowBackgroundWhite));
@@ -10492,6 +11059,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         layoutManager.scrollToPositionWithOffset(sharedMediaRow, -listView.getPaddingTop());
     }
 
+    //展示二维码
     private void onTextDetailCellImageClicked(View view) {
         View parent = (View) view.getParent();
         if (parent.getTag() != null && ((int) parent.getTag()) == usernameRow) {
@@ -10642,7 +11210,27 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, addToGroupInfoRow, sparseIntArray);
             put(++pointer, joinRow, sparseIntArray);
             put(++pointer, lastSectionRow, sparseIntArray);
-            put(++pointer, notificationsSimpleRow, sparseIntArray);
+
+
+            put(++pointer, titleHeaderRow, sparseIntArray);
+            put(++pointer, titleUsernameRow, sparseIntArray);
+            put(++pointer, titleSectionRow, sparseIntArray);
+            put(++pointer, promptHeaderRow, sparseIntArray);
+            put(++pointer, promptRow, sparseIntArray);
+            put(++pointer, promptRowSectionRow, sparseIntArray);
+            put(++pointer, aiParametersHeaderRow, sparseIntArray);
+            put(++pointer, aiModelRow, sparseIntArray);
+            put(++pointer, aiModelTipsRow, sparseIntArray);
+            put(++pointer, temperatureRow, sparseIntArray);
+            put(++pointer, temperatureTipsRow, sparseIntArray);
+            put(++pointer, contextRow, sparseIntArray);
+            put(++pointer, contextTipsRow, sparseIntArray);
+            put(++pointer, tokenLimitRow, sparseIntArray);
+            put(++pointer, tokenLimitTipsRow, sparseIntArray);
+            put(++pointer, aiParametersSectionRow, sparseIntArray);
+            put(++pointer, defaultHeaderRow, sparseIntArray);
+            put(++pointer, defaultRow, sparseIntArray);
+            put(++pointer, defaultSectionRow, sparseIntArray);
         }
 
         private void put(int id, int position, SparseIntArray sparseIntArray) {

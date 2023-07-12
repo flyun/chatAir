@@ -55,6 +55,7 @@ import com.theokanning.openai.service.OpenAiService;
 import org.json.JSONObject;
 import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.support.SparseLongArray;
+import org.telegram.tgnet.AiModelBean;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
@@ -89,6 +90,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -5607,8 +5609,6 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         return maxDelayedMessage;
     }
 
-    volatile boolean isFirst = false;
-
     //发送请求
     protected void performSendMessageRequest(final TLObject req, final MessageObject msgObj, final String originalPath, DelayedMessage parentMessage, boolean check, DelayedMessage delayedMessage, Object parentObject, HashMap<String, String> params, boolean scheduled) {
         if (!(req instanceof TLRPC.TL_messages_editMessage)) {
@@ -5628,6 +5628,58 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
         if (BuildVars.IS_CHAT_AIR) {
 
+            if (openAiService == null) return;
+
+            TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(newMsgObj.dialog_id);
+            if (user == null) return;
+
+            String prompt = null;
+            int aiModel = 1;
+            String aiModelReal = null;
+            double temperature = 0.7;
+            int tokenLimit = -100;
+
+            if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT) != 0
+                    && !TextUtils.isEmpty(user.prompt)) {
+                prompt = user.prompt;
+            } else {
+                //系统默认的prompt
+            }
+            if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL) != 0) {
+                if (UserConfig.getInstance(currentAccount).aiModelList.containsKey(user.aiModel)) {
+                    aiModel = user.aiModel;
+                } else {
+                    aiModel = UserConfig.getInstance(currentAccount).aiModel;
+                }
+            } else {
+                aiModel = UserConfig.getInstance(currentAccount).aiModel;
+            }
+            LinkedHashMap<Integer, AiModelBean> aiModelList
+                    = UserConfig.getInstance(currentAccount).aiModelList;
+            if (aiModelList != null && aiModelList.size() != 0) {
+                if (aiModelList.containsKey(aiModel)) {
+                    AiModelBean bean = aiModelList.get(aiModel);
+                    if (bean != null) aiModelReal = bean.aiModel;
+                }
+                if (aiModelReal == null && aiModelList.containsKey(1)) {
+                    aiModelReal = aiModelList.get(1).aiModel;
+                }
+            }
+
+            if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE) != 0
+                    && user.flags2 != -1) {
+                temperature = user.temperature;
+            } else {
+                //全局默认配置
+                temperature = UserConfig.getInstance(currentAccount).temperature;
+            }
+
+            if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT) != 0
+                    && user.tokenLimit != -1) {
+                tokenLimit = user.tokenLimit;
+            } else {
+                tokenLimit = UserConfig.getInstance(currentAccount).tokenLimit;
+            }
 
             List<ChatMessage> chatMessageList = new ArrayList<>();
 
@@ -5641,21 +5693,29 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 chatMessageList.add(chatMessage);
             }
 
+            //添加系统prompt
+            if (!TextUtils.isEmpty(prompt)) {
+                ChatMessage systemMessage = new ChatMessage();
+                systemMessage.setRole(ChatMessageRole.SYSTEM.value());
+                systemMessage.setContent(prompt);
+                chatMessageList.add(0, systemMessage);
+            }
+
+            //添加需要发送的内容
             ChatMessage sendChatMessage = new ChatMessage();
             sendChatMessage.setRole(ChatMessageRole.USER.value());
             sendChatMessage.setContent(msgObj.messageOwner.message);
             chatMessageList.add(sendChatMessage);
 
-
-
             ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                .model("gpt-3.5-turbo")
-                .messages(chatMessageList).build();
+                    .model(aiModelReal)
+                    .temperature(temperature != -100 ? temperature : null)
+                    .maxTokens(tokenLimit != -100 ? tokenLimit : null)
+                    .messages(chatMessageList).build();
 
 
             BaseMessage baseMessage = new BaseMessage();
             baseMessage.setDialog_id(newMsgObj.dialog_id);
-
 
             openAiService.createChatCompletion(chatCompletionRequest, baseMessage, new OpenAiService.ResultCallBack() {
                 @Override
@@ -5699,6 +5759,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 @Override
                 public void onError(OpenAiHttpException error, Throwable throwable) {
 
+                    String errorTx;
                     if (error != null) {
 
 //                        Log.e("test","openAiErr:"
@@ -5707,12 +5768,20 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 //                                + " ,param:"+ error.param
 //                                + " ,type:"+ error.type);
 
-                        Toast.makeText(ApplicationLoader.applicationContext.getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
+//                        Toast.makeText(ApplicationLoader.applicationContext.getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
+                        errorTx = error.toString();
                     } else {
 
 //                        Log.e("test","err:" + throwable);
-                        Toast.makeText(ApplicationLoader.applicationContext.getApplicationContext(), throwable.toString(), Toast.LENGTH_LONG).show();
+//                        Toast.makeText(ApplicationLoader.applicationContext.getApplicationContext(), throwable.toString(), Toast.LENGTH_LONG).show();
+                        errorTx = throwable.toString();
+                    }
 
+                    if (!TextUtils.isEmpty(errorTx)) {
+                        AndroidUtilities.runOnUIThread(() -> {
+                            getNotificationCenter().postNotificationName(NotificationCenter.showAlert,
+                                    AlertsCreator.TYPE_ALERT_ERROR, errorTx);
+                        });
                     }
                 }
 
@@ -7075,6 +7144,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             return;
         }
         if (result.send_message instanceof TLRPC.TL_botInlineMessageMediaAuto) {
+            //野线程，BaseFragment内存泄露:(
             new Thread(() -> {
                 boolean isEncrypted = DialogObject.isEncryptedDialog(dialogId);
                 String finalPath = null;

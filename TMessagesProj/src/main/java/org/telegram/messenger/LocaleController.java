@@ -18,10 +18,7 @@ import android.content.res.Configuration;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.util.Xml;
-
-import androidx.annotation.StringRes;
 
 import org.telegram.messenger.time.FastDateFormat;
 import org.telegram.tgnet.ConnectionsManager;
@@ -42,8 +39,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
+
+import androidx.annotation.StringRes;
 
 public class LocaleController {
 
@@ -2074,6 +2072,15 @@ public class LocaleController {
             FileLog.e(e);
         }
         return "LOC_ERR";
+    }
+
+    public static String formatUserStatus(int contextNum, int contextLimit, long tokens, long words) {
+        String s = "N:" + contextNum +"/"+ contextLimit
+                + "⋅T:" + tokens
+//                + "⋅W:" + (words > 1000 ? (words / 1000) + "k" : words)
+                + "⋅W:" + words
+                ;
+        return s;
     }
 
     public static String formatUserStatus(int currentAccount, TLRPC.User user, boolean[] isOnline) {

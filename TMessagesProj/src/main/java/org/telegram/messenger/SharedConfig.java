@@ -42,7 +42,7 @@ import java.util.Locale;
 import androidx.annotation.IntDef;
 import androidx.core.content.pm.ShortcutManagerCompat;
 
-//存储配置类
+//全局存储配置类，配置所有账户共同的配置
 public class SharedConfig {
     /**
      * V2: Ping and check time serialized

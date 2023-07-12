@@ -761,6 +761,7 @@ public class EditTextBoldCursor extends EditTextEffects {
             }
         }
         canvas.restore();
+        //绘制光标
         if (cursorDrawable == null) {
             try {
                 boolean showCursor;
@@ -847,6 +848,7 @@ public class EditTextBoldCursor extends EditTextEffects {
                 }
             }
         }
+        //绘制底线
         if (lineVisible && lineColor != 0) {
             int lineWidth = AndroidUtilities.dp(1);
             boolean wasLineActive = lineActive;

@@ -655,6 +655,7 @@ public class ConnectionsManager extends BaseController {
         if (CLOSE) return;
         AndroidUtilities.runOnUIThread(() -> {
             getInstance(currentAccount).connectionState = state;
+            //网络变动
             AccountInstance.getInstance(currentAccount).getNotificationCenter().postNotificationName(NotificationCenter.didUpdateConnectionState);
         });
     }
@@ -867,6 +868,7 @@ public class ConnectionsManager extends BaseController {
             }
             isUpdating = value;
             if (connectionState == ConnectionStateConnected) {
+                //网络变动
                 AccountInstance.getInstance(currentAccount).getNotificationCenter().postNotificationName(NotificationCenter.didUpdateConnectionState);
             }
         });

@@ -279,6 +279,7 @@ public class NotificationCenter {
     public static int chatSwithcedToForum = totalEvents++;
     public static int didUpdateGlobalAutoDeleteTimer = totalEvents++;
     public static int onDatabaseReset = totalEvents++;
+    public static final int showAlert = totalEvents++;
 
     public static boolean alreadyLogged;
 

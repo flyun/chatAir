@@ -422,6 +422,7 @@ public class MessagesStorage extends BaseController {
         return restored;
     }
 
+    //数据库列表
     public final static String[] DATABASE_TABLES = new String[] {
             "messages_holes",
             "media_holes_v2",
@@ -493,6 +494,7 @@ public class MessagesStorage extends BaseController {
             "emoji_groups"
     };
 
+    //创建数据库
     public static void createTables(SQLiteDatabase database) throws SQLiteException {
         database.executeFast("CREATE TABLE messages_holes(uid INTEGER, start INTEGER, end INTEGER, PRIMARY KEY(uid, start));").stepThis().dispose();
         database.executeFast("CREATE INDEX IF NOT EXISTS uid_end_messages_holes ON messages_holes(uid, end);").stepThis().dispose();
@@ -6052,6 +6054,7 @@ public class MessagesStorage extends BaseController {
         return arrayList;
     }
 
+    //载入用户数据，如果用户数据为空，则从数据库读取数据到内存单例中
     public void loadUserInfo(TLRPC.User user, boolean force, int classGuid, int fromMessageId) {
         if (user == null) {
             return;
@@ -6121,6 +6124,7 @@ public class MessagesStorage extends BaseController {
         });
     }
 
+    //更新用户可以自己设置其他用户的信息，比如置顶、拉黑、昵称
     public void updateUserInfo(TLRPC.UserFull info, boolean ifExist) {
         storageQueue.postRunnable(() -> {
             SQLiteCursor cursor = null;
@@ -9128,6 +9132,7 @@ public class MessagesStorage extends BaseController {
         return str.toString().toLowerCase();
     }
 
+    //更新用户数据
     private void putUsersInternal(ArrayList<TLRPC.User> users) throws Exception {
         if (users == null || users.isEmpty()) {
             return;
@@ -9135,6 +9140,7 @@ public class MessagesStorage extends BaseController {
         SQLitePreparedStatement state = database.executeFast("REPLACE INTO users VALUES(?, ?, ?, ?)");
         for (int a = 0; a < users.size(); a++) {
             TLRPC.User user = users.get(a);
+            //最小更新
             if (user != null && user.min) {
                 SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT data FROM users WHERE uid = %d", user.id));
                 if (cursor.next()) {
@@ -9311,6 +9317,7 @@ public class MessagesStorage extends BaseController {
         state.dispose();
     }
 
+    //获取用户数据
     public void getUsersInternal(String usersToLoad, ArrayList<TLRPC.User> result) throws Exception {
         if (usersToLoad == null || usersToLoad.length() == 0 || result == null) {
             return;
@@ -11633,7 +11640,8 @@ public class MessagesStorage extends BaseController {
         return null;
     }
 
-    private void updateUsersInternal(ArrayList<TLRPC.User> users, boolean onlyStatus, boolean withTransaction) {
+    //更新用户内部数据
+    private void updateUsersInternal(ArrayList<TLRPC.User> users, boolean onlyStatus, boolean onlyConfig, boolean withTransaction) {
         SQLitePreparedStatement state = null;
         try {
             if (onlyStatus) {
@@ -11675,16 +11683,74 @@ public class MessagesStorage extends BaseController {
                     TLRPC.User user = loadedUsers.get(a);
                     TLRPC.User updateUser = usersDict.get(user.id);
                     if (updateUser != null) {
-                        if (updateUser.first_name != null && updateUser.last_name != null) {
-                            if (!UserObject.isContact(user)) {
+                        if (!onlyConfig) {
+                            if (updateUser.first_name != null && updateUser.last_name != null) {
+                                if (!UserObject.isContact(user)) {
+                                    user.first_name = updateUser.first_name;
+                                    user.last_name = updateUser.last_name;
+                                }
+                                user.username = updateUser.username;
+                            } else if (updateUser.first_name != null && BuildVars.IS_CHAT_AIR) {
                                 user.first_name = updateUser.first_name;
-                                user.last_name = updateUser.last_name;
+                            } else if (updateUser.photo != null) {
+                                user.photo = updateUser.photo;
+                            } else if (updateUser.phone != null) {
+                                user.phone = updateUser.phone;
                             }
-                            user.username = updateUser.username;
-                        } else if (updateUser.photo != null) {
-                            user.photo = updateUser.photo;
-                        } else if (updateUser.phone != null) {
-                            user.phone = updateUser.phone;
+                        } else {
+                            if ((updateUser.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT) != 0) {
+                                //需要更新数据
+                                if (updateUser.prompt != null) {
+                                    user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT;
+                                    user.prompt = updateUser.prompt;
+                                }  else {
+                                    //设置为默认状态
+                                    user.flags2 = user.flags2 &~ MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT;
+                                    user.prompt = null;
+                                }
+                            }
+
+                            if ((updateUser.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL) != 0) {
+                                if (updateUser.aiModel != -1) {
+
+                                    user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL;
+                                    user.aiModel = updateUser.aiModel;
+                                } else {
+                                    user.flags2 = user.flags2 &~ MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL;
+                                    user.aiModel = 0;
+                                }
+                            }
+
+                            if ((updateUser.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE) != 0) {
+                                if (updateUser.temperature != -1) {
+                                    user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE;
+                                    user.temperature = updateUser.temperature;
+                                } else {
+                                    user.flags2 = user.flags2 &~ MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE;
+                                    user.temperature = 0;
+                                }
+                            }
+
+                            if ((updateUser.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0) {
+                                if (updateUser.contextLimit != -1) {
+                                    user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT;
+                                    user.contextLimit = updateUser.contextLimit;
+                                } else {
+                                    user.flags2 = user.flags2 &~ MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT;
+                                    user.contextLimit = 0;
+                                }
+                            }
+
+                            if ((updateUser.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT) != 0) {
+                                if (updateUser.tokenLimit != -1) {
+                                    user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT;
+                                    user.tokenLimit = updateUser.tokenLimit;
+                                } else {
+                                    user.flags2 = user.flags2 &~ MessagesController.UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT;
+                                    user.tokenLimit = 0;
+                                }
+                            }
+
                         }
                     }
                 }
@@ -11711,14 +11777,19 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    //从更新数据库的用户数据
     public void updateUsers(ArrayList<TLRPC.User> users, boolean onlyStatus, boolean withTransaction, boolean useQueue) {
+        updateUsers(users, onlyStatus, false, withTransaction, useQueue);
+    }
+
+    public void updateUsers(ArrayList<TLRPC.User> users, boolean onlyStatus, boolean onlyConfig, boolean withTransaction, boolean useQueue) {
         if (users == null || users.isEmpty()) {
             return;
         }
         if (useQueue) {
-            storageQueue.postRunnable(() -> updateUsersInternal(users, onlyStatus, withTransaction));
+            storageQueue.postRunnable(() -> updateUsersInternal(users, onlyStatus, onlyConfig, withTransaction));
         } else {
-            updateUsersInternal(users, onlyStatus, withTransaction);
+            updateUsersInternal(users, onlyStatus, onlyConfig, withTransaction);
         }
     }
 

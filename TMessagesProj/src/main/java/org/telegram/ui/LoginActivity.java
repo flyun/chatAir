@@ -80,12 +80,6 @@ import android.widget.Space;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
-import androidx.annotation.IntDef;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.ColorUtils;
-
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -174,6 +168,12 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicReference;
+
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 
 @SuppressLint("HardwareIds")
 public class LoginActivity extends BaseFragment {
@@ -1578,6 +1578,7 @@ public class LoginActivity extends BaseFragment {
         onAuthSuccess(res, false);
     }
 
+    //核心 登录成功执行的操作
     private void onAuthSuccess(TLRPC.TL_auth_authorization res, boolean afterSignup) {
         MessagesController.getInstance(currentAccount).cleanup();
         ConnectionsManager.getInstance(currentAccount).setUserId(res.user.id);

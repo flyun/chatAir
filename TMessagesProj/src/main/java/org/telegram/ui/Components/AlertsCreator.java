@@ -130,6 +130,8 @@ public class AlertsCreator {
     public final static int PERMISSIONS_REQUEST_TOP_ICON_SIZE = 72;
     public final static int NEW_DENY_DIALOG_TOP_ICON_SIZE = 52;
 
+    public final static int TYPE_ALERT_ERROR = 100;
+
     public static Dialog createForgotPasscodeDialog(Context ctx) {
         return new AlertDialog.Builder(ctx)
                 .setTitle(LocaleController.getString(R.string.ForgotPasscode))
@@ -234,6 +236,16 @@ public class AlertsCreator {
                 .create();
     }
 
+    public static Dialog processError(String errorStr, BaseFragment fragment) {
+        if (TextUtils.isEmpty(errorStr)) return null;
+
+        showSimpleAlert(fragment, LocaleController.getString("ErrorOccurred",
+                R.string.ErrorOccurred) + "\n" + errorStr);
+
+        return null;
+    }
+
+    //处理错误弹窗
     public static Dialog processError(int currentAccount, TLRPC.TL_error error, BaseFragment fragment, TLObject request, Object... args) {
         if (error.code == 406 || error.text == null) {
             return null;
@@ -1509,7 +1521,7 @@ public class AlertsCreator {
             lastMessageIsJoined = true;
         }
 
-        if (!second && (secret && !clear || canDeleteInbox) && !UserObject.isDeleted(user) && !lastMessageIsJoined || (deleteChatForAll = checkDeleteForAll && !clear && chat != null && chat.creator)) {
+        if (!BuildVars.IS_CHAT_AIR && !second && (secret && !clear || canDeleteInbox) && !UserObject.isDeleted(user) && !lastMessageIsJoined || (deleteChatForAll = checkDeleteForAll && !clear && chat != null && chat.creator)) {
             cell[0] = new CheckBoxCell(context, 1, resourcesProvider);
             cell[0].setBackgroundDrawable(Theme.getSelectorDrawable(false));
             if (deleteChatForAll) {
@@ -1761,7 +1773,7 @@ public class AlertsCreator {
         if (chat != null && canDeleteHistory && ChatObject.isPublic(chat)) {
             deleteForAll[0] = true;
         }
-        if ((user != null && user.id != selfUserId) || (chat != null && canDeleteHistory && !ChatObject.isPublic(chat) && !ChatObject.isChannelAndNotMegaGroup(chat))) {
+        if (!BuildVars.IS_CHAT_AIR && ((user != null && user.id != selfUserId) || (chat != null && canDeleteHistory && !ChatObject.isPublic(chat) && !ChatObject.isChannelAndNotMegaGroup(chat)))) {
             cell[0] = new CheckBoxCell(context, 1, resourcesProvider);
             cell[0].setBackgroundDrawable(Theme.getSelectorDrawable(false));
             if (chat != null) {
@@ -5364,7 +5376,7 @@ public class AlertsCreator {
                     }
                 }
             }
-            if (myMessagesCount > 0 && hasNonDiceMessages && (user == null || !UserObject.isDeleted(user))) {
+            if (!BuildVars.IS_CHAT_AIR && myMessagesCount > 0 && hasNonDiceMessages && (user == null || !UserObject.isDeleted(user))) {
                 hasDeleteForAllCheck = true;
                 FrameLayout frameLayout = new FrameLayout(activity);
                 CheckBoxCell cell = new CheckBoxCell(activity, 1, resourcesProvider);
