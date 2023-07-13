@@ -3371,9 +3371,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                     int i = 0;
                     for (Map.Entry<Integer, AiModelBean> entry : aiModelList.entrySet()){
-                        list.add(entry.getKey());
-                        charSequences[i] = entry.getValue().name;
-                        i++;
+                        if (entry.getValue().isShow) {
+                            list.add(entry.getKey());
+                            charSequences[i] = entry.getValue().getName();
+                            i++;
+                        }
                     }
 
                     //todo 通过listModels接口检测是否具有模型能力
@@ -9643,7 +9645,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         LinkedHashMap<Integer, AiModelBean> aiModelList
                                 = UserConfig.getInstance(currentAccount).aiModelList;
                         if (aiModelList != null && aiModelList.containsKey(aiModel)) {
-                            selectValue = aiModelList.get(aiModel).name;
+                            AiModelBean bean = aiModelList.get(aiModel);
+                            selectValue = bean != null ? bean.getName() : "";
                         } else {
                             selectValue = "";
                         }

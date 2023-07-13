@@ -5659,11 +5659,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             if (aiModelList != null && aiModelList.size() != 0) {
                 if (aiModelList.containsKey(aiModel)) {
                     AiModelBean bean = aiModelList.get(aiModel);
-                    if (bean != null) aiModelReal = bean.aiModel;
+                    if (bean != null) aiModelReal = bean.getAiModel();
                 }
-                if (aiModelReal == null && aiModelList.containsKey(1)) {
-                    aiModelReal = aiModelList.get(1).aiModel;
-                }
+//                if (aiModelReal == null && aiModelList.containsKey(1)) {
+//                    aiModelReal = aiModelList.get(1).aiModel;
+//                }
             }
 
             if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE) != 0

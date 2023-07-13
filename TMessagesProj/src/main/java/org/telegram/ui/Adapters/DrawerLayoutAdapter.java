@@ -268,6 +268,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         int peopleNearbyIcon;
         int chatSettingsIcon = 0;
         int languageIcon = 0;
+        int aiIcon = 0;
         //不同主题下的图标
         if (eventType == 0) {
             newGroupIcon = R.drawable.msg_groups_ny;
@@ -318,6 +319,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         if (BuildVars.IS_CHAT_AIR) {
             chatSettingsIcon = R.drawable.msg2_discussion;
             languageIcon = R.drawable.msg2_language;
+            aiIcon = R.drawable.msg_bot;
         }
 
         UserConfig me = UserConfig.getInstance(UserConfig.selectedAccount);
@@ -342,6 +344,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
 
         //设置界面
         if (BuildVars.IS_CHAT_AIR) {
+            items.add(new Item(32, LocaleController.getString("GlobalAiParametersHeader", R.string.GlobalAiParametersHeader), aiIcon));
             items.add(new Item(30, LocaleController.getString("ChatSettings", R.string.ChatSettings), chatSettingsIcon));
             items.add(new Item(31, LocaleController.getString("Language", R.string.Language), languageIcon));
             items.add(null); // divider

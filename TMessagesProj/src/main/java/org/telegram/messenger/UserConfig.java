@@ -88,10 +88,15 @@ public class UserConfig extends BaseController {
 
     public LinkedHashMap<Integer, AiModelBean> aiModelList = new LinkedHashMap<>();
     public String prompt = "You are a helpful AI assistant.";
-    public int aiModel = 1;
-    public double temperature = 0.7;
-    public int contextLimit = 30;
-    public int tokenLimit = -100;
+    public final static int defaultAiModel = 1;
+    public final static double defaultTemperature = 0.7;
+    public final static int defaultContextLimit = 30;
+    public final static int defaultTokenLimit = -100;
+
+    public int aiModel = defaultAiModel;
+    public double temperature = defaultTemperature;
+    public int contextLimit = defaultContextLimit;
+    public int tokenLimit = defaultTokenLimit;
 
 
     private static volatile UserConfig[] Instance = new UserConfig[UserConfig.MAX_ACCOUNT_COUNT];
@@ -416,20 +421,20 @@ public class UserConfig extends BaseController {
                 } else {
                     aiModelList = new LinkedHashMap<>();
                 }
-                aiModelList.put(1, new AiModelBean("GPT-3.5", "gpt-3.5-turbo"));
-//                aiModelList.put(2, new AiModelBean("GPT-3.5-0613", "gpt-3.5-turbo-0613"));
-                aiModelList.put(3, new AiModelBean("GPT-3.5-16k", "gpt-3.5-turbo-16k"));
-//                aiModelList.put(4, new AiModelBean("GPT-3.5-16k-0613", "gpt-3.5-turbo-16k-0613"));
-                aiModelList.put(5, new AiModelBean("GPT-4", "gpt-4"));
-//                aiModelList.put(6, new AiModelBean("GPT-4-0613", "gpt-4-0613"));
-                aiModelList.put(7, new AiModelBean("GPT-4-32k", "gpt-4-32k"));
-//                aiModelList.put(8, new AiModelBean("GPT-4-32k-0613", "gpt-4-32k-0613"));
+                aiModelList.put(1, new AiModelBean("GPT-3.5", "gpt-3.5-turbo", true));
+                aiModelList.put(2, new AiModelBean("GPT-3.5-0613", "gpt-3.5-turbo-0613", false));
+                aiModelList.put(3, new AiModelBean("GPT-3.5-16k", "gpt-3.5-turbo-16k", true));
+                aiModelList.put(4, new AiModelBean("GPT-3.5-16k-0613", "gpt-3.5-turbo-16k-0613", false));
+                aiModelList.put(5, new AiModelBean("GPT-4", "gpt-4", true));
+                aiModelList.put(6, new AiModelBean("GPT-4-0613", "gpt-4-0613", false));
+                aiModelList.put(7, new AiModelBean("GPT-4-32k", "gpt-4-32k", true));
+                aiModelList.put(8, new AiModelBean("GPT-4-32k-0613", "gpt-4-32k-0613", false));
 
                 //默认配置
-                aiModel = preferences.getInt("aiModel", 1);
-                temperature = Double.parseDouble(preferences.getString("temperature", "0.7"));
-                contextLimit = preferences.getInt("contextLimit", 30);
-                tokenLimit = preferences.getInt("tokenLimit", -100);
+                aiModel = preferences.getInt("aiModel", defaultAiModel);
+                temperature = Double.parseDouble(preferences.getString("temperature", String.valueOf(defaultTemperature)));
+                contextLimit = preferences.getInt("contextLimit", defaultContextLimit);
+                tokenLimit = preferences.getInt("tokenLimit", defaultTokenLimit);
             }
 
             configLoaded = true;

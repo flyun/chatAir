@@ -621,6 +621,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     //点击进入选择语言
                     presentFragment(new LanguageSelectActivity());
                     drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 32) {
+                    //点击进入AI配置
+                    presentFragment(new AiParametersActivity());
+                    drawerLayoutContainer.closeDrawer(false);
                 }
             }
         });

@@ -3533,7 +3533,7 @@
     <string name="ChangePrompt">Tap to change Prompt</string>
     <string name="PromptTips">The system message helps set the behavior of the assistant.</string>
     <string name="PromptUnknown">Prompt is empty</string>
-    <string name="AiParametersHeader">Chat Ai Parameters</string>
+    <string name="AiParametersHeader">Chat AI Parameters</string>
     <string name="AiModelTitle">AI Model</string>
     <string name="AiModelTips">Before switching to a different model, please make sure your API Key has beta access to that model.</string>
     <string name="TemperatureTitle">Temperature</string>
@@ -3550,6 +3550,7 @@
     <string name="TemperatureHighValue">Most Random</string>
     <string name="TokenText">Token</string>
     <string name="EditChatName">Edit Chat Name</string>
+    <string name="GlobalAiParametersHeader">Global AI Parameters</string>
     <!--chatAir End-->
     <string name="VideoCall">Video Call</string>
     <string name="Copy">Copy</string>
