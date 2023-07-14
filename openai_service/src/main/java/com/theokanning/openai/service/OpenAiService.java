@@ -49,6 +49,7 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ConnectionPool;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -68,6 +69,7 @@ public class OpenAiService {
     private static final ObjectMapper mapper = defaultObjectMapper();
 
     private final OpenAiApi api;
+    private OkHttpClient client;
     private final ExecutorService executorService;
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
@@ -90,11 +92,21 @@ public class OpenAiService {
      */
     public OpenAiService(final String token, final long second) {
         ObjectMapper mapper = defaultObjectMapper();
-        OkHttpClient client = defaultClient(token, second);
+        this.client = defaultClient(token, second);
         Retrofit retrofit = defaultRetrofit(client, mapper);
 
         this.api = retrofit.create(OpenAiApi.class);
         this.executorService = client.dispatcher().executorService();
+    }
+
+    public void changeToken(String token) {
+        if (client != null && token != null) {
+            for (Interceptor interceptor : client.interceptors()) {
+                if (interceptor instanceof AuthenticationInterceptor) {
+                    ((AuthenticationInterceptor) interceptor).setToken(token);
+                }
+            }
+        }
     }
 
     /**

@@ -2083,6 +2083,15 @@ public class LocaleController {
         return s;
     }
 
+    public static String formatApiKey(String key) {
+
+        if (TextUtils.isEmpty(key) || key.length() < 5)
+            return getString("UsernameEmpty", R.string.UsernameEmpty);
+
+        int length = key.length();
+        return "********************" + key.substring(length - 4, length);
+    }
+
     public static String formatUserStatus(int currentAccount, TLRPC.User user, boolean[] isOnline) {
         return formatUserStatus(currentAccount, user, isOnline, null);
     }

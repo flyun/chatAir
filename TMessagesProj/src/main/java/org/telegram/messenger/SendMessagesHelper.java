@@ -823,10 +823,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.httpFileDidLoad);
             getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.fileLoaded);
             getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.fileLoadFailed);
+            getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.updateInterfaces);
 
             if (BuildVars.IS_CHAT_AIR) {
                 //初始化openAi
-                String token = "";
+                String token = UserConfig.getInstance(currentAccount).apiKey;
                 openAiService = new OpenAiService(token, 60);
             }
         });
@@ -1244,6 +1245,13 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     arr.get(a).markAsError();
                 }
                 delayedMessages.remove(path);
+            }
+        } else if (id == NotificationCenter.updateInterfaces) {
+            int mask = (Integer) args[0];
+            if ((mask & MessagesController.UPDATE_MASK_API_KEY) != 0) {
+                if (openAiService != null) {
+                    openAiService.changeToken(UserConfig.getInstance(currentAccount).apiKey);
+                }
             }
         }
     }

@@ -93,10 +93,15 @@ public class UserConfig extends BaseController {
     public final static int defaultContextLimit = 30;
     public final static int defaultTokenLimit = -100;
 
+    public final static String defaultApiServer = "";
+
     public int aiModel = defaultAiModel;
     public double temperature = defaultTemperature;
     public int contextLimit = defaultContextLimit;
     public int tokenLimit = defaultTokenLimit;
+
+    public String apiKey;
+    public String apiServer;
 
 
     private static volatile UserConfig[] Instance = new UserConfig[UserConfig.MAX_ACCOUNT_COUNT];
@@ -219,6 +224,8 @@ public class UserConfig extends BaseController {
                         editor.putString("temperature", String.valueOf(temperature));
                         editor.putInt("contextLimit", contextLimit);
                         editor.putInt("tokenLimit", tokenLimit);
+                        editor.putString("apiKey", apiKey);
+                        editor.putString("apiServer", apiServer);
                     }
 
                     if (unacceptedTermsOfService != null) {
@@ -435,6 +442,8 @@ public class UserConfig extends BaseController {
                 temperature = Double.parseDouble(preferences.getString("temperature", String.valueOf(defaultTemperature)));
                 contextLimit = preferences.getInt("contextLimit", defaultContextLimit);
                 tokenLimit = preferences.getInt("tokenLimit", defaultTokenLimit);
+                apiKey = preferences.getString("apiKey", "");
+                apiServer = preferences.getString("apiServer", defaultApiServer);
             }
 
             configLoaded = true;
@@ -571,6 +580,8 @@ public class UserConfig extends BaseController {
             temperature = 0.7;
             contextLimit = 30;
             tokenLimit = -100;
+            apiKey = "";
+            apiServer = "";
         }
 
         if (!hasActivated) {

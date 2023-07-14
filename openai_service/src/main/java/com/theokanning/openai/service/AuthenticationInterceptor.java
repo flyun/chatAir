@@ -12,9 +12,14 @@ import okhttp3.Response;
  */
 public class AuthenticationInterceptor implements Interceptor {
 
-    private final String token;
+    private String token;
 
     AuthenticationInterceptor(String token) {
+        Objects.requireNonNull(token, "OpenAI token required");
+        this.token = token;
+    }
+
+    public void setToken(String token) {
         Objects.requireNonNull(token, "OpenAI token required");
         this.token = token;
     }
