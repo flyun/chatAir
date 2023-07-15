@@ -3,11 +3,18 @@ package org.telegram.ui;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.theokanning.openai.OpenAiHttpException;
+import com.theokanning.openai.OpenAiResponse;
+import com.theokanning.openai.model.Model;
+import com.theokanning.openai.service.OpenAiService;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -15,11 +22,13 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
+import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 
@@ -32,13 +41,36 @@ public class ChangeApiKeyActivity extends BaseFragment {
 
     private EditTextBoldCursor firstNameField;
     private View doneButton;
+    private View findKeyButton;
 
     private Theme.ResourcesProvider resourcesProvider;
 
     private final static int done_button = 1;
+    private final static int find_key_button = 2;
+
+    private OpenAiService openAiService;
+
+    private volatile boolean isReq;
 
     public ChangeApiKeyActivity(Theme.ResourcesProvider resourcesProvider) {
         this.resourcesProvider = resourcesProvider;
+    }
+
+    @Override
+    public boolean onFragmentCreate() {
+
+        String token = UserConfig.getInstance(currentAccount).apiKey;
+        openAiService = new OpenAiService(token, 20);
+
+        return super.onFragmentCreate();
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        if (openAiService != null) {
+            openAiService.clean();
+        }
+        super.onFragmentDestroy();
     }
 
     @Override
@@ -56,13 +88,15 @@ public class ChangeApiKeyActivity extends BaseFragment {
                 } else if (id == done_button) {
                     if (firstNameField.getText() != null) {
                         saveApiKey();
-                        finishFragment();
                     }
+                } else if (id == find_key_button) {
+                    Browser.openUrl(getParentActivity(), LocaleController.getString("findKeyUrl", R.string.findKeyUrl));
                 }
             }
         });
 
         ActionBarMenu menu = actionBar.createMenu();
+        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link2, AndroidUtilities.dp(56), LocaleController.getString("findKey", R.string.findKey));
         doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_ab_done, AndroidUtilities.dp(56), LocaleController.getString("Done", R.string.Done));
 
         LinearLayout linearLayout = new LinearLayout(context);
@@ -92,6 +126,28 @@ public class ChangeApiKeyActivity extends BaseFragment {
         firstNameField.setCursorSize(AndroidUtilities.dp(20));
         firstNameField.setCursorWidth(1.5f);
         linearLayout.addView(firstNameField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36, 24, 24, 24, 0));
+
+        TextView buttonTextView = new TextView(context);
+
+        buttonTextView.setPadding(AndroidUtilities.dp(34), 0, AndroidUtilities.dp(34), 0);
+        buttonTextView.setGravity(Gravity.CENTER);
+        buttonTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        buttonTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
+
+        buttonTextView.setText(LocaleController.getString("ValidateTitle", R.string.ValidateTitle));
+
+        buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
+        buttonTextView.setBackgroundDrawable(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(6), Theme.getColor(Theme.key_featuredStickers_addButton), Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
+
+        buttonTextView.setOnClickListener(view -> {
+            if (getParentActivity() == null) {
+                return;
+            }
+            verifyKey();
+        });
+
+        linearLayout.addView(buttonTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM, 16, 15, 16, 16));
+
 
         return fragmentView;
     }
@@ -125,6 +181,49 @@ public class ChangeApiKeyActivity extends BaseFragment {
         NotificationCenter.getInstance(currentAccount)
                 .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_API_KEY);
 
+        finishFragment();
+
+    }
+
+    private void verifyKey() {
+        if (isReq) return;
+        if (TextUtils.isEmpty(firstNameField.getText())) {
+            return;
+        }
+        isReq = true;
+
+        openAiService.changeToken(firstNameField.getText().toString());
+
+        openAiService.baseCompletion(openAiService.listModels,
+                new OpenAiService.CompletionCallBack<OpenAiResponse<Model>>() {
+                    @Override
+                    public void onSuccess(Object o) {
+//                        OpenAiResponse<Model> openAiResponse = (OpenAiResponse<Model>) o;
+
+                        AndroidUtilities.runOnUIThread(() -> {
+                            isReq = false;
+
+                            AlertsCreator.showSimpleAlert(ChangeApiKeyActivity.this,
+                                    LocaleController.getString("ValidateSuccess", R.string.ValidateSuccess));
+                        });
+
+                    }
+
+                    @Override
+                    public void onError(OpenAiHttpException error, Throwable throwable) {
+                        AndroidUtilities.runOnUIThread(() -> {
+                            String errorTx;
+                            isReq = false;
+                            if (error != null) {
+                                errorTx = error.getMessage();
+                            } else {
+                                errorTx = throwable.getMessage();
+                            }
+
+                            AlertsCreator.processError(errorTx, ChangeApiKeyActivity.this);
+                        });
+                    }
+                });
     }
 
     @Override

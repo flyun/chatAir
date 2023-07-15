@@ -74,6 +74,8 @@ public class OpenAiService {
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
+    public final int listModels = 1;
+
 
     /**
      * Creates a new OpenAiService that wraps OpenAiApi
@@ -339,6 +341,72 @@ public class OpenAiService {
                 });
     }
 
+    public <T> void baseCompletion(int type ,CompletionCallBack<T> callBack) {
+        sortCompletion(type, null, callBack);
+    }
+
+    public <T> void sortCompletion(int type, CompletionRequest completionRequest, CompletionCallBack<T> callBack) {
+
+        switch (type) {
+            case listModels: {
+                createCompletion(api.listModels(), callBack);
+            }
+        }
+
+    }
+
+
+    public <T> void createCompletion(Single<T> apiCall, CompletionCallBack<?> callBack) {
+
+        compositeDisposable.clear();
+
+        apiCall
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((new SingleObserver<T>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable disposable) {
+
+                    }
+
+                    @Override
+                    public void onSuccess(@NonNull T t) {
+                        callBack.onSuccess(t);
+                        compositeDisposable.clear();
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable throwable) {
+
+                        HttpException e = null;
+                        if (throwable instanceof HttpException) {
+                            e = (HttpException) throwable;
+                        } else {
+                            callBack.onError(null, throwable);
+                        }
+
+                        try {
+                            if (e == null || e.response() == null || e.response().errorBody() == null) {
+                                callBack.onError(null, throwable);
+                                return;
+                            }
+                            String errorBody = e.response().errorBody().string();
+
+                            OpenAiError error = mapper.readValue(errorBody, OpenAiError.class);
+                            callBack.onError(new OpenAiHttpException(error, e, e.code()),
+                                    throwable);
+//                                throw new OpenAiHttpException(error, e, e.code());
+                        } catch (IOException ex) {
+                            // couldn't parse OpenAI error
+                            callBack.onError(null, throwable);
+                        } finally {
+                            compositeDisposable.clear();
+                        }
+                    }
+                }));
+
+    }
+
     public <T> void createChatCompletion(Single<T> apiCall, BaseMessage baseMessage,
                                          ResultCallBack resultCallBack) {
 
@@ -396,6 +464,11 @@ public class OpenAiService {
 
     }
 
+    public interface CompletionCallBack<T> {
+        void onSuccess(Object o);
+        void onError(OpenAiHttpException error, Throwable Throwable);
+    }
+
     public interface ResultCallBack {
 
         void onSuccess(ChatCompletionResult result);
@@ -438,6 +511,11 @@ public class OpenAiService {
      */
     public static <T> Flowable<T> stream(Call<ResponseBody> apiCall, Class<T> cl) {
         return stream(apiCall).map(sse -> mapper.readValue(sse.getData(), cl));
+    }
+
+    public void clean() {
+        compositeDisposable.clear();
+        shutdownExecutor();
     }
 
     /**

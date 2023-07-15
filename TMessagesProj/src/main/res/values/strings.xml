@@ -3557,6 +3557,10 @@
     <string name="ApiServer">API Server</string>
     <string name="ApiServerTips">Tap to change API Server</string>
     <string name="ChangeApiKey">Change API Key</string>
+    <string name="ValidateTitle">Validate</string>
+    <string name="ValidateSuccess">Validate Success</string>
+    <string name="findKey">Find API key</string>
+    <string name="findKeyUrl">https://platform.openai.com/account/api-keys</string>
     <!--chatAir End-->
     <string name="VideoCall">Video Call</string>
     <string name="Copy">Copy</string>

@@ -5777,12 +5777,12 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 //                                + " ,type:"+ error.type);
 
 //                        Toast.makeText(ApplicationLoader.applicationContext.getApplicationContext(), error.toString(), Toast.LENGTH_LONG).show();
-                        errorTx = error.toString();
+                        errorTx = error.getMessage();
                     } else {
 
 //                        Log.e("test","err:" + throwable);
 //                        Toast.makeText(ApplicationLoader.applicationContext.getApplicationContext(), throwable.toString(), Toast.LENGTH_LONG).show();
-                        errorTx = throwable.toString();
+                        errorTx = throwable.getMessage();
                     }
 
                     if (!TextUtils.isEmpty(errorTx)) {
