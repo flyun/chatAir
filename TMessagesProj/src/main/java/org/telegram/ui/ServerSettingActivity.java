@@ -106,6 +106,8 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
             if (position == apiKeyRow) {
                 presentFragment(new ChangeApiKeyActivity(getResourceProvider()));
 
+            } else {
+                presentFragment(new ChangeApiServerActivity(getResourceProvider()));
             }
 
         });
@@ -189,7 +191,7 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
                                 LocaleController.getString("ApiKeyTips", R.string.ApiKeyTips), false);
                     } else if (position == apiServerRow){
                         settingsCell.setTextAndValue(
-                                "https://www.openai.com",
+                                UserConfig.getInstance(currentAccount).apiServer,
                                 LocaleController.getString("ApiServerTips", R.string.ApiServerTips), false);
                     }
                 }
@@ -216,6 +218,8 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
             int mask = (Integer) args[0];
             if ((mask & MessagesController.UPDATE_MASK_API_KEY) != 0) {
                 if (adapter != null) adapter.notifyItemChanged(apiKeyRow);
+            } else if ((mask & MessagesController.UPDATE_MASK_API_SERVER) != 0) {
+                if (adapter != null) adapter.notifyItemChanged(apiServerRow);
             }
         }
     }

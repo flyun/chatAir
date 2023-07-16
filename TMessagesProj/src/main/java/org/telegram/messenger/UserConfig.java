@@ -93,7 +93,7 @@ public class UserConfig extends BaseController {
     public final static int defaultContextLimit = 30;
     public final static int defaultTokenLimit = -100;
 
-    public final static String defaultApiServer = "";
+    public final static String defaultApiServer = "https://api.openai.com";
 
     public int aiModel = defaultAiModel;
     public double temperature = defaultTemperature;
@@ -101,7 +101,7 @@ public class UserConfig extends BaseController {
     public int tokenLimit = defaultTokenLimit;
 
     public String apiKey;
-    public String apiServer;
+    public String apiServer = defaultApiServer;
 
 
     private static volatile UserConfig[] Instance = new UserConfig[UserConfig.MAX_ACCOUNT_COUNT];
@@ -576,12 +576,12 @@ public class UserConfig extends BaseController {
                 aiModelList.clear();
             }
 
-            aiModel = 1;
-            temperature = 0.7;
-            contextLimit = 30;
-            tokenLimit = -100;
+            aiModel = defaultAiModel;
+            temperature = defaultTemperature;
+            contextLimit = defaultContextLimit;
+            tokenLimit = defaultTokenLimit;
             apiKey = "";
-            apiServer = "";
+            apiServer = defaultApiServer;
         }
 
         if (!hasActivated) {

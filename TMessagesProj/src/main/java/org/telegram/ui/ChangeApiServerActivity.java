@@ -3,6 +3,7 @@ package org.telegram.ui;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -21,10 +22,8 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
@@ -35,9 +34,9 @@ import org.telegram.ui.Components.LayoutHelper;
 import java.util.ArrayList;
 
 /**
- * Created by flyun on 2023/7/14.
+ * Created by flyun on 2023/7/15.
  */
-public class ChangeApiKeyActivity extends BaseFragment {
+public class ChangeApiServerActivity extends BaseFragment {
 
     private EditTextBoldCursor firstNameField;
     private View doneButton;
@@ -52,7 +51,7 @@ public class ChangeApiKeyActivity extends BaseFragment {
 
     private volatile boolean isReq;
 
-    public ChangeApiKeyActivity(Theme.ResourcesProvider resourcesProvider) {
+    public ChangeApiServerActivity(Theme.ResourcesProvider resourcesProvider) {
         this.resourcesProvider = resourcesProvider;
     }
 
@@ -61,6 +60,7 @@ public class ChangeApiKeyActivity extends BaseFragment {
 
         String token = UserConfig.getInstance(currentAccount).apiKey;
         String apiServer = UserConfig.getInstance(currentAccount).apiServer;
+
         openAiService = new OpenAiService(token, 5, apiServer);
 
         return super.onFragmentCreate();
@@ -80,7 +80,7 @@ public class ChangeApiKeyActivity extends BaseFragment {
         actionBar.setItemsColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider), false);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString("ChangeApiKey", R.string.ChangeApiKey));
+        actionBar.setTitle(LocaleController.getString("ChangeApiServer", R.string.ChangeApiServer));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -88,16 +88,21 @@ public class ChangeApiKeyActivity extends BaseFragment {
                     finishFragment();
                 } else if (id == done_button) {
                     if (firstNameField.getText() != null) {
-                        saveApiKey();
+                        saveApiServer();
                     }
                 } else if (id == find_key_button) {
-                    Browser.openUrl(getParentActivity(), LocaleController.getString("FindKeyUrl", R.string.FindKeyUrl));
+                    if (firstNameField != null) {
+                        firstNameField.setText(UserConfig.defaultApiServer);
+                        firstNameField.setSelection(UserConfig.defaultApiServer.length());
+//                        AlertsCreator.showSimpleToast(ChangeApiServerActivity.this,
+//                                LocaleController.getString("DefaultApiServe", R.string.DefaultApiServe));
+                    }
                 }
             }
         });
 
         ActionBarMenu menu = actionBar.createMenu();
-        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link2, AndroidUtilities.dp(56), LocaleController.getString("FindKeyUrl", R.string.FindKeyUrl));
+        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link, AndroidUtilities.dp(56), LocaleController.getString("FindKeyUrl", R.string.FindKeyUrl));
         doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_ab_done, AndroidUtilities.dp(56), LocaleController.getString("Done", R.string.Done));
 
         LinearLayout linearLayout = new LinearLayout(context);
@@ -122,10 +127,18 @@ public class ChangeApiKeyActivity extends BaseFragment {
         firstNameField.setSingleLine(true);
         firstNameField.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         firstNameField.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
-        firstNameField.setHint(LocaleController.formatApiKey(UserConfig.getInstance(currentAccount).apiKey));
+        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
+        firstNameField.setHint(UserConfig.defaultApiServer);
         firstNameField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         firstNameField.setCursorSize(AndroidUtilities.dp(20));
         firstNameField.setCursorWidth(1.5f);
+
+        if (UserConfig.defaultApiServer.equals(apiServer)) {
+            firstNameField.setText("");
+        } else {
+            firstNameField.setText(apiServer);
+            firstNameField.setSelection(apiServer.length());
+        }
         linearLayout.addView(firstNameField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36, 24, 24, 24, 0));
 
         TextView buttonTextView = new TextView(context);
@@ -164,38 +177,36 @@ public class ChangeApiKeyActivity extends BaseFragment {
         }
     }
 
-    private void saveApiKey() {
-
+    private void saveApiServer() {
         if (firstNameField.getText() == null) {
             return;
         }
 
-        final String newFirst = firstNameField.getText().toString().replace("\n", "");
-        String apiKey = UserConfig.getInstance(currentAccount).apiKey;
-        if (apiKey != null && apiKey.equals(newFirst)) {
+        String newFirst = firstNameField.getText().toString().replace("\n", "");
+        if (TextUtils.isEmpty(newFirst)) return;
+
+        String formatUrl = formatUrl(newFirst);
+        if (TextUtils.isEmpty(formatUrl)) {
+            AlertsCreator.processError(LocaleController.getString("MalformedUrl", R.string.MalformedUrl),
+                    ChangeApiServerActivity.this);
             return;
         }
-        if (newFirst.length() == 0) {
-
-            AlertDialog alertDialog = AlertsCreator.createSimpleAlert(getContext(),
-                    LocaleController.getString("ChangeApiKey", R.string.ChangeApiKey),
-                    LocaleController.getString("ClearApiKey", R.string.ClearApiKey),
-                    LocaleController.getString("OK", R.string.OK),
-                    () -> {
-                        changeApiKey(newFirst);
-                    }, null).create();
-            alertDialog.show();
-        } else {
-            changeApiKey(newFirst);
+        if (!newFirst.equals(formatUrl)) {
+            newFirst = formatUrl;
+            firstNameField.setText(formatUrl);
+            firstNameField.setSelection(formatUrl.length());
         }
-    }
 
-    private void changeApiKey(String newFirst) {
-        UserConfig.getInstance(currentAccount).apiKey = newFirst;
+        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
+        if (apiServer != null && apiServer.equals(newFirst)) {
+            return;
+        }
+
+        UserConfig.getInstance(currentAccount).apiServer = newFirst;
         UserConfig.getInstance(currentAccount).saveConfig(false);
 
         NotificationCenter.getInstance(currentAccount)
-                .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_API_KEY);
+                .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_API_SERVER);
 
         finishFragment();
     }
@@ -205,14 +216,30 @@ public class ChangeApiKeyActivity extends BaseFragment {
         String newFirst;
         if (firstNameField.getText() == null) {
             return;
-        } else if (firstNameField.getText().length() > 0){
+        } else if (firstNameField.getText().length() > 0) {
             newFirst = firstNameField.getText().toString().replace("\n", "");
         } else {
-            newFirst = UserConfig.getInstance(currentAccount).apiKey;
-        }
-        openAiService.changeToken(newFirst);
+            newFirst = UserConfig.getInstance(currentAccount).apiServer;
 
+        }
         isReq = true;
+
+        if (TextUtils.isEmpty(newFirst)) return;
+
+        String formatUrl = formatUrl(newFirst);
+        if (formatUrl == null) {
+            isReq = false;
+            AlertsCreator.processError(LocaleController.getString("MalformedUrl", R.string.MalformedUrl),
+                    ChangeApiServerActivity.this);
+            return;
+        }
+        if (!newFirst.equals(formatUrl)) {
+            newFirst = formatUrl;
+            firstNameField.setText(formatUrl);
+            firstNameField.setSelection(formatUrl.length());
+        }
+
+        openAiService.changeServer(newFirst);
 
         openAiService.baseCompletion(openAiService.listModels,
                 new OpenAiService.CompletionCallBack<OpenAiResponse<Model>>() {
@@ -223,7 +250,7 @@ public class ChangeApiKeyActivity extends BaseFragment {
                         AndroidUtilities.runOnUIThread(() -> {
                             isReq = false;
 
-                            AlertsCreator.showSimpleAlert(ChangeApiKeyActivity.this,
+                            AlertsCreator.showSimpleAlert(ChangeApiServerActivity.this,
                                     LocaleController.getString("ValidateSuccess", R.string.ValidateSuccess));
                         });
 
@@ -240,11 +267,29 @@ public class ChangeApiKeyActivity extends BaseFragment {
                                 errorTx = throwable.getMessage();
                             }
 
-                            AlertsCreator.processError(errorTx, ChangeApiKeyActivity.this);
+                            AlertsCreator.processError(errorTx, ChangeApiServerActivity.this);
                         });
                     }
                 });
     }
+
+    private String formatUrl (String url) {
+
+        //添加、格式化https
+        String formatUrl = LocaleController.formatApiUrl(url);
+
+        if (TextUtils.isEmpty(formatUrl)) return null;
+
+        //https协议格式整理
+        //todo 因为okHttp拦截链更换host后缀问题，暂时省略host后缀。初始化则没有问题，但是后缀最后必须/结尾，否则出错
+        String httpUrl = OpenAiService.formatUrl(formatUrl);
+
+        if (TextUtils.isEmpty(httpUrl)) return null;
+
+        return httpUrl;
+
+    }
+
 
     @Override
     public Theme.ResourcesProvider getResourceProvider() {

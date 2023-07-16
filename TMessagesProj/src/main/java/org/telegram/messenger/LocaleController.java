@@ -2092,6 +2092,23 @@ public class LocaleController {
         return "********************" + key.substring(length - 4, length);
     }
 
+    public static String formatApiUrl(String url) {
+
+        if (TextUtils.isEmpty(url)) return "";
+
+        String baseUrl = url;
+
+        baseUrl = baseUrl.replace("http://", "https://");
+
+        baseUrl = baseUrl.toLowerCase(Locale.US);
+
+        if (!(baseUrl.contains("https://") || baseUrl.contains("http://"))) {
+            baseUrl = "https://" + baseUrl;
+        }
+
+        return baseUrl;
+    }
+
     public static String formatUserStatus(int currentAccount, TLRPC.User user, boolean[] isOnline) {
         return formatUserStatus(currentAccount, user, isOnline, null);
     }

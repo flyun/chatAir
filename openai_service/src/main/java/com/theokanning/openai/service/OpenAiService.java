@@ -1,5 +1,6 @@
 package com.theokanning.openai.service;
 
+import android.text.TextUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +50,7 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ConnectionPool;
+import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -83,7 +85,7 @@ public class OpenAiService {
      * @param token OpenAi token string "sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
      */
     public OpenAiService(final String token) {
-        this(token, DEFAULT_TIMEOUT);
+        this(token, DEFAULT_TIMEOUT, BASE_URL);
     }
 
     /**
@@ -92,10 +94,13 @@ public class OpenAiService {
      * @param token  OpenAi token string "sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
      * @param second http read timeout
      */
-    public OpenAiService(final String token, final long second) {
+    public OpenAiService(final String token, final long second, final String url) {
+
+        String baseUrl = (TextUtils.isEmpty(url) || HttpUrl.parse(url) == null) ? BASE_URL : url;
+
         ObjectMapper mapper = defaultObjectMapper();
         this.client = defaultClient(token, second);
-        Retrofit retrofit = defaultRetrofit(client, mapper);
+        Retrofit retrofit = defaultRetrofit(client, mapper, baseUrl);
 
         this.api = retrofit.create(OpenAiApi.class);
         this.executorService = client.dispatcher().executorService();
@@ -106,6 +111,16 @@ public class OpenAiService {
             for (Interceptor interceptor : client.interceptors()) {
                 if (interceptor instanceof AuthenticationInterceptor) {
                     ((AuthenticationInterceptor) interceptor).setToken(token);
+                }
+            }
+        }
+    }
+
+    public void changeServer(String url) {
+        if (client != null && !TextUtils.isEmpty(url)) {
+            for (Interceptor interceptor : client.interceptors()) {
+                if (interceptor instanceof AuthenticationInterceptor) {
+                    ((AuthenticationInterceptor) interceptor).setUrl(url);
                 }
             }
         }
@@ -530,10 +545,25 @@ public class OpenAiService {
         this.executorService.shutdown();
     }
 
+    public static String formatUrl(String url) {
+
+        HttpUrl newBaseUrl = HttpUrl.parse(url);
+
+        if (newBaseUrl == null) return "";
+
+        String port = (newBaseUrl.port() == 80 || newBaseUrl.port() == 443) ?
+                "" : ":" + newBaseUrl.port();
+
+        String formatUrl = newBaseUrl.scheme() + "://" + newBaseUrl.host()
+                + port;
+
+        return formatUrl;
+    }
+
     public static OpenAiApi buildApi(String token, long second) {
         ObjectMapper mapper = defaultObjectMapper();
         OkHttpClient client = defaultClient(token, second);
-        Retrofit retrofit = defaultRetrofit(client, mapper);
+        Retrofit retrofit = defaultRetrofit(client, mapper, BASE_URL);
 
         return retrofit.create(OpenAiApi.class);
     }
@@ -561,9 +591,9 @@ public class OpenAiService {
                 .build();
     }
 
-    public static Retrofit defaultRetrofit(OkHttpClient client, ObjectMapper mapper) {
+    public static Retrofit defaultRetrofit(OkHttpClient client, ObjectMapper mapper, String url) {
         return new Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(url)
                 .client(client)
                 .addConverterFactory(JacksonConverterFactory.create(mapper))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())

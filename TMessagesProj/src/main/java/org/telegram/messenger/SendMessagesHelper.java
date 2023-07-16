@@ -828,7 +828,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             if (BuildVars.IS_CHAT_AIR) {
                 //初始化openAi
                 String token = UserConfig.getInstance(currentAccount).apiKey;
-                openAiService = new OpenAiService(token, 60);
+                String apiServer = UserConfig.getInstance(currentAccount).apiServer;
+                openAiService = new OpenAiService(token, 60, apiServer);
             }
         });
     }
@@ -1251,6 +1252,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             if ((mask & MessagesController.UPDATE_MASK_API_KEY) != 0) {
                 if (openAiService != null) {
                     openAiService.changeToken(UserConfig.getInstance(currentAccount).apiKey);
+                }
+            } else if ((mask & MessagesController.UPDATE_MASK_API_SERVER) != 0) {
+                if (openAiService != null) {
+                    openAiService.changeServer(UserConfig.getInstance(currentAccount).apiServer);
                 }
             }
         }

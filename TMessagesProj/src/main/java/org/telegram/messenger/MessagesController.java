@@ -879,6 +879,7 @@ public class MessagesController extends BaseController implements NotificationCe
     public static int PROMO_TYPE_OTHER = 2;
 
     public static int UPDATE_MASK_API_KEY = 16777216;
+    public static int UPDATE_MASK_API_SERVER = 33554432;
 
     public static int UPDATE_MASK_CHAT_AIR_PROMPT = 1024;
     public static int UPDATE_MASK_CHAT_AIR_AI_MODEL = 2048;
