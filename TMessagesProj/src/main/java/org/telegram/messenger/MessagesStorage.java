@@ -10719,6 +10719,7 @@ public class MessagesStorage extends BaseController {
                     }
 
 
+                    //普通消息写入数据库
                     for (int i = 0; i < 2; i++) {
                         boolean isTopic = i == 1;
                         if (threadMessageId != 0 && !isTopic) {
@@ -10959,6 +10960,7 @@ public class MessagesStorage extends BaseController {
                 state_dialogs_update = database.executeFast("UPDATE dialogs SET date = ?, unread_count = ?, last_mid = ?, last_mid_group = ?, unread_count_i = ? WHERE did = ?");
                 state_topics_update = database.executeFast("UPDATE topics SET unread_count = ?, top_message = ?, unread_mentions = ?, total_messages_count = ? WHERE did = ? AND topic_id = ?");
 
+                //更新dialogs数据库
                 ArrayList<Long> dids = new ArrayList<>();
                 for (int a = 0; a < messagesMap.size(); a++) {
                     long key = messagesMap.keyAt(a);
@@ -11238,15 +11240,19 @@ public class MessagesStorage extends BaseController {
                     database.commitTransaction();
                     databaseInTransaction = false;
                 }
+                //更新数据库未读已读
                 updateFiltersReadCounter(newMessagesCounts, newMentionsCounts, false);
                 loadGroupedMessagesForTopicUpdates(topicUpdatesInUi);
+                //更新内存未读已读
                 getMessagesController().processDialogsUpdateRead(messagesCounts, mentionCounts);
                 getMessagesController().getTopicsController().processUpdate(topicUpdatesInUi);
 
+                //下载媒体文件
                 if (downloadMediaMask != 0) {
                     int downloadMediaMaskFinal = downloadMediaMask;
                     AndroidUtilities.runOnUIThread(() -> getDownloadController().newDownloadObjectsAvailable(downloadMediaMaskFinal));
                 }
+                //更新小部件
                 updateWidgets(dids);
             }
         } catch (Exception e) {

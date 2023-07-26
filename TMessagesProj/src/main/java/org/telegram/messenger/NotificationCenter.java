@@ -71,7 +71,8 @@ public class NotificationCenter {
     public static final int mainUserInfoChanged = totalEvents++;
     public static final int privacyRulesUpdated = totalEvents++;
     public static final int updateMessageMedia = totalEvents++;
-    public static final int replaceMessagesObjects = totalEvents++;
+    public static final int replaceMessagesObjects = totalEvents++;//替换消息实体
+    public static final int updateMessagesObjects = totalEvents++;//更新消息实体
     public static final int didSetPasscode = totalEvents++;
     public static final int passcodeDismissed = totalEvents++;
     public static final int twoStepPasswordChanged = totalEvents++;
@@ -280,6 +281,8 @@ public class NotificationCenter {
     public static int didUpdateGlobalAutoDeleteTimer = totalEvents++;
     public static int onDatabaseReset = totalEvents++;
     public static final int showAlert = totalEvents++;
+    public static final int cancelRequest = totalEvents++;
+    public static final int updateSteam = totalEvents++;
 
     public static boolean alreadyLogged;
 

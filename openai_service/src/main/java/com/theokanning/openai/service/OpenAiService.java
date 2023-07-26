@@ -34,7 +34,10 @@ import com.theokanning.openai.moderation.ModerationResult;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.WeakHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -75,6 +78,7 @@ public class OpenAiService {
     private final ExecutorService executorService;
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private final WeakHashMap<String, Call<ResponseBody>> requestList = new WeakHashMap();
 
     public final int listModels = 1;
 
@@ -100,10 +104,10 @@ public class OpenAiService {
 
         ObjectMapper mapper = defaultObjectMapper();
         this.client = defaultClient(token, second);
-        Retrofit retrofit = defaultRetrofit(client, mapper, baseUrl);
+        this.executorService = client.dispatcher().executorService();
+        Retrofit retrofit = defaultRetrofit(client, mapper, baseUrl, this.executorService);
 
         this.api = retrofit.create(OpenAiApi.class);
-        this.executorService = client.dispatcher().executorService();
     }
 
     public void changeToken(String token) {
@@ -330,7 +334,7 @@ public class OpenAiService {
         }
     }
 
-    public void  loading(ResultCallBack resultCallBack) {
+    public void loading(ResultCallBack resultCallBack) {
         Observable.interval(0, 5, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<Long>() {
@@ -356,11 +360,50 @@ public class OpenAiService {
                 });
     }
 
-    public <T> void baseCompletion(int type ,CompletionCallBack<T> callBack) {
+    private Disposable streamLoadingDisposable;
+
+    public void loading(StreamCallBack streamCallBack) {
+
+        Observable.interval(0, 5, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Long>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+                        streamLoadingDisposable = d;
+                        compositeDisposable.add(d);
+                    }
+
+                    @Override
+                    public void onNext(@NonNull Long aLong) {
+                        if (isStreamFirstLoading) {
+                            if (streamCallBack != null) streamCallBack.onLoading(true);
+                        } else {
+                            if (streamLoadingDisposable != null) {
+                                compositeDisposable.remove(streamLoadingDisposable);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        if (streamLoadingDisposable != null) {
+                            compositeDisposable.remove(streamLoadingDisposable);
+                        }
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    public <T> void baseCompletion(int type, CompletionCallBack<T> callBack) {
         sortCompletion(type, null, callBack);
     }
 
-    public <T> void sortCompletion(int type, CompletionRequest completionRequest, CompletionCallBack<T> callBack) {
+    public <T> void sortCompletion(int type, CompletionRequest completionRequest,
+                                   CompletionCallBack<T> callBack) {
 
         switch (type) {
             case listModels: {
@@ -393,24 +436,24 @@ public class OpenAiService {
                     @Override
                     public void onError(@NonNull Throwable throwable) {
 
-                        HttpException e = null;
+                        HttpException e;
                         if (throwable instanceof HttpException) {
                             e = (HttpException) throwable;
                         } else {
                             callBack.onError(null, throwable);
+                            return;
                         }
 
                         try {
-                            if (e == null || e.response() == null || e.response().errorBody() == null) {
+                            if (e.response() == null || e.response().errorBody() == null) {
                                 callBack.onError(null, throwable);
-                                return;
-                            }
-                            String errorBody = e.response().errorBody().string();
+                            } else {
+                                String errorBody = e.response().errorBody().string();
 
-                            OpenAiError error = mapper.readValue(errorBody, OpenAiError.class);
-                            callBack.onError(new OpenAiHttpException(error, e, e.code()),
-                                    throwable);
-//                                throw new OpenAiHttpException(error, e, e.code());
+                                OpenAiError error = mapper.readValue(errorBody, OpenAiError.class);
+                                callBack.onError(new OpenAiHttpException(error, e, e.code()),
+                                        throwable);
+                            }
                         } catch (IOException ex) {
                             // couldn't parse OpenAI error
                             callBack.onError(null, throwable);
@@ -441,37 +484,37 @@ public class OpenAiService {
                     @Override
                     public void onSuccess(@NonNull T t) {
                         resultCallBack.onSuccess((ChatCompletionResult) t);
-                        compositeDisposable.clear();
                         resultCallBack.onLoading(false);
+                        compositeDisposable.clear();
                     }
 
                     @Override
                     public void onError(@NonNull Throwable throwable) {
 
-                        HttpException e = null;
+                        HttpException e;
                         if (throwable instanceof HttpException) {
                             e = (HttpException) throwable;
                         } else {
                             resultCallBack.onError(null, throwable);
+                            return;
                         }
 
                         try {
-                            if (e == null || e.response() == null || e.response().errorBody() == null) {
+                            if (e.response() == null || e.response().errorBody() == null) {
                                 resultCallBack.onError(null, throwable);
-                                return;
-                            }
-                            String errorBody = e.response().errorBody().string();
+                            } else {
+                                String errorBody = e.response().errorBody().string();
 
-                            OpenAiError error = mapper.readValue(errorBody, OpenAiError.class);
-                            resultCallBack.onError(new OpenAiHttpException(error, e, e.code()),
-                                    throwable);
-//                                throw new OpenAiHttpException(error, e, e.code());
+                                OpenAiError error = mapper.readValue(errorBody, OpenAiError.class);
+                                resultCallBack.onError(new OpenAiHttpException(error, e, e.code()),
+                                        throwable);
+                            }
                         } catch (IOException ex) {
                             // couldn't parse OpenAI error
                             resultCallBack.onError(null, throwable);
                         } finally {
-                            compositeDisposable.clear();
                             resultCallBack.onLoading(false);
+                            compositeDisposable.clear();
                         }
 
                     }
@@ -479,8 +522,94 @@ public class OpenAiService {
 
     }
 
+    private volatile boolean isStreamFirstLoading;
+    private StreamCallBack streamCallBack;
+
+    public void streamChatCompletion(ChatCompletionRequest request, StreamCallBack callBack) {
+
+        request.setStream(true);
+        isStreamFirstLoading = true;
+        loading(callBack);
+        //因为on在取消stream请求的问题（具体看ResponseBodyCallback），无法执行onCompletion，所以需要折中调用onCompletion
+        streamCallBack = callBack;
+
+        Call<ResponseBody> apiCall = api.createChatCompletionStream(request);
+        Disposable disposable = stream(apiCall, ChatCompletionChunk.class)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .forEachWhile(chatCompletionChunk -> {
+
+                            if (isStreamFirstLoading) {
+                                isStreamFirstLoading = false;
+                                if (streamCallBack != null) streamCallBack.onLoading(false);
+                            }
+
+                            if (streamCallBack != null) streamCallBack.onSuccess(chatCompletionChunk);
+
+                            //返回true代表继续回调，false代表执行完成回调
+                            return chatCompletionChunk.getChoices() == null
+                                    || chatCompletionChunk.getChoices().size() <= 0
+                                    || chatCompletionChunk.getChoices().get(0).getFinishReason() == null;
+                        },
+                        throwable -> {
+
+                            HttpException e;
+                            if (throwable instanceof HttpException) {
+                                e = (HttpException) throwable;
+                            } else {
+                                if (streamCallBack != null) streamCallBack.onError(null, throwable);
+                                return;
+                            }
+
+                            try {
+                                if (e.response() == null || e.response().errorBody() == null) {
+                                    if (streamCallBack != null)
+                                        streamCallBack.onError(null, throwable);
+                                } else {
+                                    String errorBody = e.response().errorBody().string();
+
+                                    OpenAiError error = mapper.readValue(errorBody,
+                                            OpenAiError.class);
+                                    if (streamCallBack != null)
+                                        streamCallBack.onError(new OpenAiHttpException(error, e,
+                                                        e.code()),
+                                                throwable);
+                                }
+                            } catch (IOException ex) {
+                                // couldn't parse OpenAI error
+                                if (streamCallBack != null) streamCallBack.onError(null, throwable);
+                            } finally {
+                                if (streamCallBack != null) streamCallBack.onLoading(false);
+                                streamCallBack = null;
+                                compositeDisposable.clear();
+                            }
+                        },
+                        () -> {
+                            if (streamCallBack != null) streamCallBack.onCompletion();
+                            streamCallBack = null;
+                            compositeDisposable.clear();
+                        });
+
+        compositeDisposable.add(disposable);
+        requestList.put("streamChatCompletion", apiCall);
+    }
+
+    public interface StreamCallBack {
+
+        void onSuccess(ChatCompletionChunk result);
+
+        void onError(OpenAiHttpException error, Throwable Throwable);
+
+        void onCompletion();
+
+        void onLoading(boolean isLoading);
+
+    }
+
+
     public interface CompletionCallBack<T> {
         void onSuccess(Object o);
+
         void onError(OpenAiHttpException error, Throwable Throwable);
     }
 
@@ -493,7 +622,6 @@ public class OpenAiService {
         void onLoading(boolean isLoading);
 
     }
-
 
 
     /**
@@ -513,6 +641,9 @@ public class OpenAiService {
      * @param emitDone If true the last message ([DONE]) is emitted
      */
     public static Flowable<SSE> stream(Call<ResponseBody> apiCall, boolean emitDone) {
+        //apiCall.enqueue为retrofit手动调用okHttp，所以默认情况下，在Android平台，因为平台判断
+        //所以默认回调在主线程，但是这里ResponseBodyCallback内部进行数据读写、网络等耗时操作，需要在子线程进行操作
+        //方法有两种，可以在retrofit传入线程池，或者ResponseBodyCallback回调中切换到子线程
         return Flowable.create(emitter -> apiCall.enqueue(new ResponseBodyCallback(emitter,
                 emitDone)), BackpressureStrategy.BUFFER);
     }
@@ -525,12 +656,35 @@ public class OpenAiService {
      * @param cl      Class of type T to return
      */
     public static <T> Flowable<T> stream(Call<ResponseBody> apiCall, Class<T> cl) {
+
         return stream(apiCall).map(sse -> mapper.readValue(sse.getData(), cl));
     }
 
+    public void clearRequest() {
+
+        //todo rxJava的通用网络请求取消未做
+        for (Map.Entry<String, Call<ResponseBody>> entry : requestList.entrySet()) {
+            Call<ResponseBody> call = entry.getValue();
+
+            if (call != null && call.isExecuted() && !call.isCanceled()) {
+                call.cancel();
+            }
+        }
+        requestList.clear();
+    }
+
     public void clean() {
+        clean(true);
+    }
+
+    public void clean(boolean isExecutor) {
+        clearRequest();
+        if (streamCallBack != null){
+            streamCallBack.onLoading(false);
+            streamCallBack.onCompletion();
+        }
         compositeDisposable.clear();
-        shutdownExecutor();
+        if (isExecutor) shutdownExecutor();
     }
 
     /**
@@ -563,7 +717,8 @@ public class OpenAiService {
     public static OpenAiApi buildApi(String token, long second) {
         ObjectMapper mapper = defaultObjectMapper();
         OkHttpClient client = defaultClient(token, second);
-        Retrofit retrofit = defaultRetrofit(client, mapper, BASE_URL);
+        Retrofit retrofit = defaultRetrofit(client, mapper, BASE_URL,
+                client.dispatcher().executorService());
 
         return retrofit.create(OpenAiApi.class);
     }
@@ -585,18 +740,20 @@ public class OpenAiService {
 
         return new OkHttpClient.Builder()
                 .addInterceptor(new AuthenticationInterceptor(token))
-                .addInterceptor(loggingInterceptor)
+//                .addInterceptor(loggingInterceptor)
                 .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
                 .readTimeout(second * 1000, TimeUnit.MILLISECONDS)
                 .build();
     }
 
-    public static Retrofit defaultRetrofit(OkHttpClient client, ObjectMapper mapper, String url) {
+    public static Retrofit defaultRetrofit(OkHttpClient client, ObjectMapper mapper, String url,
+                                           Executor executor) {
         return new Retrofit.Builder()
                 .baseUrl(url)
                 .client(client)
                 .addConverterFactory(JacksonConverterFactory.create(mapper))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .callbackExecutor(executor)
                 .build();
     }
 }

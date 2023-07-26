@@ -395,7 +395,7 @@ public class MessagesController extends BaseController implements NotificationCe
     public int chatReadMarkSizeThreshold;
     public int chatReadMarkExpirePeriod;
     public String mapKey;
-    public int maxMessageLength;
+    public int maxMessageLength;//最大单次聊天长度
     public int maxCaptionLength;
     public int roundVideoSize;
     public int roundVideoBitrate;
@@ -1188,7 +1188,7 @@ public class MessagesController extends BaseController implements NotificationCe
         updateCheckDelay = mainPreferences.getInt("updateCheckDelay", 24 * 60 * 60);
         maxFolderPinnedDialogsCountDefault = mainPreferences.getInt("maxFolderPinnedDialogsCountDefault", 100);
         maxFolderPinnedDialogsCountPremium = mainPreferences.getInt("maxFolderPinnedDialogsCountPremium", 100);
-        maxMessageLength = mainPreferences.getInt("maxMessageLength", 4096);
+        maxMessageLength = mainPreferences.getInt("maxMessageLength", BuildVars.IS_CHAT_AIR ? 16384 : 4096);
         maxCaptionLength = mainPreferences.getInt("maxCaptionLength", 1024);
         mapProvider = mainPreferences.getInt("mapProvider", 0);
         availableMapProviders = mainPreferences.getInt("availableMapProviders", 3);
@@ -1237,10 +1237,10 @@ public class MessagesController extends BaseController implements NotificationCe
         savedGifsLimitPremium = mainPreferences.getInt("savedGifsLimitPremium", 400);
         stickersFavedLimitDefault = mainPreferences.getInt("stickersFavedLimitDefault", 5);
         stickersFavedLimitPremium = mainPreferences.getInt("stickersFavedLimitPremium", 200);
-        maxPinnedDialogsCountDefault = mainPreferences.getInt("maxPinnedDialogsCountDefault", 5);
-        maxPinnedDialogsCountPremium = mainPreferences.getInt("maxPinnedDialogsCountPremium", 5);
-        maxPinnedDialogsCountDefault = mainPreferences.getInt("maxPinnedDialogsCountDefault", 5);
-        maxPinnedDialogsCountPremium = mainPreferences.getInt("maxPinnedDialogsCountPremium", 5);
+        maxPinnedDialogsCountDefault = mainPreferences.getInt("maxPinnedDialogsCountDefault", BuildVars.IS_CHAT_AIR ? 100 : 5);
+        maxPinnedDialogsCountPremium = mainPreferences.getInt("maxPinnedDialogsCountPremium", BuildVars.IS_CHAT_AIR ? 100 : 5);
+        maxPinnedDialogsCountDefault = mainPreferences.getInt("maxPinnedDialogsCountDefault", BuildVars.IS_CHAT_AIR ? 100 : 5);
+        maxPinnedDialogsCountPremium = mainPreferences.getInt("maxPinnedDialogsCountPremium", BuildVars.IS_CHAT_AIR ? 100 : 5);
         dialogFiltersLimitDefault = mainPreferences.getInt("dialogFiltersLimitDefault", 10);
         dialogFiltersLimitPremium = mainPreferences.getInt("dialogFiltersLimitPremium", 20);
         dialogFiltersChatsLimitDefault = mainPreferences.getInt("dialogFiltersChatsLimitDefault", 100);
@@ -13316,6 +13316,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     message.media = new TLRPC.TL_messageMediaEmpty();
 
                     if (BuildVars.IS_CHAT_AIR) {
+                        //载入额外配置
                         message.chat_air = updates.chat_air;
                         message.promptTokens = updates.promptTokens;
                         message.completionTokens = updates.completionTokens;

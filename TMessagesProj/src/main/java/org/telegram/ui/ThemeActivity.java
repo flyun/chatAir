@@ -200,6 +200,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
     private int appIconSelectorRow;
     private int appIconShadowRow;
 
+    private int streamResponsesRow;
+
     private int rowCount;
 
     private boolean updatingLocation;
@@ -553,6 +555,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         editThemeRow = -1;
         createNewThemeRow = -1;
 
+        streamResponsesRow = -1;
+
         appIconHeaderRow = -1;
         appIconSelectorRow = -1;
         appIconShadowRow = -1;
@@ -672,6 +676,12 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 //设置距离单位类型
                 distanceRow = rowCount++;
             }
+
+            if (BuildVars.IS_CHAT_AIR) {
+                //流式响应输出
+                streamResponsesRow = rowCount++;
+            }
+
             settings2Row = rowCount++;
         } else {
             //暗黑模式设置
@@ -1058,6 +1068,16 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 editor.commit();
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(!send);
+                }
+            } else if (position == streamResponsesRow) {
+
+                boolean isStreamResponses = getUserConfig().streamResponses;
+
+                getUserConfig().streamResponses = !isStreamResponses;
+                getUserConfig().saveConfig(false);
+
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(!isStreamResponses);
                 }
             } else if (position == raiseToSpeakRow) {
                 SharedConfig.toogleRaiseToSpeak();
@@ -2286,6 +2306,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                     } else if (position == sendByEnterRow) {
                         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
                         textCheckCell.setTextAndCheck(LocaleController.getString("SendByEnter", R.string.SendByEnter), preferences.getBoolean("send_by_enter", BuildVars.IS_CHAT_AIR ? true : false), true);
+                    } else if (position == streamResponsesRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString("StreamResponses", R.string.StreamResponses), getUserConfig().streamResponses, true);
                     } else if (position == raiseToSpeakRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("RaiseToSpeak", R.string.RaiseToSpeak), SharedConfig.raiseToSpeak, true);
                     } else if (position == pauseOnRecordRow) {
@@ -2412,7 +2434,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 return TYPE_BRIGHTNESS;
             } else if (position == scheduleLocationRow || position == enableAnimationsRow || position == sendByEnterRow ||
                     position == raiseToSpeakRow || position == pauseOnRecordRow || position == customTabsRow ||
-                    position == directShareRow || position == chatBlurRow) {
+                    position == directShareRow || position == chatBlurRow || position == streamResponsesRow) {
                 return TYPE_TEXT_CHECK;
             } else if (position == textSizeRow) {
                 return TYPE_TEXT_SIZE;

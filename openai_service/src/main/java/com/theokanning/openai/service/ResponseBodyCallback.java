@@ -1,17 +1,18 @@
 package com.theokanning.openai.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.theokanning.openai.OpenAiError;
+import com.theokanning.openai.OpenAiHttpException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.theokanning.openai.OpenAiError;
-import com.theokanning.openai.OpenAiHttpException;
-
 import io.reactivex.FlowableEmitter;
-
 import okhttp3.ResponseBody;
+import okhttp3.internal.http2.ErrorCode;
+import okhttp3.internal.http2.StreamResetException;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.HttpException;
@@ -78,15 +79,29 @@ public class ResponseBodyCallback implements Callback<ResponseBody> {
             }
 
             emitter.onComplete();
-
         } catch (Throwable t) {
-            onFailure(call, t);
+            boolean isCancel = false;
+            //手动取消流请求会抛出异常ErrorCode.CANCEL，所以需要手动判断为完成。
+            //https://github.com/square/okhttp/issues/2964
+            if (t instanceof StreamResetException) {
+                StreamResetException resetException = (StreamResetException) t;
+                if (resetException.errorCode.httpCode == ErrorCode.CANCEL.httpCode) {
+                    isCancel = true;
+                }
+            }
+            if (isCancel) {
+                //并不会调用下游，只不过会取消从队列中继续取从而return。
+                // 正常完成会，从线程池取run执行next。从而执行下游onComplete。还需要进一步研究
+                emitter.onComplete();
+            } else {
+                onFailure(call, t);
+            }
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
                 } catch (IOException e) {
-					// do nothing
+                    // do nothing
                 }
             }
         }
@@ -94,6 +109,19 @@ public class ResponseBodyCallback implements Callback<ResponseBody> {
 
     @Override
     public void onFailure(Call<ResponseBody> call, Throwable t) {
-        emitter.onError(t);
+
+        //在stream发出请求，没有接收到返回之前，手动取消调用时就会发生错误 IOException Canceled
+        //https://stackoverflow.com/questions/40823134
+        boolean isCancel = false;
+        if (t instanceof IOException) {
+            if ("Canceled".equals(t.getMessage())){
+                isCancel = true;
+            }
+        }
+        if (isCancel) {
+            emitter.onComplete();
+        } else {
+            emitter.onError(t);
+        }
     }
 }

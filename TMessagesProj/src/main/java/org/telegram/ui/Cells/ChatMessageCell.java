@@ -13283,7 +13283,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
 
         //绘制信息到达时间以及是否已读
-        if ((drawTime || !mediaBackground) && !forceNotDrawTime && !transitionParams.animateBackgroundBoundsInner && !(enterTransitionInProgress && !currentMessageObject.isVoice()) && !BuildVars.IS_CHAT_AIR) {
+        if ((drawTime || !mediaBackground) && !forceNotDrawTime && !transitionParams.animateBackgroundBoundsInner && !(enterTransitionInProgress && !currentMessageObject.isVoice())) {
             drawTime(canvas, 1f, false);
         }
 
@@ -15690,7 +15690,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     //绘制时间以及未读已读
     public void drawTime(Canvas canvas, float alpha, boolean fromParent) {
-        if (!drawFromPinchToZoom && delegate != null && delegate.getPinchToZoomHelper() != null && delegate.getPinchToZoomHelper().isInOverlayModeFor(this) && shouldDrawTimeOnMedia()) {
+        if (BuildVars.IS_CHAT_AIR || !drawFromPinchToZoom && delegate != null && delegate.getPinchToZoomHelper() != null && delegate.getPinchToZoomHelper().isInOverlayModeFor(this) && shouldDrawTimeOnMedia()) {
             return;
         }
         for (int i = 0; i < 2; i++) {

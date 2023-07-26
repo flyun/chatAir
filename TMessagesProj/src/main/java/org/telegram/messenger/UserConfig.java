@@ -93,6 +93,9 @@ public class UserConfig extends BaseController {
     public final static int defaultContextLimit = 30;
     public final static int defaultTokenLimit = -100;
 
+    public final static boolean defaultStreamResponses = true;
+
+
     public final static String defaultApiServer = "https://api.openai.com";
 
     public int aiModel = defaultAiModel;
@@ -102,6 +105,8 @@ public class UserConfig extends BaseController {
 
     public String apiKey;
     public String apiServer = defaultApiServer;
+
+    public boolean streamResponses = defaultStreamResponses;
 
 
     private static volatile UserConfig[] Instance = new UserConfig[UserConfig.MAX_ACCOUNT_COUNT];
@@ -226,6 +231,7 @@ public class UserConfig extends BaseController {
                         editor.putInt("tokenLimit", tokenLimit);
                         editor.putString("apiKey", apiKey);
                         editor.putString("apiServer", apiServer);
+                        editor.putBoolean("streamResponses", streamResponses);
                     }
 
                     if (unacceptedTermsOfService != null) {
@@ -444,6 +450,7 @@ public class UserConfig extends BaseController {
                 tokenLimit = preferences.getInt("tokenLimit", defaultTokenLimit);
                 apiKey = preferences.getString("apiKey", "");
                 apiServer = preferences.getString("apiServer", defaultApiServer);
+                streamResponses = preferences.getBoolean("streamResponses", defaultStreamResponses);
             }
 
             configLoaded = true;

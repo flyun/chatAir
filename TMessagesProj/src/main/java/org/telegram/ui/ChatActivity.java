@@ -2278,6 +2278,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.voiceTranscriptionUpdate);
         getNotificationCenter().addObserver(this, NotificationCenter.animatedEmojiDocumentLoaded);
         getNotificationCenter().addObserver(this, NotificationCenter.replaceMessagesObjects);
+        getNotificationCenter().addObserver(this, NotificationCenter.updateMessagesObjects);
         getNotificationCenter().addObserver(this, NotificationCenter.notificationsSettingsUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.replyMessagesDidLoad);
         getNotificationCenter().addObserver(this, NotificationCenter.didReceivedWebpages);
@@ -2561,6 +2562,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
+        if (BuildVars.IS_CHAT_AIR && getSendMessagesHelper().isRequesting()) {
+            getNotificationCenter().postNotificationName(NotificationCenter.cancelRequest);
+        }
         if (chatActivityEnterView != null) {
             chatActivityEnterView.onDestroy();
         }
@@ -2620,6 +2624,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.voiceTranscriptionUpdate);
         getNotificationCenter().removeObserver(this, NotificationCenter.animatedEmojiDocumentLoaded);
         getNotificationCenter().removeObserver(this, NotificationCenter.replaceMessagesObjects);
+        getNotificationCenter().removeObserver(this, NotificationCenter.updateMessagesObjects);
         getNotificationCenter().removeObserver(this, NotificationCenter.notificationsSettingsUpdated);
         getNotificationCenter().removeObserver(this, NotificationCenter.replyMessagesDidLoad);
         getNotificationCenter().removeObserver(this, NotificationCenter.didReceivedWebpages);
@@ -17805,15 +17810,29 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             }
+        } else if (id == NotificationCenter.updateMessagesObjects) {
+            long did = (long) args[0];
+            if (did != dialog_id || args[1] == null) {
+                return;
+            }
+
+            ArrayList<TLRPC.Message> messageObjects = (ArrayList<TLRPC.Message>) args[1];
+            updateMessageObjects(messageObjects);
+
         } else if (id == NotificationCenter.replaceMessagesObjects) {
             long did = (long) args[0];
             if (did != dialog_id && did != mergeDialogId) {
                 return;
             }
             int loadIndex = did == dialog_id ? 0 : 1;
+            //延迟更新，在执行动画比如滑动，就不更新文本
             doOnIdle(() -> {
                 ArrayList<MessageObject> messageObjects = (ArrayList<MessageObject>) args[1];
                 replaceMessageObjects(messageObjects, loadIndex, false);
+
+                if (avatarContainer != null) {
+                    avatarContainer.updateSubtitle(true);
+                }
             });
         } else if (id == NotificationCenter.notificationsSettingsUpdated) {
             updateTitleIcons();
@@ -20157,6 +20176,24 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    private void updateMessageObjects(ArrayList<TLRPC.Message> messageObjects) {
+        for (int a = 0; a < messageObjects.size(); a++) {
+            TLRPC.Message message = messageObjects.get(a);
+
+            for (MessageObject messageObject : messages) {
+                if (messageObject.messageOwner.id == message.id) {
+
+                    messageObject.messageOwner.message = message.message;
+                    messageObject.forceUpdate = true;
+
+                    //更新内存
+                    SendMessagesHelper.getInstance(currentAccount).editMessage(messageObject, null, null, null, null, null, false, false, null, true, true);
+                    break;
+                }
+            }
+        }
+    }
+
     private void replaceMessageObjects(ArrayList<MessageObject> messageObjects, int loadIndex, boolean remove) {
         LongSparseArray<MessageObject.GroupedMessages> newGroups = null;
         for (int a = 0; a < messageObjects.size(); a++) {
@@ -20175,6 +20212,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (loadIndex == 0 && repliesMessagesDict.indexOfKey(messageObject.getId()) >= 0) {
                 repliesMessagesDict.put(messageObject.getId(), messageObject);
             }
+            //检测发送时间是否一致
             if (old == null || remove && old.messageOwner.date != messageObject.messageOwner.date) {
                 continue;
             }
@@ -20183,6 +20221,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 a--;
             }
 
+            //加入缓存池
             addToPolls(messageObject, old);
             if (messageObject.type >= 0) {
                 if (old.replyMessageObject != null) {
@@ -20193,6 +20232,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         messageObject.generatePaymentSentMessageText(null);
                     }
                 }
+                //如果旧的聊天实体不处于编辑状态，就检查媒体存在状态
                 if (!old.isEditing()) {
                     if (old.getFileName().equals(messageObject.getFileName())) {
                         messageObject.messageOwner.attachPath = old.messageOwner.attachPath;
@@ -20253,6 +20293,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
                 if (messageObject.type >= 0) {
+                    //复制表情等参数
                     messageObject.copyStableParams(old);
                     messages.set(index, messageObject);
                     if (chatAdapter != null) {
@@ -20262,6 +20303,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         dayArr.set(index2, messageObject);
                     }
                 } else {
+                    //移除异常的消息
                     messages.remove(index);
                     if (chatAdapter != null) {
                         chatAdapter.notifyItemRemoved(chatAdapter.messagesStartRow + index);
@@ -20286,6 +20328,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             }
+            //更新其他消息体中回复的信息
             updateReplyMessageOwners(old.getId(), messageObject);
         }
         if (newGroups != null) {
@@ -23421,6 +23464,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (!single && message.messageOwner.action instanceof TLRPC.TL_messageActionGiftPremium) {
             return false;
         }
+
+        if (BuildVars.IS_CHAT_AIR && message.messageOwner.action
+                instanceof  TLRPC.TL_messageActionClearContext) {
+            return false;
+        }
+
         final int type = getMessageType(message);
         if (single) {
             if (message.messageOwner.action instanceof TLRPC.TL_messageActionPinMessage) {
@@ -25430,6 +25479,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         mentionContainer.getAdapter().setNeedBotContext(false);
         chatActivityEnterView.setVisibility(View.VISIBLE);
+        //载入消息实体
         showFieldPanelForEdit(true, messageObject);
         updateBottomOverlay();
         checkEditTimer();
@@ -29204,6 +29254,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         return chatMessageCellDelegate;
     }
+    //聊天item内部信息详细点击事件
     private class ChatMessageCellDelegate implements ChatMessageCell.ChatMessageCellDelegate {
         @Override
         public boolean isReplyOrSelf() {

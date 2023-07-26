@@ -408,6 +408,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     private ActionBarPopupWindow sendPopupWindow;
     private ActionBarPopupWindow.ActionBarPopupWindowLayout sendPopupLayout;
     private ImageView cancelBotButton;
+    private ImageView cancelStreamButton;
     private ChatActivityEnterViewAnimatedIconView emojiButton;//表情按钮
     @Nullable
     private ImageView expandStickersButton;//贴纸按钮
@@ -1822,6 +1823,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.audioRecordTooShort);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateBotMenuButton);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didUpdatePremiumGiftFieldIcon);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateSteam);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
 
         parentActivity = context;
@@ -2239,6 +2241,23 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             } else {
                 setFieldText(text.substring(0, idx + 1));
             }
+        });
+
+        //对话流取消按钮
+        cancelStreamButton = new ImageView(context);
+        cancelStreamButton.setVisibility(GONE);
+        cancelStreamButton.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Drawable cancelStreamDrawable = context.getResources().getDrawable(R.drawable.ic_stop_circle).mutate();
+        cancelStreamDrawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_messagePanelSend), PorterDuff.Mode.MULTIPLY));
+        cancelStreamButton.setImageDrawable(cancelStreamDrawable);
+        cancelStreamButton.setContentDescription(LocaleController.getString("Cancel", R.string.Cancel));
+        cancelStreamButton.setSoundEffectsEnabled(false);
+        if (Build.VERSION.SDK_INT >= 21) {
+            cancelStreamButton.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector)));
+        }
+        textFieldContainer.addView(cancelStreamButton, LayoutHelper.createFrame(48, 48, Gravity.BOTTOM | Gravity.RIGHT));
+        cancelStreamButton.setOnClickListener(view -> {
+            NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.cancelRequest);
         });
 
         if (isInScheduleMode()) {
@@ -4578,6 +4597,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateBotMenuButton);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.didUpdatePremiumGiftFieldIcon);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateSteam);
         if (emojiView != null) {
             emojiView.onDestroy();
         }
@@ -4732,6 +4752,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.featuredStickersDidLoad);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messageReceivedByServer);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.sendingMessagesChanged);
+            NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateSteam);
             currentAccount = account;
             accountInstance = AccountInstance.getInstance(currentAccount);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.recordStarted);
@@ -4746,6 +4767,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.featuredStickersDidLoad);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messageReceivedByServer);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.sendingMessagesChanged);
+            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateSteam);
         }
 
         sendPlainEnabled = true;
@@ -5312,6 +5334,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         }).show();
     }
 
+    //编辑信息
     public void doneEditingMessage() {
         if (editingMessageObject == null) {
             return;
@@ -9379,6 +9402,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
         } else if (id == NotificationCenter.didUpdatePremiumGiftFieldIcon) {
             updateGiftButton(true);
+        } else if (id == NotificationCenter.updateSteam) {
+            boolean isShow = (boolean) args[0];
+            cancelStreamButton.setVisibility(isShow ? VISIBLE : GONE);
+            sendButtonContainer.setVisibility(!isShow ? VISIBLE : GONE);
         }
     }
 
