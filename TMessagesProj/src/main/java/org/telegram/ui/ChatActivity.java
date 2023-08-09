@@ -318,6 +318,7 @@ import androidx.recyclerview.widget.LinearSmoothScrollerCustom;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+import io.noties.markwon.core.CorePlugin;
 
 //聊天页面
 @SuppressWarnings("unchecked")
@@ -3005,16 +3006,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     updatePinnedMessageView(true);
                     updateVisibleRows();
                 } else if (id == chat_menu_attach) {
-                    ActionBarMenuSubItem attach = new ActionBarMenuSubItem(context, false, true, true, getResourceProvider());
-                    attach.setTextAndIcon(LocaleController.getString("AttachMenu", R.string.AttachMenu), R.drawable.input_attach);
-                    attach.setOnClickListener(view -> {
-                        headerItem.closeSubMenu();
-                        if (chatAttachAlert != null) {
-                            chatAttachAlert.setEditingMessageObject(null);
-                        }
-                        openAttachMenu();
-                    });
-                    headerItem.toggleSubMenu(attach, attachItem.createView());
+                    if (!BuildVars.IS_CHAT_AIR) {
+                        ActionBarMenuSubItem attach = new ActionBarMenuSubItem(context, false, true, true, getResourceProvider());
+                        attach.setTextAndIcon(LocaleController.getString("AttachMenu", R.string.AttachMenu), R.drawable.input_attach);
+                        attach.setOnClickListener(view -> {
+                            headerItem.closeSubMenu();
+                            if (chatAttachAlert != null) {
+                                chatAttachAlert.setEditingMessageObject(null);
+                            }
+                            openAttachMenu();
+                        });
+                        headerItem.toggleSubMenu(attach, attachItem.createView());
+                    } else {
+                        headerItem.toggleSubMenu(null, attachItem.createView());
+                    }
                 } else if (id == bot_help) {
                     getSendMessagesHelper().sendMessage("/help", dialog_id, null, null, null, false, null, null, null, true, 0, null, false);
                 } else if (id == bot_settings) {
@@ -18384,6 +18389,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
         } else if (id == NotificationCenter.didSetNewWallpapper) {
+
+            if (BuildVars.IS_CHAT_AIR && UserConfig.getInstance(currentAccount).renderMarkdown) {
+                boolean isDark = Theme.getActiveTheme().isDark();
+                updateMarkdownDark(isDark);
+            }
+
             if (fragmentView != null) {
                 contentView.setBackgroundImage(Theme.getCachedWallpaper(), Theme.isWallpaperMotion());
                 progressView2.invalidate();
@@ -31639,7 +31650,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (!isThemeChangeAvailable() || (TextUtils.equals(oldEmoticon, newEmoticon) && this.isDark == newIsDark)) {
                 return;
             }
-            this.isDark = newIsDark;
+
+            if (BuildVars.IS_CHAT_AIR && UserConfig.getInstance(currentAccount).renderMarkdown) {
+                this.isDark = newIsDark;
+                updateMarkdownDark(isDark);
+            }
 
             Theme.ThemeInfo currentTheme = newIsDark ? Theme.getCurrentNightTheme() : Theme.getCurrentTheme();
             ActionBarLayout.ThemeAnimationSettings animationSettings = new ActionBarLayout.ThemeAnimationSettings(currentTheme, currentTheme.currentAccentId, currentTheme.isDark(), !animated);
@@ -32224,6 +32239,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             return ColorUtils.calculateLuminance(color) > 0.7f;
         }
         return super.isLightStatusBar();
+    }
+
+    private void updateMarkdownDark(boolean isDark) {
+        CorePlugin.IS_DARK = isDark;
     }
 
     public MessageObject.GroupedMessages getGroup(long id) {

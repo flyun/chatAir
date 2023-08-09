@@ -3566,6 +3566,7 @@
     <string name="MalformedUrl">Malformed url</string>
     <string name="ClearApiKey">Do you want to clear the API key?</string>
     <string name="StreamResponses">Streaming Responses</string>
+    <string name="RenderMarkdown">Render Markdown</string>
     <!--chatAir End-->
     <string name="VideoCall">Video Call</string>
     <string name="Copy">Copy</string>

@@ -681,6 +681,8 @@ public class OpenAiService {
         clearRequest();
         if (streamCallBack != null){
             streamCallBack.onLoading(false);
+        }
+        if (streamCallBack != null){
             streamCallBack.onCompletion();
         }
         compositeDisposable.clear();

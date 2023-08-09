@@ -1,0 +1,41 @@
+apply plugin: 'com.android.library'
+
+android {
+
+    compileSdkVersion 29
+    buildToolsVersion '29.0.3'
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 29
+        versionCode 1
+        versionName version
+    }
+}
+
+repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+
+    api project(':markwon-core')
+    api 'com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.13.0'
+
+//    deps.with {
+//        api it['commonmark-strikethrough']
+
+        // NB! ix-java dependency to be used in tests
+//        testImplementation it['ix-java']
+    }
+
+//    deps.test.with {
+//        testImplementation project(':markwon-test-span')
+//        testImplementation it['junit']
+//        testImplementation it['mockito']
+//        testImplementation it['robolectric']
+//    }
+//}
+
+//registerArtifact(this)

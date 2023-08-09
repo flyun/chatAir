@@ -1,0 +1,36 @@
+apply plugin: 'com.android.library'
+
+android {
+
+    compileSdkVersion 29
+    buildToolsVersion '29.0.3'
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 29
+        versionCode 1
+        versionName version
+    }
+}
+
+repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+
+    api project(':markwon-core')
+    api 'commons-io:commons-io:2.6'
+
+//    testImplementation project(':markwon-test-span')
+//    testImplementation deps['commons-io']
+//
+//    deps['test'].with {
+//
+//        testImplementation it['junit']
+//        testImplementation it['robolectric']
+//    }
+}
+
+//registerArtifact(this)

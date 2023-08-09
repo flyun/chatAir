@@ -72,6 +72,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import androidx.collection.LongSparseArray;
+import io.noties.markwon.Markwon;
+import io.noties.markwon.RenderProps;
+import io.noties.markwon.code.MainGrammarLocator;
+import io.noties.markwon.code.markwon.MarkwonHighlighter;
+import io.noties.markwon.code.theme.DefaultTheme;
+import io.noties.markwon.core.CorePlugin;
+import io.noties.markwon.core.CoreProps;
+import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
+import io.noties.markwon.ext.tables.TablePlugin;
+import io.noties.markwon.ext.tasklist.TaskListPlugin;
+import io.noties.markwon.html.HtmlPlugin;
 
 //消息bean类
 public class MessageObject {
@@ -120,7 +131,8 @@ public class MessageObject {
     public TLRPC.VideoSize emojiMarkup;
     private boolean emojiAnimatedStickerLoading;
     public String emojiAnimatedStickerColor;
-    public CharSequence messageText;
+    public CharSequence messageText;//聊天文字
+    public String tempMessage;//未Markdwon渲染的聊天文字
     public CharSequence messageTextShort;
     public CharSequence messageTextForReply;
     public CharSequence linkDescription;
@@ -253,6 +265,11 @@ public class MessageObject {
 
     public Object lastGeoWebFileSet;
     public Object lastGeoWebFileLoaded;
+
+    //markdown 渲染
+    public Markwon markwon;
+
+    private long messageLength;
 
     // forwarding preview params
     public boolean hideSendersName;
@@ -1112,6 +1129,7 @@ public class MessageObject {
     private static final int LINES_PER_BLOCK = 10;
     private static final int LINES_PER_BLOCK_WITH_EMOJI = 5;
 
+    //文字layout列表
     public ArrayList<TextLayoutBlock> textLayoutBlocks;
 
     public MessageObject(int accountNum, TLRPC.Message message, String formattedMessage, String name, String userName, boolean localMessage, boolean isChannel, boolean supergroup, boolean edit) {
@@ -3851,6 +3869,7 @@ public class MessageObject {
                         messageText = messageOwner.message;
                     }
                 } else {
+                    //配置聊天文字
                     messageText = messageOwner.message;
                 }
             }
@@ -4379,6 +4398,7 @@ public class MessageObject {
         return source;
     }
 
+    //替换格式化文本
     public static CharSequence replaceWithLink(CharSequence source, String param, TLObject object) {
         int start = TextUtils.indexOf(source, param);
         if (start >= 0) {
@@ -4416,6 +4436,52 @@ public class MessageObject {
         }
         return source;
     }
+
+    //更新markdown页面最大宽度、主题
+    public static void updateMarkdown(Markwon markwon, int maxWidth, Boolean isDark) {
+
+        if (markwon == null) return;
+
+        TablePlugin tablePlugin = markwon.getPlugin(TablePlugin.class);
+
+        if (tablePlugin != null){
+            tablePlugin.setMaxWidth(maxWidth);
+        }
+
+        CorePlugin corePlugin = markwon.getPlugin(CorePlugin.class);
+        if (corePlugin != null) {
+
+            RenderProps renderProps = markwon.getRenderProps();
+
+            CoreProps.MAX_WIDTH_SIZE.set(renderProps, maxWidth);
+
+            //todo 只能创建实例时生成代码颜色，无法实时渲染改变代码颜色。
+            // 加上本身messageObject缓存，重新进入页面也会保留
+            CorePlugin.IS_DARK = isDark;
+        }
+    }
+
+    //渲染markdown
+    private CharSequence replaceMarkdown(CharSequence source, TLObject object) {
+        if (object instanceof TLRPC.TL_message) {
+            if (!((TLRPC.TL_message) object).chat_air){
+                return source;
+            }
+
+            if (markwon == null) markwon = getMarkdwon();
+
+            Spanned spanned = null;
+            try {
+                spanned = markwon.toMarkdown(source.toString());
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+            return spanned;
+        }
+
+        return source;
+    }
+
 
     public String getExtension() {
         String fileName = getFileName();
@@ -5314,7 +5380,7 @@ public class MessageObject {
         return maxWidth;
     }
 
-    //布局并且计算文字长宽
+    //布局并且计算文字长宽，渲染文字样式
     public void generateLayout(TLRPC.User fromUser) {
         if (type != TYPE_TEXT && type != TYPE_EMOJIS || messageOwner.peer_id == null || TextUtils.isEmpty(messageText)) {
             return;
@@ -5346,6 +5412,7 @@ public class MessageObject {
                         isOut() && messageOwner.send_state != MESSAGE_SEND_STATE_SENT ||
                         messageOwner.id < 0 || getMedia(messageOwner) instanceof TLRPC.TL_messageMediaUnsupported);
 
+        //添加span
         if (useManualParse) {
             addLinks(isOutOwner(), messageText, true, true);
         } else {
@@ -5367,9 +5434,20 @@ public class MessageObject {
             }
         }
 
-        boolean hasUrls = addEntitiesToText(messageText, useManualParse);
+        //添加URL下划线以及点击事件
+        boolean hasUrls = BuildVars.IS_CHAT_AIR ? false : addEntitiesToText(messageText, useManualParse);
 
         int maxWidth = getMaxMessageTextWidth();
+        //替换markdown样式
+        if (BuildVars.IS_CHAT_AIR && UserConfig.getInstance(currentAccount).renderMarkdown) {
+            //处理旋转导致messageText.toString()获取的为markdown已经处理文本格式
+            if (TextUtils.isEmpty(tempMessage)
+                    || (messageOwner.message != null && messageOwner.message.length() != messageLength)) {
+                tempMessage = messageText.toString();
+                messageLength = messageOwner.message.length();
+            }
+            messageText = replaceMarkdown(tempMessage, this.messageOwner);
+        }
 
         StaticLayout textLayout;
 
@@ -5608,8 +5686,36 @@ public class MessageObject {
                 textWidth = Math.max(textWidth, Math.min(maxWidth, linesMaxWidth));
             }
 
+            if (BuildVars.IS_CHAT_AIR && UserConfig.getInstance(currentAccount).renderMarkdown) {
+                int replaceMaxWidth = currentBlockLinesCount > 1 ? Math.min(maxWidth, linesMaxWidth) : maxWidth;
+                if (replaceMaxWidth < 0) replaceMaxWidth = 0;
+
+                updateMarkdown(markwon, replaceMaxWidth, Theme.isCurrentThemeDark());
+            }
+
             linesOffset += currentBlockLinesCount;
         }
+    }
+
+    private Markwon getMarkdwon() {
+
+        markwon = Markwon.builder(ApplicationLoader.applicationContext)
+
+//                    .usePlugin(ImagesPlugin.create())//图片解析，需要修改
+//                    .usePlugin(GlideImagesPlugin.create(this))//Glide图片解析，需要修改
+//                    .usePlugin(JLatexMathPlugin.create(10f))//数学公式，需要修改
+//                    .usePlugin(TablePlugin.create(ApplicationLoader.applicationContext))//表格，需要修改
+//                    .usePlugin(MarkwonInlineParserPlugin.create())//内联解析器，允许自定义核心功能和扩展自己的功能
+
+                .usePlugin(HtmlPlugin.create())//HTML语言解析
+                .usePlugin(TaskListPlugin.create(ApplicationLoader.applicationContext))//任务列表
+                .usePlugin(StrikethroughPlugin.create())//删除线
+                .usePlugin(MarkwonHighlighter.create(ApplicationLoader.applicationContext,
+                                DefaultTheme.getDefaultTheme(ApplicationLoader.applicationContext),
+                                MainGrammarLocator.DEFAULT_FALLBACK_LANGUAGE))//代码块
+                .build();
+
+        return markwon;
     }
 
     public boolean isOut() {

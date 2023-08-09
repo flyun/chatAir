@@ -9,6 +9,8 @@ repositories {
 
 configurations {
     compile.exclude module: 'support-v4'
+    cleanedAnnotations
+    implementation.exclude group: 'org.jetbrains', module:'annotations'
 }
 
 configurations.all {
@@ -46,6 +48,22 @@ dependencies {
 
     implementation project(':openai_service')
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    implementation project(':markwon-core')
+    implementation project(':markwon-ext-tables')
+    implementation project(':markwon-ext-strikethrough')
+    implementation project(':markwon-ext-tasklist')
+    implementation project(':markwon-html')
+
+//    implementation 'io.noties.markwon:ext-latex:4.6.2'
+//    implementation 'io.noties.markwon:image:4.6.2'
+//    implementation 'io.noties.markwon:image-glide:4.6.2'
+//    implementation 'io.noties.markwon:inline-parser:4.6.2'
+//    implementation 'io.noties.markwon:linkify:4.6.2'
+//    implementation 'io.noties.markwon:recycler:4.6.2'
+//    implementation 'io.noties.markwon:recycler-table:4.6.2'
+//    implementation 'io.noties.markwon:syntax-highlight:4.6.2'
+//    implementation 'io.noties.markwon:simple-ext:4.6.2'
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 }

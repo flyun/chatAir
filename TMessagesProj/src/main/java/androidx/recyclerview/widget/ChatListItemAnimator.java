@@ -1283,6 +1283,7 @@ public class ChatListItemAnimator extends DefaultItemAnimator {
                 float finalToY = toY;
                 valueAnimator.addUpdateListener(animation -> {
                     float v = (float) animation.getAnimatedValue();
+                    //聊天页面透明度以及其他参数随添加item变化
                     messageCell.getTransitionParams().animateChangeProgress = v;
                     if (messageCell.getTransitionParams().animateChangeProgress > 1) {
                         messageCell.getTransitionParams().animateChangeProgress = 1f;

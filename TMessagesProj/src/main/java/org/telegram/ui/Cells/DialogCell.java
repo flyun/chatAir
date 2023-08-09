@@ -948,7 +948,21 @@ public class DialogCell extends BaseCell {
             message.updateTranslation();
         }
         //移除下划线以及粗体
-        CharSequence msgText = message != null ? message.messageText : null;
+        CharSequence msgText;
+        if (BuildVars.IS_CHAT_AIR) {
+            //移除markdown样式
+            if (message != null) {
+                msgText = message.messageOwner != null ? message.messageOwner.message : null;
+                if (TextUtils.isEmpty(msgText)) {
+                    msgText = !TextUtils.isEmpty(message.tempMessage) ?
+                            message.tempMessage : message.messageText.toString();
+                }
+            } else {
+                msgText = null;
+            }
+        } else {
+            msgText = message != null ? message.messageText : null;
+        }
         if (msgText instanceof Spannable) {
             Spannable sp = new SpannableStringBuilder(msgText);
             for (Object span : sp.getSpans(0, sp.length(), URLSpanNoUnderlineBold.class))

@@ -41,19 +41,11 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.Keep;
-import androidx.annotation.NonNull;
-import androidx.core.content.FileProvider;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
@@ -105,6 +97,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
+
+import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 //主题页面
 public class ThemeActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
@@ -201,6 +200,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
     private int appIconShadowRow;
 
     private int streamResponsesRow;
+    private int renderMarkdownRow;
 
     private int rowCount;
 
@@ -556,6 +556,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         createNewThemeRow = -1;
 
         streamResponsesRow = -1;
+        renderMarkdownRow = -1;
 
         appIconHeaderRow = -1;
         appIconSelectorRow = -1;
@@ -680,6 +681,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             if (BuildVars.IS_CHAT_AIR) {
                 //流式响应输出
                 streamResponsesRow = rowCount++;
+                //渲染markdown
+                renderMarkdownRow = rowCount++;
             }
 
             settings2Row = rowCount++;
@@ -1078,6 +1081,16 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
 
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(!isStreamResponses);
+                }
+            } else if (position == renderMarkdownRow) {
+
+                boolean isRenderMarkdown = getUserConfig().renderMarkdown;
+
+                getUserConfig().renderMarkdown = !isRenderMarkdown;
+                getUserConfig().saveConfig(false);
+
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(!isRenderMarkdown);
                 }
             } else if (position == raiseToSpeakRow) {
                 SharedConfig.toogleRaiseToSpeak();
@@ -2308,7 +2321,9 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                         textCheckCell.setTextAndCheck(LocaleController.getString("SendByEnter", R.string.SendByEnter), preferences.getBoolean("send_by_enter", BuildVars.IS_CHAT_AIR ? true : false), true);
                     } else if (position == streamResponsesRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("StreamResponses", R.string.StreamResponses), getUserConfig().streamResponses, true);
-                    } else if (position == raiseToSpeakRow) {
+                    } else if (position == renderMarkdownRow) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString("RenderMarkdown", R.string.RenderMarkdown), getUserConfig().renderMarkdown, true);
+                    }  else if (position == raiseToSpeakRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("RaiseToSpeak", R.string.RaiseToSpeak), SharedConfig.raiseToSpeak, true);
                     } else if (position == pauseOnRecordRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.PauseMusicOnRecord), SharedConfig.pauseMusicOnRecord, true);
@@ -2434,7 +2449,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 return TYPE_BRIGHTNESS;
             } else if (position == scheduleLocationRow || position == enableAnimationsRow || position == sendByEnterRow ||
                     position == raiseToSpeakRow || position == pauseOnRecordRow || position == customTabsRow ||
-                    position == directShareRow || position == chatBlurRow || position == streamResponsesRow) {
+                    position == directShareRow || position == chatBlurRow || position == streamResponsesRow ||
+                    position == renderMarkdownRow) {
                 return TYPE_TEXT_CHECK;
             } else if (position == textSizeRow) {
                 return TYPE_TEXT_SIZE;

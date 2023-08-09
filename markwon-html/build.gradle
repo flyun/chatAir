@@ -1,0 +1,42 @@
+apply plugin: 'com.android.library'
+
+android {
+
+    compileSdkVersion 29
+    buildToolsVersion '29.0.3'
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 29
+        versionCode 1
+        versionName version
+    }
+}
+
+repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+
+    api project(':markwon-core')
+    compileOnly 'com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.13.0'
+//
+//    deps.with {
+        // add a compileOnly dependency, so if this artifact is present
+        // we will try to obtain a SpanFactory for a Strikethrough node and use
+        // it to be consistent with markdown (please note that we do not use markwon plugin
+        // for that in case if different implementation is used)
+//        compileOnly it['commonmark-strikethrough']
+//
+//        testImplementation it['ix-java']
+//    }
+//
+//    deps.test.with {
+//        testImplementation it['junit']
+//        testImplementation it['robolectric']
+//    }
+}
+
+//registerArtifact(this)

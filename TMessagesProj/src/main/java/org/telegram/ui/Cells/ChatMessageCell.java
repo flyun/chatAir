@@ -4598,6 +4598,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
                 hasGamePreview = MessageObject.getMedia(messageObject.messageOwner) instanceof TLRPC.TL_messageMediaGame && MessageObject.getMedia(messageObject.messageOwner).game instanceof TLRPC.TL_game;
                 hasInvoicePreview = MessageObject.getMedia(messageObject.messageOwner) instanceof TLRPC.TL_messageMediaInvoice;
+                //是否显示网页预览
                 hasLinkPreview = !messageObject.isRestrictedMessage && MessageObject.getMedia(messageObject.messageOwner) instanceof TLRPC.TL_messageMediaWebPage && MessageObject.getMedia(messageObject.messageOwner).webpage instanceof TLRPC.TL_webPage;
                 TLRPC.WebPage webpage = hasLinkPreview ? MessageObject.getMedia(messageObject.messageOwner).webpage : null;
                 drawInstantView = hasLinkPreview && MessageObject.getMedia(messageObject.messageOwner).webpage.cached_page != null;
@@ -4741,7 +4742,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     backgroundWidth = Math.max(backgroundWidth, messageObject.lastLineWidth) + AndroidUtilities.dp(31);
                     backgroundWidth = Math.max(backgroundWidth, timeWidth + AndroidUtilities.dp(31));
                 } else {
-                    //判断最后一行是否能容纳下时间已读，容纳不行啊，换行
+                    //判断最后一行是否能容纳下时间已读，如果容纳不了则换行
                     int diff = backgroundWidth - messageObject.lastLineWidth;
                     if (diff >= 0 && diff <= timeMore) {
                         backgroundWidth = backgroundWidth + timeMore - diff + AndroidUtilities.dp(31);
@@ -9476,8 +9477,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             );
                         }
                     }
-                    drawMessageText(canvas, transitionParams.animateOutTextBlocks, transitionParams.animateOutTextXOffset, false, (1.0f - transitionParams.animateChangeProgress), false);
-                    drawMessageText(canvas, currentMessageObject.textLayoutBlocks, currentMessageObject.textXOffset, true, transitionParams.animateChangeProgress, false);
+                    boolean noAlpha = BuildVars.IS_CHAT_AIR && UserConfig.getInstance(currentAccount).streamResponses;
+                    drawMessageText(canvas, transitionParams.animateOutTextBlocks, transitionParams.animateOutTextXOffset, false, noAlpha  ? 0f : (1.0f - transitionParams.animateChangeProgress), false);
+                    drawMessageText(canvas, currentMessageObject.textLayoutBlocks, currentMessageObject.textXOffset, true, noAlpha ? 1f : transitionParams.animateChangeProgress, false);
                     canvas.restore();
                 } else {
                     //正常文字绘制
