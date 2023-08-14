@@ -112,7 +112,8 @@ public class ApplicationLoader extends Application {
     }
 
     public static String getApplicationId() {
-        return applicationLoaderInstance.onGetApplicationId();
+//        return applicationLoaderInstance.onGetApplicationId();
+        return BuildVars.APPLICATION_ID;
     }
 
     protected String onGetApplicationId() {
@@ -143,7 +144,7 @@ public class ApplicationLoader extends Application {
             FileLog.e(e);
         }
         //核心，修改默认数据库地址
-        return new File("/data/data/info.flyun.chatair/files");
+        return new File("/data/data/" + BuildVars.APPLICATION_ID + "/files");
     }
 
     //初始化各种模块

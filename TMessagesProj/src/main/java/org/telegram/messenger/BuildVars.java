@@ -19,6 +19,7 @@ import java.util.Objects;
 public class BuildVars {
 
     public static boolean IS_CHAT_AIR = true;
+    public static final String APPLICATION_ID = "info.flyun.chatair";
 
     public static boolean DEBUG_VERSION = BuildConfig.DEBUG_VERSION;
     public static boolean LOGS_ENABLED = BuildConfig.DEBUG_VERSION;

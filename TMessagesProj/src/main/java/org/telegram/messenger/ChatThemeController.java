@@ -58,12 +58,13 @@ public class ChatThemeController extends BaseController {
         Emoji.preloadEmoji(emojicon);
     }
 
+    //从网络请求当前聊天所有的主题
     public static void requestAllChatThemes(final ResultCallback<List<EmojiThemes>> callback, boolean withDefault) {
         if (themesHash == 0 || lastReloadTimeMs == 0) {
             init();
         }
 
-        boolean needReload = System.currentTimeMillis() - lastReloadTimeMs > reloadTimeoutMs;
+        boolean needReload = !BuildVars.IS_CHAT_AIR && System.currentTimeMillis() - lastReloadTimeMs > reloadTimeoutMs;
         if (allChatThemes == null || allChatThemes.isEmpty() || needReload) {
             TLRPC.TL_account_getChatThemes request = new TLRPC.TL_account_getChatThemes();
             request.hash = themesHash;
@@ -132,6 +133,7 @@ public class ChatThemeController extends BaseController {
         return ApplicationLoader.applicationContext.getSharedPreferences("chatthemeconfig_emoji", Context.MODE_PRIVATE);
     }
 
+    //获取当前聊天所有支持的主题
     private static List<EmojiThemes> getAllChatThemesFromPrefs() {
         SharedPreferences preferences = getSharedPreferences();
         int count = preferences.getInt("count", 0);

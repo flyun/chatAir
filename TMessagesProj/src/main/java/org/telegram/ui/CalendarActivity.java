@@ -25,13 +25,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.ColorUtils;
-import androidx.core.view.GestureDetectorCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.FileLoader;
@@ -66,6 +59,14 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
+import androidx.core.view.GestureDetectorCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+//选择日期需要请求网络
 public class CalendarActivity extends BaseFragment {
 
     public final static int TYPE_CHAT_ACTIVITY = 0;

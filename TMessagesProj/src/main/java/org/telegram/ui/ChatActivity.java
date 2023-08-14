@@ -1441,6 +1441,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             wasManualScroll = true;
             if (view instanceof ChatActionCell && ((ChatActionCell) view).getMessageObject().isDateObject) {
+                if (BuildVars.IS_CHAT_AIR) return;
                 Bundle bundle = new Bundle();
                 int date = ((ChatActionCell) view).getMessageObject().messageOwner.date;
                 bundle.putLong("dialog_id", dialog_id);

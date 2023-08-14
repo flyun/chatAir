@@ -125,7 +125,7 @@ public class ConnectionsManager extends BaseController {
     private boolean forceTryIpV6;
 
     //屏蔽思路：使用return屏蔽公共方法，涉及具体调用时用到，则手动注释
-    private static final boolean CLOSE = false;
+    private static final boolean CLOSE = true;
 
     //定义线程池
     static {
@@ -266,12 +266,12 @@ public class ConnectionsManager extends BaseController {
     }
 
     public long getCurrentTimeMillis() {
-        if (CLOSE) return 0;
+        if (CLOSE) return (int) (System.currentTimeMillis());
         return native_getCurrentTimeMillis(currentAccount);
     }
 
     public int getCurrentTime() {
-        if (CLOSE) return 0;
+        if (CLOSE) return (int) (System.currentTimeMillis() / 1000);
         return native_getCurrentTime(currentAccount);
     }
 
@@ -434,7 +434,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public int getConnectionState() {
-        if (CLOSE) return 0;
+        if (CLOSE) return ConnectionStateConnected;
         if (connectionState == ConnectionStateConnected && isUpdating) {
             return ConnectionStateUpdating;
         }
@@ -856,7 +856,7 @@ public class ConnectionsManager extends BaseController {
     public static native void native_onHostNameResolved(String host, long address, String ip);
 
     public static int generateClassGuid() {
-        if (CLOSE) return 0;
+//        if (CLOSE) return 0;
         return lastClassGuid++;
     }
 
