@@ -3903,13 +3903,60 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
                 delegate.didSelectDialogs(DialogsActivity.this, topicKeys, null, false, null);
             } else {
+                //新建聊天
                 if (floatingButton.getVisibility() != View.VISIBLE) {
                     return;
                 }
 
-                Bundle args = new Bundle();
-                args.putBoolean("destroyAfterSelect", true);
-                presentFragment(new ContactsActivity(args));
+                if (BuildVars.IS_CHAT_AIR) {
+                    int id = UserConfig.getInstance(currentAccount).getNewUserId();
+                    UserConfig.getInstance(currentAccount).saveConfig(false);
+                    TLRPC.User dialogUser = new TLRPC.TL_user();
+                    dialogUser.status = new TLRPC.TL_userStatusOffline();
+                    dialogUser.first_name = LocaleController.getString("CasualTalk", R.string.CasualTalk);
+                    dialogUser.apply_min_photo = true;
+                    dialogUser.flags = 33555539;
+                    dialogUser.id = id;
+                    dialogUser.phone = String.valueOf(id);
+
+                    //写入内存
+                    MessagesController.getInstance(currentAccount).putUser(dialogUser, false);
+
+                    TLRPC.Dialog newDialog = new TLRPC.TL_dialog();
+                    newDialog.id = dialogUser.id;
+                    newDialog.folder_id = 0;
+//                newDialog.last_message_date = (int) (System.currentTimeMillis() / 1000);
+                    newDialog.notify_settings = new TLRPC.TL_peerNotifySettingsEmpty_layer77();
+
+                    //写入内存
+                    MessagesController.getInstance(currentAccount).dialogs_dict.put(dialogUser.id, newDialog);
+                    MessagesController.getInstance(currentAccount).getAllDialogs().add(newDialog);
+                    MessagesController.getInstance(currentAccount).sortDialogs(null);
+
+                    TLRPC.messages_Dialogs dialogsRes = new TLRPC.TL_messages_dialogs();
+
+                    ArrayList<TLRPC.Dialog> dialogs = new ArrayList<>();
+                    dialogs.add(newDialog);
+
+
+                    ArrayList<TLRPC.User> dialogUsers = new ArrayList<>();
+                    dialogUsers.add(dialogUser);
+
+                    dialogsRes.dialogs = dialogs;
+                    dialogsRes.users = dialogUsers;
+
+                    //写入数据库以及其他数据
+                    MessagesController.getInstance(currentAccount).processLoadedDialogs(dialogsRes, null, null, 0, 0, 100, 0, false, false, false);
+
+                    Bundle args = new Bundle();
+                    args.putLong("user_id", dialogUser.id);
+                    presentFragment(new ChatActivity(args));
+
+                } else {
+                    Bundle args = new Bundle();
+                    args.putBoolean("destroyAfterSelect", true);
+                    presentFragment(new ContactsActivity(args));
+                }
             }
         });
 
@@ -5081,6 +5128,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    //获取搜索数据后，更新搜索后界面
     private void updateFiltersView(boolean showMediaFilters, ArrayList<Object> users, ArrayList<FiltersView.DateData> dates, boolean archive, boolean animated) {
         if (!searchIsShowed || onlySelect) {
             return;
@@ -5253,7 +5301,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         addToFolderItem = otherItem.addSubItem(add_to_folder, R.drawable.msg_addfolder, LocaleController.getString("FilterAddTo", R.string.FilterAddTo));
         removeFromFolderItem = otherItem.addSubItem(remove_from_folder, R.drawable.msg_removefolder, LocaleController.getString("FilterRemoveFrom", R.string.FilterRemoveFrom));
         readItem = otherItem.addSubItem(read, R.drawable.msg_markread, LocaleController.getString("MarkAsRead", R.string.MarkAsRead));
-        clearItem = otherItem.addSubItem(clear, R.drawable.msg_clear, LocaleController.getString("ClearHistory", R.string.ClearHistory));
+        clearItem = otherItem.addSubItem(clear, R.drawable.msg_clear_input, LocaleController.getString("ClearHistory", R.string.ClearHistory));
         blockItem = otherItem.addSubItem(block, R.drawable.msg_block, LocaleController.getString("BlockUser", R.string.BlockUser));
 
         muteItem.setOnLongClickListener(e -> {
@@ -6619,6 +6667,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (searchString != null) {
                 if (getMessagesController().checkCanOpenChat(args, DialogsActivity.this)) {
                     getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
+                    //搜索打开聊天窗口
                     presentFragment(new ChatActivity(args));
                 }
             } else {
@@ -7904,6 +7953,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         canClearCacheCount = 0;
         int cantBlockCount = 0;
         canReportSpamCount = 0;
+        boolean isDefautlUser = false;
         if (hide) {
             return;
         }
@@ -7935,7 +7985,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             if (folderId == 1 || dialog.folder_id == 1) {
                 canUnarchiveCount++;
-            } else if (selectedDialog != selfUserId && selectedDialog != 777000 && !getMessagesController().isPromoDialog(selectedDialog, false)) {
+            } else if (selectedDialog != selfUserId && selectedDialog != 777000
+                    && !getMessagesController().isPromoDialog(selectedDialog, false)
+                    && (!BuildVars.IS_CHAT_AIR || (BuildVars.IS_CHAT_AIR && dialog.id != UserConfig.defaultUserId))) {
                 canArchiveCount++;
             }
 
@@ -7994,13 +8046,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
                 final boolean isBot = user != null && user.bot && !MessagesController.isSupportUser(user);
 
-                if (pinned) {
-                    canUnpinCount++;
-                } else {
-                    canPinCount++;
+                if (!BuildVars.IS_CHAT_AIR || (BuildVars.IS_CHAT_AIR && dialog.id != UserConfig.defaultUserId)) {
+                    if (pinned) {
+                        canUnpinCount++;
+                    } else {
+                        canPinCount++;
+                    }
                 }
                 canClearHistoryCount++;
-                canDeleteCount++;
+                if (!BuildVars.IS_CHAT_AIR || (BuildVars.IS_CHAT_AIR && dialog.id != UserConfig.defaultUserId)) canDeleteCount++;
             }
         }
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -8062,7 +8116,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 archiveItem.setVisibility(View.VISIBLE);
                 archive2Item.setVisibility(View.GONE);
             }
-        } else if (canArchiveCount != 0 && !BuildVars.IS_CHAT_AIR) {
+            //隐藏下拉，添加新归档，有UI问题，暂不显示归档功能
+        } else if (canArchiveCount != 0 && canArchiveCount == count && !BuildVars.IS_CHAT_AIR) {
             final String contentDescription = LocaleController.getString("Archive", R.string.Archive);
             archiveItem.setTextAndIcon(contentDescription, R.drawable.msg_archive);
             archive2Item.setIcon(R.drawable.msg_archive);
@@ -9444,6 +9499,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         return delegate == null && searchString == null;
     }
 
+    //是否为归档
     public boolean isArchive() {
         return folderId == 1;
     }

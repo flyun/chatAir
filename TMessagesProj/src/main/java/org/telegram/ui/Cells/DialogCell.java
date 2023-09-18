@@ -581,6 +581,7 @@ public class DialogCell extends BaseCell {
     }
 
     private boolean isOnline() {
+        if (BuildVars.IS_CHAT_AIR) return false;
         if (isForumCell()) {
             return false;
         }

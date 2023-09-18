@@ -3,8 +3,6 @@ package org.telegram.messenger;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.google.android.exoplayer2.util.Log;
-
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
 
@@ -88,6 +86,7 @@ public class AuthTokensHelper {
         saveLogInTokens(tokens);
     }
 
+    //保存用户登录凭证
     private static void saveLogInTokens(ArrayList<TLRPC.TL_auth_authorization> tokens) {
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("saved_tokens_login", Context.MODE_PRIVATE);
         ArrayList<TLRPC.TL_auth_authorization> activeTokens = new ArrayList<>();

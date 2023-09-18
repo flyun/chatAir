@@ -73,11 +73,11 @@ import androidx.viewpager.widget.ViewPager;
 
 public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements DialogCell.DialogCellDelegate {
     public final static int VIEW_TYPE_DIALOG = 0,//基本消息类型
-            VIEW_TYPE_FLICKER = 1,//占位消息（一会消失）
+            VIEW_TYPE_FLICKER = 1,//占位消息（一会消失），还可能有其他数据
             VIEW_TYPE_RECENTLY_VIEWED = 2,
             VIEW_TYPE_DIVIDER = 3,
             VIEW_TYPE_ME_URL = 4,
-            VIEW_TYPE_EMPTY = 5,
+            VIEW_TYPE_EMPTY = 5,//列表为空
             VIEW_TYPE_USER = 6,
             VIEW_TYPE_HEADER = 7,
             VIEW_TYPE_SHADOW = 8,

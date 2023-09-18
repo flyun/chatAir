@@ -3576,6 +3576,7 @@ public class MessageObject {
                     }
                     generatePinMessageText(fromUser, chat);
                 } else if (messageOwner.action instanceof TLRPC.TL_messageActionHistoryClear) {
+                    //清除历史消息
                     messageText = LocaleController.getString("HistoryCleared", R.string.HistoryCleared);
                 } else if (messageOwner.action instanceof TLRPC.TL_messageActionTopicCreate) {
                     messageText = LocaleController.getString("TopicCreated", R.string.TopicCreated);

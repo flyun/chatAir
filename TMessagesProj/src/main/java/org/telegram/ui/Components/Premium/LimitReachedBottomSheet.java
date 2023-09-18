@@ -13,10 +13,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
@@ -44,6 +40,10 @@ import org.telegram.ui.PremiumPreviewFragment;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class LimitReachedBottomSheet extends BottomSheetWithRecyclerListView {
 
@@ -662,6 +662,7 @@ public class LimitReachedBottomSheet extends BottomSheetWithRecyclerListView {
         }
     }
 
+    //获取各种限制参数
     private static LimitParams getLimitParams(int type, int currentAccount) {
         LimitParams limitParams = new LimitParams();
         if (type == TYPE_PIN_DIALOGS) {

@@ -16,12 +16,9 @@ import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import androidx.core.graphics.ColorUtils;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.NotificationCenter;
@@ -40,6 +37,10 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ThemeSmallPreviewView;
 
 import java.util.ArrayList;
+
+import androidx.core.graphics.ColorUtils;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 @SuppressLint("ViewConstructor")
 public class DefaultThemesPreviewCell extends LinearLayout {
@@ -136,12 +137,17 @@ public class DefaultThemesPreviewCell extends LinearLayout {
         progressView.setViewType(FlickerLoadingView.CHAT_THEMES_TYPE);
         progressView.setVisibility(View.VISIBLE);
 
-        if (currentType == ThemeActivity.THEME_TYPE_BASIC) {
-            frameLayout.addView(progressView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 104, Gravity.START, 0, 8, 0, 8));
-            frameLayout.addView(recyclerView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 104, Gravity.START, 0, 8, 0, 8));
+        //因为主题需要下载，暂时屏蔽
+        if (!BuildVars.IS_CHAT_AIR) {
+            if (currentType == ThemeActivity.THEME_TYPE_BASIC) {
+                frameLayout.addView(progressView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 104, Gravity.START, 0, 8, 0, 8));
+                frameLayout.addView(recyclerView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 104, Gravity.START, 0, 8, 0, 8));
+            } else {
+                frameLayout.addView(progressView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 104, Gravity.START, 0, 8, 0, 8));
+                frameLayout.addView(recyclerView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START, 0, 8, 0, 8));
+            }
         } else {
-            frameLayout.addView(progressView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 104, Gravity.START, 0, 8, 0, 8));
-            frameLayout.addView(recyclerView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START, 0, 8, 0, 8));
+            recyclerView.setVisibility(GONE);
         }
 
 

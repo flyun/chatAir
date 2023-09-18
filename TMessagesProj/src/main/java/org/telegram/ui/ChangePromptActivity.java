@@ -173,7 +173,10 @@ public class ChangePromptActivity extends BaseFragment {
 
         final String prompt = firstNameField.getText().toString();
 
-        if (prompt.equals(user.prompt)) finishFragment();
+        if (prompt.equals(user.prompt)){
+            finishFragment();
+            return;
+        }
 
         ArrayList<TLRPC.User> userArrayList = new ArrayList<>();
 

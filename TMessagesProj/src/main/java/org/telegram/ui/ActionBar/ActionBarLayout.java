@@ -1841,6 +1841,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
         }
     }
 
+    //显示第几个页面
     @Override
     public void bringToFront(int i) {
         if (fragmentsStack.isEmpty()) {
@@ -1887,6 +1888,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
             containerView.addView(previousFragment.actionBar);
             previousFragment.actionBar.setTitleOverlayText(titleOverlayText, titleOverlayTextId, overlayAction);
         }
+        //启动页面的onResume显示界面
         previousFragment.onResume();
         currentActionBar = previousFragment.actionBar;
         if (!previousFragment.hasOwnBackground && fragmentView.getBackground() == null) {
@@ -1894,6 +1896,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
         }
     }
 
+    //显示最后的页面
     public void showLastFragment() {
         if (fragmentsStack.isEmpty()) {
             return;

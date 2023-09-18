@@ -37,6 +37,7 @@ public class UserConfig extends BaseController {
     private TLRPC.User currentUser;
     public boolean registeredForPush;
     public int lastSendMessageId = !BuildVars.IS_CHAT_AIR ? -210000 : 1000;
+    private int lastUserId = defaultUserId;
     public int lastBroadcastId = -1;
     public int contactsSavedCount;
     public long clientUserId;
@@ -87,15 +88,17 @@ public class UserConfig extends BaseController {
     LongSparseArray<SaveToGallerySettingsHelper.DialogException> groupsSaveGalleryExceptions;
 
     public LinkedHashMap<Integer, AiModelBean> aiModelList = new LinkedHashMap<>();
-    public String prompt = "You are a helpful AI assistant.";
+    public final static String defaultPrompt = "You are a helpful AI assistant.";
     public final static int defaultAiModel = 1;
     public final static double defaultTemperature = 0.7;
     public final static int defaultContextLimit = 30;
     public final static int defaultTokenLimit = -100;
+    public final static String defaultCustomModel = "";
 
     public final static boolean defaultStreamResponses = true;
     public final static boolean defaultRenderMarkdown = true;
 
+    public final static int defaultUserId = 2000;
 
     public final static String defaultApiServer = "https://api.openai.com";
 
@@ -103,6 +106,7 @@ public class UserConfig extends BaseController {
     public double temperature = defaultTemperature;
     public int contextLimit = defaultContextLimit;
     public int tokenLimit = defaultTokenLimit;
+    public String customModel;
 
     public String apiKey;
     public String apiServer = defaultApiServer;
@@ -149,6 +153,7 @@ public class UserConfig extends BaseController {
     }
 
     public static int getMaxAccountCount() {
+        if (BuildVars.IS_CHAT_AIR) return 5;
         return hasPremiumOnAccounts() ? 5 : 3;
     }
 
@@ -169,6 +174,18 @@ public class UserConfig extends BaseController {
         return id;
     }
 
+    public int getNewUserId() {
+        int id;
+        synchronized (sync) {
+            id = lastUserId;
+            lastUserId++;
+            if (id == 333000 || id == 777000 || id == 42777){
+                return getNewUserId();
+            }
+        }
+        return id;
+    }
+
     public void saveConfig(boolean withFile) {
         NotificationCenter.getInstance(currentAccount).doOnIdle(() -> {
             if (!configLoaded) {
@@ -182,6 +199,7 @@ public class UserConfig extends BaseController {
                     }
                     editor.putBoolean("registeredForPush", registeredForPush);
                     editor.putInt("lastSendMessageId", lastSendMessageId);
+                    editor.putInt("lastUserId", lastUserId);
                     editor.putInt("contactsSavedCount", contactsSavedCount);
                     editor.putInt("lastBroadcastId", lastBroadcastId);
                     editor.putInt("lastContactsSyncTime", lastContactsSyncTime);
@@ -231,6 +249,7 @@ public class UserConfig extends BaseController {
                         editor.putString("temperature", String.valueOf(temperature));
                         editor.putInt("contextLimit", contextLimit);
                         editor.putInt("tokenLimit", tokenLimit);
+                        editor.putString("customModel", customModel);
                         editor.putString("apiKey", apiKey);
                         editor.putString("apiServer", apiServer);
                         editor.putBoolean("streamResponses", streamResponses);
@@ -344,6 +363,7 @@ public class UserConfig extends BaseController {
             }
             registeredForPush = preferences.getBoolean("registeredForPush", false);
             lastSendMessageId = preferences.getInt("lastSendMessageId", !BuildVars.IS_CHAT_AIR ? -210000 : 1000);
+            lastUserId = preferences.getInt("lastUserId", defaultUserId);
             contactsSavedCount = preferences.getInt("contactsSavedCount", 0);
             lastBroadcastId = preferences.getInt("lastBroadcastId", -1);
             lastContactsSyncTime = preferences.getInt("lastContactsSyncTime", (int) (System.currentTimeMillis() / 1000) - 23 * 60 * 60);
@@ -431,26 +451,14 @@ public class UserConfig extends BaseController {
             }
 
             if (BuildVars.IS_CHAT_AIR) {
-                //根据不同接入方，载入不同的模型
-                if (aiModelList != null) {
-                    aiModelList.clear();
-                } else {
-                    aiModelList = new LinkedHashMap<>();
-                }
-                aiModelList.put(1, new AiModelBean("GPT-3.5", "gpt-3.5-turbo", true));
-                aiModelList.put(2, new AiModelBean("GPT-3.5-0613", "gpt-3.5-turbo-0613", false));
-                aiModelList.put(3, new AiModelBean("GPT-3.5-16k", "gpt-3.5-turbo-16k", true));
-                aiModelList.put(4, new AiModelBean("GPT-3.5-16k-0613", "gpt-3.5-turbo-16k-0613", false));
-                aiModelList.put(5, new AiModelBean("GPT-4", "gpt-4", true));
-                aiModelList.put(6, new AiModelBean("GPT-4-0613", "gpt-4-0613", false));
-                aiModelList.put(7, new AiModelBean("GPT-4-32k", "gpt-4-32k", true));
-                aiModelList.put(8, new AiModelBean("GPT-4-32k-0613", "gpt-4-32k-0613", false));
+                initAiModelList();
 
                 //默认配置
                 aiModel = preferences.getInt("aiModel", defaultAiModel);
                 temperature = Double.parseDouble(preferences.getString("temperature", String.valueOf(defaultTemperature)));
                 contextLimit = preferences.getInt("contextLimit", defaultContextLimit);
                 tokenLimit = preferences.getInt("tokenLimit", defaultTokenLimit);
+                customModel = preferences.getString("customModel", defaultCustomModel);
                 apiKey = preferences.getString("apiKey", "");
                 apiServer = preferences.getString("apiServer", defaultApiServer);
                 streamResponses = preferences.getBoolean("streamResponses", defaultStreamResponses);
@@ -459,6 +467,49 @@ public class UserConfig extends BaseController {
 
             configLoaded = true;
         }
+    }
+
+    private void initAiModelList() {
+        //根据不同接入方，载入不同的模型
+        if (aiModelList != null) {
+            aiModelList.clear();
+        } else {
+            aiModelList = new LinkedHashMap<>();
+        }
+        aiModelList.put(1, new AiModelBean("GPT-3.5", "gpt-3.5-turbo", true));
+        aiModelList.put(2, new AiModelBean("GPT-3.5-0613", "gpt-3.5-turbo-0613", false));
+        aiModelList.put(3, new AiModelBean("GPT-3.5-16k", "gpt-3.5-turbo-16k", true));
+        aiModelList.put(4, new AiModelBean("GPT-3.5-16k-0613", "gpt-3.5-turbo-16k-0613", false));
+        aiModelList.put(5, new AiModelBean("GPT-4", "gpt-4", true));
+        aiModelList.put(6, new AiModelBean("GPT-4-0613", "gpt-4-0613", false));
+        aiModelList.put(7, new AiModelBean("GPT-4-32k", "gpt-4-32k", true));
+        aiModelList.put(8, new AiModelBean("GPT-4-32k-0613", "gpt-4-32k-0613", false));
+        aiModelList.put(0, new AiModelBean(LocaleController.getString("CustomModel", R.string.CustomModel), "custom Model", true));
+
+    }
+
+    //https://openrouter.ai/docs
+    private void initOpenrouter() {
+        if (aiModelList == null) return;
+//        aiModelList.put(101, new AiModelBean("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo", true));
+//        aiModelList.put(102, new AiModelBean("openai/gpt-3.5-turbo-0301", "openai/gpt-3.5-turbo-0301", true));
+//        aiModelList.put(103, new AiModelBean("openai/gpt-3.5-turbo-16k", "openai/gpt-3.5-turbo-16k", true));
+//        aiModelList.put(104, new AiModelBean("openai/gpt-4", "openai/gpt-4", true));
+//        aiModelList.put(105, new AiModelBean("openai/gpt-4-0314", "openai/gpt-4-0314", true));
+//        aiModelList.put(106, new AiModelBean("openai/gpt-4-32k", "openai/gpt-4-32k", true));
+//        aiModelList.put(107, new AiModelBean("openai/gpt-4-32k-0314", "openai/gpt-4-32k-0314", true));
+//        aiModelList.put(108, new AiModelBean("anthropic/claude-2", "anthropic/claude-2", true));
+//        aiModelList.put(109, new AiModelBean("anthropic/claude-instant-v1", "anthropic/claude-instant-v1", true));
+//        aiModelList.put(110, new AiModelBean("anthropic/claude-instant-v1-100k", "anthropic/claude-instant-v1-100k", true));
+//        aiModelList.put(111, new AiModelBean("google/palm-2-chat-bison", "google/palm-2-chat-bison", true));
+//        aiModelList.put(112, new AiModelBean("google/palm-2-codechat-bison", "google/palm-2-codechat-bison", true));
+//        aiModelList.put(113, new AiModelBean("meta-llama/llama-2-13b-chat", "meta-llama/llama-2-13b-chat", true));
+//        aiModelList.put(114, new AiModelBean("meta-llama/llama-2-70b-chat", "meta-llama/llama-2-70b-chat", true));
+//        aiModelList.put(115, new AiModelBean("meta-llama/codellama-34b-instruct", "meta-llama/codellama-34b-instruct", true));
+//        aiModelList.put(116, new AiModelBean("nousresearch/nous-hermes-llama2-13b", "nousresearch/nous-hermes-llama2-13b", true));
+//        aiModelList.put(117, new AiModelBean("mancer/weaver", "mancer/weaver", true));
+//        aiModelList.put(118, new AiModelBean("gryphe/mythomax-L2-13b", "gryphe/mythomax-L2-13b", true));
+//        aiModelList.put(119, new AiModelBean("jondurbin/airoboros-l2-70b-2.1", "jondurbin/airoboros-l2-70b-2.1", true));
     }
 
     public boolean isConfigLoaded() {
@@ -550,6 +601,7 @@ public class UserConfig extends BaseController {
         registeredForPush = false;
         contactsSavedCount = 0;
         lastSendMessageId = !BuildVars.IS_CHAT_AIR ? -210000 : 1000;
+        lastUserId = defaultUserId;
         lastBroadcastId = -1;
         notificationsSettingsLoaded = false;
         notificationsSignUpSettingsLoaded = false;
@@ -587,10 +639,13 @@ public class UserConfig extends BaseController {
                 aiModelList.clear();
             }
 
+            initAiModelList();
+
             aiModel = defaultAiModel;
             temperature = defaultTemperature;
             contextLimit = defaultContextLimit;
             tokenLimit = defaultTokenLimit;
+            customModel = defaultCustomModel;
             apiKey = "";
             apiServer = defaultApiServer;
         }
@@ -647,8 +702,8 @@ public class UserConfig extends BaseController {
 
     public void setDialogsLoadOffset(int folderId, int dialogsLoadOffsetId, int dialogsLoadOffsetDate, long dialogsLoadOffsetUserId, long dialogsLoadOffsetChatId, long dialogsLoadOffsetChannelId, long dialogsLoadOffsetAccess) {
         SharedPreferences.Editor editor = getPreferences().edit();
-        editor.putInt("2dialogsLoadOffsetId" + (folderId == 0 ? "" : folderId), dialogsLoadOffsetId);
-        editor.putInt("2dialogsLoadOffsetDate" + (folderId == 0 ? "" : folderId), dialogsLoadOffsetDate);
+        editor.putInt("2dialogsLoadOffsetId" + (folderId == 0 ? "" : folderId), dialogsLoadOffsetId);//配置网络加载最后的id
+        editor.putInt("2dialogsLoadOffsetDate" + (folderId == 0 ? "" : folderId), dialogsLoadOffsetDate);//配置网络加载最后的日期
         editor.putLong("2dialogsLoadOffsetUserId" + (folderId == 0 ? "" : folderId), dialogsLoadOffsetUserId);
         editor.putLong("2dialogsLoadOffsetChatId" + (folderId == 0 ? "" : folderId), dialogsLoadOffsetChatId);
         editor.putLong("2dialogsLoadOffsetChannelId" + (folderId == 0 ? "" : folderId), dialogsLoadOffsetChannelId);

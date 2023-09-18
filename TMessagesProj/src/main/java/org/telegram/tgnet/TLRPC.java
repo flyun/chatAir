@@ -22553,6 +22553,7 @@ public class TLRPC {
         public double temperature;
         public int contextLimit;
         public int tokenLimit;
+        public String customModel;
 
         public static User TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             User result = null;
@@ -22804,6 +22805,9 @@ public class TLRPC {
                 if ((flags2 & 16384) != 0) {
                     tokenLimit = stream.readInt32(exception);
                 }
+                if ((flags2 & 32768) != 0) {
+                    customModel = stream.readString(exception);
+                }
             }
         }
 
@@ -22899,6 +22903,9 @@ public class TLRPC {
                 }
                 if ((flags2 & 16384) != 0) {
                     stream.writeInt32(tokenLimit);
+                }
+                if ((flags2 & 32768) != 0) {
+                    stream.writeString(customModel);
                 }
             }
         }

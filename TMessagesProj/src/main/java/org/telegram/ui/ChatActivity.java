@@ -3414,7 +3414,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (!isTopic) {
                 clearHistoryItem = headerItem.lazilyAddSubItem(clear_history, !BuildVars.IS_CHAT_AIR ? R.drawable.msg_clear : R.drawable.msg_clear_input, LocaleController.getString("ClearHistory", R.string.ClearHistory));
             }
-            if (themeDelegate.isThemeChangeAvailable()) {
+            if (!BuildVars.IS_CHAT_AIR && themeDelegate.isThemeChangeAvailable()) {
                 headerItem.lazilyAddSubItem(change_colors, R.drawable.msg_colors, LocaleController.getString("ChangeColors", R.string.ChangeColors));
             }
             if (!isTopic) {
@@ -3426,7 +3426,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_leave, LocaleController.getString("LeaveChannelMenu", R.string.LeaveChannelMenu));
                         }
                     }
-                } else if (!ChatObject.isChannel(currentChat)) {
+                } else if (!ChatObject.isChannel(currentChat) && (!BuildVars.IS_CHAT_AIR || (BuildVars.IS_CHAT_AIR && dialog_id != UserConfig.defaultUserId))) {
                     if (currentChat != null) {
                         headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_leave, LocaleController.getString("DeleteAndExit", R.string.DeleteAndExit));
                     } else {
@@ -15571,7 +15571,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
             //将接收的消息转为ArrayList
             ArrayList<MessageObject> messArr = (ArrayList<MessageObject>) args[2];
-            //空消息，载入空页面
+            //空消息，载入空页面，修改
             if (messages.isEmpty() && messArr.size() == 1 && MessageObject.isSystemSignUp(messArr.get(0))) {
                 forceHistoryEmpty = true;
                 endReached[0] = endReached[1] = true;
@@ -16303,6 +16303,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                         if (load_type != 2) {
                             cacheEndReached[loadIndex] = true;
+                            //修复只从缓存加载聊天，导致缓存加载完毕一直转圈加载的问题
+                            if(BuildVars.IS_CHAT_AIR && loadIndex == 0) endReached[loadIndex] = true;
                         }
                     } else if (load_type != 2 || messArr.size() == 0 && messages.isEmpty()) {
                         endReached[loadIndex] = true;
@@ -25246,8 +25248,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return false;
     }
 
+    //添加空页面
     private void createEmptyView() {
-        if (emptyViewContainer != null || getContext() == null) {
+        if (BuildVars.IS_CHAT_AIR || emptyViewContainer != null || getContext() == null) {
             return;
         }
 

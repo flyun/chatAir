@@ -127,7 +127,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     private HashMap<String, ImportingStickers> importingStickersMap = new HashMap<>();
 
     private OpenAiService openAiService;
-    private ConcurrentHashMap<String, TLRPC.Message> streamMessages = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, TLRPC.Message> streamMessages = new ConcurrentHashMap<>();
     private volatile boolean isRequesting = false;
 
     public static boolean checkUpdateStickersOrder(CharSequence text) {
@@ -5695,8 +5695,14 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     = UserConfig.getInstance(currentAccount).aiModelList;
             if (aiModelList != null && aiModelList.size() != 0) {
                 if (aiModelList.containsKey(aiModel)) {
-                    AiModelBean bean = aiModelList.get(aiModel);
-                    if (bean != null) aiModelReal = bean.getAiModel();
+                    if (aiModel == 0) {
+                        aiModelReal = UserConfig.getInstance(currentAccount).customModel;
+                    } else {
+                        AiModelBean bean = aiModelList.get(aiModel);
+                        if (bean != null) {
+                            aiModelReal = bean.getAiModel();
+                        }
+                    }
                 }
 //                if (aiModelReal == null && aiModelList.containsKey(1)) {
 //                    aiModelReal = aiModelList.get(1).aiModel;
@@ -5756,6 +5762,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
             if (getUserConfig().streamResponses) {
 
+                streamMessages.clear();
+
                 openAiService.streamChatCompletion(chatCompletionRequest, new OpenAiService.StreamCallBack() {
                     @Override
                     public void onSuccess(ChatCompletionChunk result) {
@@ -5773,19 +5781,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             return;
                         }
 
-                        //completionChoice.getMessage().getRole()为空，默认用户
-                        if (ChatMessageRole.ASSISTANT.value()
-                                .equals(completionChoice.getMessage().getRole())) {
-                            //发送起始空内容
-                            streamMessages.clear();
-
-                            return;
-                        }
-
                         //length代表长度受限，输出停止，可以提示用输入继续指令，继续输出
                         if ("stop".equals(completionChoice.getFinishReason())
                                 || "length".equals(completionChoice.getFinishReason())
-                                || completionChoice.getMessage().getContent() == null) {
+//                                || completionChoice.getMessage().getContent() == null
+                        ) {
                             //发送结束空内容
                             streamMessages.clear();
                             return;
@@ -5863,7 +5863,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     @Override
                     public void onError(OpenAiHttpException error, Throwable throwable) {
 
-                        setRequesting(false);
+                        AndroidUtilities.runOnUIThread(() -> {
+                            getNotificationCenter().postNotificationName(NotificationCenter.cancelRequest);
+                            setRequesting(false);
+                        });
                         streamMessages.clear();
 
                         String errorTx;
@@ -5883,7 +5886,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                     @Override
                     public void onCompletion() {
-                        setRequesting(false);
+                        AndroidUtilities.runOnUIThread(() -> {
+                            getNotificationCenter().postNotificationName(NotificationCenter.cancelRequest);
+                            setRequesting(false);
+                        });
                         streamMessages.clear();
                     }
 

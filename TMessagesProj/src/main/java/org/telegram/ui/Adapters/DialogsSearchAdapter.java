@@ -806,6 +806,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
         notifyDataSetChanged();
     }
 
+    //搜索本地的数据
     private void searchDialogsInternal(final String query, final int searchId) {
         if (needMessagesSearch == 2) {
             return;
@@ -822,6 +823,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
             ArrayList<TLRPC.User> encUsers = new ArrayList<>();
             ArrayList<ContactsController.Contact> contacts = new ArrayList<>();
 
+            //载入本地全部dialogs以及匹配名字的user
             MessagesStorage.getInstance(currentAccount).localSearch(dialogsType, q, resultArray, resultArrayNames, encUsers, filterDialogIds, -1);
 //            if (allContacts == null) {
 //                allContacts = new ArrayList<>();
@@ -839,6 +841,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
 //                }
 //            }
             updateSearchResults(resultArray, resultArrayNames, encUsers, contacts, searchId);
+            //增加适配的时间关键字
             FiltersView.fillTipDates(q, localTipDates);
             localTipArchive = false;
             if (q.length() >= 3 && (LocaleController.getString("ArchiveSearchFilter", R.string.ArchiveSearchFilter).toLowerCase().startsWith(q) || "archive".startsWith(query))) {
@@ -872,6 +875,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                 Object obj = result.get(a);
                 long dialogId = 0;
                 if (obj instanceof TLRPC.User) {
+                    //添加user
                     TLRPC.User user = (TLRPC.User) obj;
                     MessagesController.getInstance(currentAccount).putUser(user, true);
                     dialogId = user.id;
@@ -898,6 +902,7 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                                 if (obj instanceof TLRPC.Chat) {
                                     newDialog.flags = ChatObject.isChannel((TLRPC.Chat) obj) ? 1 : 0;
                                 }
+                                //添加dialog，如果本地有user则添加dialog，从网络拉取的user则不创建dialog，只添加user
                                 MessagesController.getInstance(currentAccount).dialogs_dict.put(finalDialogId, newDialog);
                                 MessagesController.getInstance(currentAccount).getAllDialogs().add(newDialog);
                                 MessagesController.getInstance(currentAccount).sortDialogs(null);

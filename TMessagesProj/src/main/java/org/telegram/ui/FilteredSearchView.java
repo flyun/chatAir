@@ -20,11 +20,6 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -78,6 +73,11 @@ import org.telegram.ui.Components.StickerEmptyView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class FilteredSearchView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
@@ -466,6 +466,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
         return fromName == null ? "" : fromName;
     }
 
+    //核心，搜索
     public void search(long dialogId, long minDate, long maxDate, FiltersView.MediaFilterData currentSearchFilter, boolean includeFolder, String query, boolean clearOldResults) {
         String currentSearchFilterQueryString = String.format(Locale.ENGLISH, "%d%d%d%d%s%s", dialogId, minDate, maxDate, currentSearchFilter == null ? -1 : currentSearchFilter.filterType, query, includeFolder);
         boolean filterAndQueryIsSame = lastSearchFilterQueryString != null && lastSearchFilterQueryString.equals(currentSearchFilterQueryString);
@@ -531,6 +532,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
 
             ArrayList<Object> resultArray = null;
             if (dialogId != 0) {
+                //搜索用户以及聊天
                 final TLRPC.TL_messages_search req = new TLRPC.TL_messages_search();
                 req.q = query;
                 req.limit = 20;
@@ -550,6 +552,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                 }
                 request = req;
             } else {
+                //全局搜索
                 if (!TextUtils.isEmpty(query)) {
                     resultArray = new ArrayList<>();
                     ArrayList<CharSequence> resultArrayNames = new ArrayList<>();
@@ -616,6 +619,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
 
                     emptyView.showProgress(false);
 
+                    //添加从网络搜索拉取的用户
                     TLRPC.messages_Messages res = (TLRPC.messages_Messages) response;
                     nextSearchRate = res.next_rate;
                     MessagesStorage.getInstance(currentAccount).putUsersAndChats(res.users, res.chats, true, true);
@@ -736,6 +740,7 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                             localTipArchive = true;
                         }
                         if (delegate != null) {
+                            //更新界面回调
                             delegate.updateFiltersView(TextUtils.isEmpty(currentDataQuery), localTipChats, localTipDates, localTipArchive);
                         }
                     }

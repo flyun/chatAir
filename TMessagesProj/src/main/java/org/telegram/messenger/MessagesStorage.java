@@ -745,8 +745,12 @@ public class MessagesStorage extends BaseController {
     }
 
     public void cleanup(boolean isLogin) {
+        cleanup(isLogin, true);
+    }
+
+    public void cleanup(boolean isLogin, boolean deleteFiles) {
         storageQueue.postRunnable(() -> {
-            cleanupInternal(true);
+            cleanupInternal(deleteFiles);
             openDatabase(1);
             if (isLogin) {
                 Utilities.stageQueue.postRunnable(() -> getMessagesController().getDifference());
@@ -880,7 +884,9 @@ public class MessagesStorage extends BaseController {
         });
     }
 
+    //与网络进行同步的任务，如果网络请求不成功，则下次启动执行本地任务，执行本地任务的时候再次请求网络任务
     private void loadPendingTasks() {
+        if (BuildVars.IS_CHAT_AIR) return;
         storageQueue.postRunnable(() -> {
             try {
                 SQLiteCursor cursor = database.queryFinalized("SELECT id, data FROM pending_tasks WHERE 1");
@@ -11756,6 +11762,15 @@ public class MessagesStorage extends BaseController {
                                     user.tokenLimit = 0;
                                 }
                             }
+                            if ((updateUser.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL) != 0) {
+                                if (updateUser.tokenLimit != -1) {
+                                    user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL;
+                                    user.customModel = updateUser.customModel;
+                                } else {
+                                    user.flags2 = user.flags2 &~ MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL;
+                                    user.customModel = null;
+                                }
+                            }
 
                         }
                     }
@@ -14661,6 +14676,7 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    //获取Dialog对应的文件夹id
     public void getDialogFolderId(long dialogId, IntCallback callback) {
         storageQueue.postRunnable(() -> {
             SQLiteCursor cursor = null;

@@ -315,6 +315,7 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
         if (view == searchContainer) {
             if (dialogId == 0 && minDate == 0 && maxDate == 0 || forumDialogId != 0) {
                 lastSearchScrolledToTop = false;
+                //搜索本地的消息
                 dialogsSearchAdapter.searchDialogs(query, includeFolder ? 1 : 0);
                 dialogsSearchAdapter.setFiltersDelegate(filteredSearchViewDelegate, false);
                 noMediaFiltersSearchView.animate().setListener(null).cancel();
@@ -355,6 +356,7 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
                     }
                     noMediaFiltersSearchView.animate().alpha(1f).setDuration(150).start();
                 }
+                //根据限定条件从网络拉取
                 noMediaFiltersSearchView.search(dialogId, minDate, maxDate, null, includeFolder, query, reset);
                 emptyView.setVisibility(View.GONE);
             }
@@ -364,6 +366,7 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
             ((FilteredSearchView) view).setUseFromUserAsAvatar(forumDialogId != 0);
             ((FilteredSearchView) view).setKeyboardHeight(keyboardSize, false);
             ViewPagerAdapter.Item item = viewPagerAdapter.items.get(position);
+            //根据限定条件从网络拉取
             ((FilteredSearchView) view).search(dialogId, minDate, maxDate, FiltersView.filters[item.filterIndex], includeFolder, query, reset);
         } else if (view instanceof SearchDownloadsContainer) {
             ((SearchDownloadsContainer) view).setKeyboardHeight(keyboardSize, false);

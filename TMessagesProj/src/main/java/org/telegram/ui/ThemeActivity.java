@@ -582,9 +582,13 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
 
         if (currentType == THEME_TYPE_THEMES_BROWSER) {
             //设置主题详细配置
-            selectThemeHeaderRow = rowCount++;
-            themeListRow2 = rowCount++;
-            chatListInfoRow = rowCount++;
+
+            //因为主题需要下载，暂时屏蔽
+            if (!BuildVars.IS_CHAT_AIR) {
+                selectThemeHeaderRow = rowCount++;
+                themeListRow2 = rowCount++;
+                chatListInfoRow = rowCount++;
+            }
 
             themePreviewRow = rowCount++;
             themeHeaderRow = rowCount++;

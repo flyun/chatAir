@@ -1237,7 +1237,8 @@ public class DatabaseMigrationHelper {
         if (version == 113) {
             //fix issue when database file was deleted
             //just reload dialogs
-            messagesStorage.reset();
+            //初次初始化，会将setDialogsLoadOffset的2dialogsLoadOffsetId的max变成0
+            if (!BuildVars.IS_CHAT_AIR) messagesStorage.reset();
             database.executeFast("PRAGMA user_version = 114").stepThis().dispose();
             version = 114;
         }

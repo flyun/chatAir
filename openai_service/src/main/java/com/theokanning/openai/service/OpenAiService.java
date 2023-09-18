@@ -1,6 +1,7 @@
 package com.theokanning.openai.service;
 
 import android.text.TextUtils;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -103,7 +104,7 @@ public class OpenAiService {
         String baseUrl = (TextUtils.isEmpty(url) || HttpUrl.parse(url) == null) ? BASE_URL : url;
 
         ObjectMapper mapper = defaultObjectMapper();
-        this.client = defaultClient(token, second);
+        this.client = defaultClient(token, second, url);
         this.executorService = client.dispatcher().executorService();
         Retrofit retrofit = defaultRetrofit(client, mapper, baseUrl, this.executorService);
 
@@ -707,18 +708,17 @@ public class OpenAiService {
 
         if (newBaseUrl == null) return "";
 
-        String port = (newBaseUrl.port() == 80 || newBaseUrl.port() == 443) ?
-                "" : ":" + newBaseUrl.port();
-
-        String formatUrl = newBaseUrl.scheme() + "://" + newBaseUrl.host()
-                + port;
+        String formatUrl = newBaseUrl.toString();
+        if (!"".equals(newBaseUrl.pathSegments().get(newBaseUrl.pathSegments().size() - 1))) {
+            formatUrl = formatUrl +"/";
+        }
 
         return formatUrl;
     }
 
     public static OpenAiApi buildApi(String token, long second) {
         ObjectMapper mapper = defaultObjectMapper();
-        OkHttpClient client = defaultClient(token, second);
+        OkHttpClient client = defaultClient(token, second, BASE_URL);
         Retrofit retrofit = defaultRetrofit(client, mapper, BASE_URL,
                 client.dispatcher().executorService());
 
@@ -733,7 +733,7 @@ public class OpenAiService {
         return mapper;
     }
 
-    public static OkHttpClient defaultClient(String token, long second) {
+    public static OkHttpClient defaultClient(String token, long second, String url) {
 
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(s -> {
 //            Log.i("test",s);
@@ -741,7 +741,7 @@ public class OpenAiService {
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
         return new OkHttpClient.Builder()
-                .addInterceptor(new AuthenticationInterceptor(token))
+                .addInterceptor(new AuthenticationInterceptor(token, url))
 //                .addInterceptor(loggingInterceptor)
                 .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
                 .readTimeout(second * 1000, TimeUnit.MILLISECONDS)

@@ -886,7 +886,8 @@ public class MessagesController extends BaseController implements NotificationCe
     public static int UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE = 4096;
     public static int UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT = 8192;
     public static int UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT = 16384;
-    public static int UPDATE_MASK_CHAT_AIR_AI_ALL_PROFILE = UPDATE_MASK_CHAT_AIR_AI_MODEL | UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE | UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT | UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT;
+    public static int UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL = 32768;
+    public static int UPDATE_MASK_CHAT_AIR_AI_ALL_PROFILE = UPDATE_MASK_CHAT_AIR_AI_MODEL | UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE | UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT | UPDATE_MASK_CHAT_AIR_AI_TOKEN_LIMIT | UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL;
 
     private static class ReadTask {
         public long dialogId;
@@ -1046,6 +1047,7 @@ public class MessagesController extends BaseController implements NotificationCe
         return 0;
     };
 
+    //dialog排序
     private Comparator<TLRPC.Dialog> dialogComparator = (dialog1, dialog2) -> {
         if (dialog1 instanceof TLRPC.TL_dialogFolder && !(dialog2 instanceof TLRPC.TL_dialogFolder)) {
             return -1;
@@ -1057,6 +1059,7 @@ public class MessagesController extends BaseController implements NotificationCe
             return -1;
         } else if (dialog1.pinned) {
             if (dialog1.pinnedNum < dialog2.pinnedNum) {
+
                 return 1;
             } else if (dialog1.pinnedNum > dialog2.pinnedNum) {
                 return -1;
@@ -1237,19 +1240,19 @@ public class MessagesController extends BaseController implements NotificationCe
         savedGifsLimitPremium = mainPreferences.getInt("savedGifsLimitPremium", 400);
         stickersFavedLimitDefault = mainPreferences.getInt("stickersFavedLimitDefault", 5);
         stickersFavedLimitPremium = mainPreferences.getInt("stickersFavedLimitPremium", 200);
-        maxPinnedDialogsCountDefault = mainPreferences.getInt("maxPinnedDialogsCountDefault", BuildVars.IS_CHAT_AIR ? 100 : 5);
+        maxPinnedDialogsCountDefault = mainPreferences.getInt("maxPinnedDialogsCountDefault", BuildVars.IS_CHAT_AIR ? Integer.MAX_VALUE : 5);
         maxPinnedDialogsCountPremium = mainPreferences.getInt("maxPinnedDialogsCountPremium", BuildVars.IS_CHAT_AIR ? 100 : 5);
-        maxPinnedDialogsCountDefault = mainPreferences.getInt("maxPinnedDialogsCountDefault", BuildVars.IS_CHAT_AIR ? 100 : 5);
+        maxPinnedDialogsCountDefault = mainPreferences.getInt("maxPinnedDialogsCountDefault", BuildVars.IS_CHAT_AIR ? Integer.MAX_VALUE : 5);
         maxPinnedDialogsCountPremium = mainPreferences.getInt("maxPinnedDialogsCountPremium", BuildVars.IS_CHAT_AIR ? 100 : 5);
-        dialogFiltersLimitDefault = mainPreferences.getInt("dialogFiltersLimitDefault", 10);
+        dialogFiltersLimitDefault = mainPreferences.getInt("dialogFiltersLimitDefault", BuildVars.IS_CHAT_AIR ? Integer.MAX_VALUE : 10);
         dialogFiltersLimitPremium = mainPreferences.getInt("dialogFiltersLimitPremium", 20);
-        dialogFiltersChatsLimitDefault = mainPreferences.getInt("dialogFiltersChatsLimitDefault", 100);
+        dialogFiltersChatsLimitDefault = mainPreferences.getInt("dialogFiltersChatsLimitDefault", BuildVars.IS_CHAT_AIR ? Integer.MAX_VALUE : 100);
         dialogFiltersChatsLimitPremium = mainPreferences.getInt("dialogFiltersChatsLimitPremium", 200);
-        dialogFiltersPinnedLimitDefault = mainPreferences.getInt("dialogFiltersPinnedLimitDefault", 5);
+        dialogFiltersPinnedLimitDefault = mainPreferences.getInt("dialogFiltersPinnedLimitDefault", BuildVars.IS_CHAT_AIR ? Integer.MAX_VALUE : 5);
         dialogFiltersPinnedLimitPremium = mainPreferences.getInt("dialogFiltersPinnedLimitPremium", 10);
         publicLinksLimitDefault = mainPreferences.getInt("publicLinksLimitDefault", 10);
         publicLinksLimitPremium = mainPreferences.getInt("publicLinksLimitPremium", 20);
-        captionLengthLimitDefault = mainPreferences.getInt("captionLengthLimitDefault", 1024);
+        captionLengthLimitDefault = mainPreferences.getInt("captionLengthLimitDefault", BuildVars.IS_CHAT_AIR ? 4096 : 1024);
         captionLengthLimitPremium = mainPreferences.getInt("captionLengthLimitPremium", 4096);
         aboutLengthLimitDefault = mainPreferences.getInt("aboutLengthLimitDefault", 70);
         aboutLengthLimitPremium = mainPreferences.getInt("aboutLengthLimitPremium", 140);
@@ -4421,7 +4424,22 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public TLRPC.UserFull getUserFull(long uid) {
-        return fullUsers.get(uid);
+        //UserFull主要用于自己对于其他用户信息封装后的二次编辑。暂时用不到，直接封装返回用户信息
+        if (BuildVars.IS_CHAT_AIR) {
+
+            if (getUser(uid) == null) return null;
+
+            if (fullUsers.get(uid) != null){
+                return fullUsers.get(uid);
+            }
+
+            TLRPC.UserFull userFull = new TLRPC.TL_userFull();
+            userFull.user = getUser(uid);
+            fullUsers.put(uid, userFull);
+            return userFull;
+        } else {
+            return fullUsers.get(uid);
+        }
     }
 
     public TLRPC.ChatFull getChatFull(long chatId) {
@@ -5986,6 +6004,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 newTaskId = getMessagesStorage().createPendingTask(data);
             }
 
+            //执行网络删除请求，移除每次启动删除任务
             getConnectionsManager().sendRequest(req, (response, error) -> {
                 if (error == null) {
                     TLRPC.Updates updates = (TLRPC.Updates) response;
@@ -6438,7 +6457,8 @@ public class MessagesController extends BaseController implements NotificationCe
                             dialogMessagesByRandomIds.remove(object.messageOwner.random_id);
                         }
                     }
-                    if (onlyHistory == 1 && !DialogObject.isEncryptedDialog(did) && lastMessageId > 0) {
+                    if (!BuildVars.IS_CHAT_AIR && onlyHistory == 1 && !DialogObject.isEncryptedDialog(did) && lastMessageId > 0) {
+                        //不需要发送给服务器清除消息
                         TLRPC.TL_messageService message = new TLRPC.TL_messageService();
                         message.id = dialog.top_message;
                         message.out = getUserConfig().getClientUserId() == did;
@@ -6554,6 +6574,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 req.revoke = revoke;
                 int max_id_delete_final = max_id_delete;
                 TLRPC.InputPeer peerFinal = peer;
+                //如果请求网络完毕，则移除删除任务
                 getConnectionsManager().sendRequest(req, (response, error) -> {
                     if (newTaskId != 0) {
                         getMessagesStorage().removePendingTask(newTaskId);
@@ -7993,6 +8014,24 @@ public class MessagesController extends BaseController implements NotificationCe
                 reload = true;
             }
         }
+        if (BuildVars.IS_CHAT_AIR && messagesRes.messages.isEmpty()) {
+            //聊天加载完毕，发送最后一次空消息，恢复状态
+            if (!DialogObject.isEncryptedDialog(dialogId)) {
+                ArrayList<MessageObject> objects = new ArrayList<>();
+                int finalFirst_unread_final = 0;
+                AndroidUtilities.runOnUIThread(() -> {
+                    if (!needProcess) {
+                        getNotificationCenter().postNotificationName(NotificationCenter.messagesDidLoadWithoutProcess, classGuid, resCount, isCache, isEnd, last_message_id);
+                    } else {
+                        getNotificationCenter().postNotificationName(NotificationCenter.messagesDidLoad, dialogId, count, objects, isCache, finalFirst_unread_final, last_message_id, unread_count, last_date, load_type, isEnd, classGuid, loadIndex, max_id, mentionsCount, mode);
+                    }
+                });
+
+            }
+            return;
+        }
+
+        //本地加载完毕，加载网络聊天记录
         if (!DialogObject.isEncryptedDialog(dialogId) && isCache && reload) {
             int hash;
             if (mode == 2) {
@@ -8199,6 +8238,7 @@ public class MessagesController extends BaseController implements NotificationCe
         });
     }
 
+    //添加归档文件夹
     private TLRPC.TL_dialogFolder ensureFolderDialogExists(int folderId, boolean[] folderCreated) {
         if (folderId == 0) {
             return null;
@@ -8368,6 +8408,7 @@ public class MessagesController extends BaseController implements NotificationCe
         loadDialogs(folderId, offset, count, fromCache, null);
     }
 
+    //载入聊天窗口，通过fromCache判断从数据库或者网络拉取
     public void loadDialogs(final int folderId, int offset, int count, boolean fromCache, Runnable onEmptyCallback) {
         if (loadingDialogs.get(folderId) || resetingDialogs) {
             return;
@@ -9163,6 +9204,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 FileLog.d("loaded folderId " + folderId + " loadType " + loadType + " count " + dialogsRes.dialogs.size());
             }
             long[] dialogsLoadOffset = getUserConfig().getDialogLoadOffsets(folderId);
+            //缓存加载下，没有更多消息
             if (loadType == DIALOGS_LOAD_TYPE_CACHE && dialogsRes.dialogs.size() == 0) {
                 AndroidUtilities.runOnUIThread(() -> {
                     putUsers(dialogsRes.users, true);
@@ -9219,6 +9261,7 @@ public class MessagesController extends BaseController implements NotificationCe
             ArrayList<MessageObject> newMessages = new ArrayList<>();
             for (int a = 0; a < dialogsRes.messages.size(); a++) {
                 TLRPC.Message message = dialogsRes.messages.get(a);
+                //根据时间设定最后一条消息
                 if (lastMessage == null || message.date < lastMessage.date) {
                     lastMessage = message;
                 }
@@ -9245,6 +9288,7 @@ public class MessagesController extends BaseController implements NotificationCe
             }
             getFileLoader().checkMediaExistance(newMessages);
 
+            //从网络拉取情况下，如果最后一条消息的id与数据库的id不同，则重新加载数据库的数据
             if (!fromCache && !migrate && dialogsLoadOffset[UserConfig.i_dialogsLoadOffsetId] != -1 && loadType == 0) {
                 int totalDialogsLoadCount = getUserConfig().getTotalDialogsCount(folderId);
                 int dialogsLoadOffsetId;
@@ -9253,6 +9297,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 long dialogsLoadOffsetChatId = 0;
                 long dialogsLoadOffsetUserId = 0;
                 long dialogsLoadOffsetAccess = 0;
+                //如果最后一条消息与载入的与记录的最后一条消息的id不同，则重新载入设定的时间
                 if (lastMessage != null && lastMessage.id != dialogsLoadOffset[UserConfig.i_dialogsLoadOffsetId]) {
                     totalDialogsLoadCount += dialogsRes.dialogs.size();
                     dialogsLoadOffsetId = lastMessage.id;
@@ -9398,6 +9443,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         message.unread = value < message.id;
                     }
                 }
+                //将dialog载入数据库
                 getMessagesStorage().putDialogs(dialogsRes, loadType == DIALOGS_LOAD_TYPE_UNKNOWN ? 3 : 0);
             }
             if (loadType == DIALOGS_LOAD_TYPE_CHANNEL) {
@@ -12249,6 +12295,7 @@ public class MessagesController extends BaseController implements NotificationCe
             FileLog.d("start getDifference with date = " + date + " pts = " + pts + " qts = " + qts);
         }
         getConnectionsManager().setIsUpdating(true);
+        //重新同步数据
         getConnectionsManager().sendRequest(req, (response, error) -> {
             if (error == null) {
                 TLRPC.updates_Difference res = (TLRPC.updates_Difference) response;
@@ -12612,6 +12659,7 @@ public class MessagesController extends BaseController implements NotificationCe
         });
     }
 
+    //置顶dialog
     public boolean pinDialog(long dialogId, boolean pin, TLRPC.InputPeer peer, long taskId) {
         TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
         if (dialog == null || dialog.pinned == pin) {

@@ -28,6 +28,7 @@ import android.graphics.drawable.Drawable;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.util.TypedValue;
@@ -41,21 +42,19 @@ import android.widget.FrameLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.core.graphics.ColorUtils;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
+import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DispatchQueue;
 import org.telegram.messenger.EmuDetector;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.GenericProvider;
 import org.telegram.messenger.Intro;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
@@ -81,6 +80,11 @@ import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
 import javax.microedition.khronos.opengles.GL10;
+
+import androidx.annotation.NonNull;
+import androidx.core.graphics.ColorUtils;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 public class IntroActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
     private final static int ICON_WIDTH_DP = 200, ICON_HEIGHT_DP = 150;
@@ -142,7 +146,16 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
 
     @Override
     public View createView(Context context) {
-        actionBar.setAddToContainer(false);
+        if (BuildVars.IS_CHAT_AIR) {
+            actionBar.setAddToContainer(true);
+            if (BuildVars.DEBUG_VERSION) {
+                actionBar.setTitle(LocaleController.getString("AppNameBeta", R.string.AppNameBeta));
+            } else {
+                actionBar.setTitle(LocaleController.getString("AppName", R.string.AppName));
+            }
+        } else {
+            actionBar.setAddToContainer(false);
+        }
 
         ScrollView scrollView = new ScrollView(context);
         scrollView.setFillViewport(true);
@@ -183,6 +196,9 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
                 }
             }
         };
+        if (BuildVars.IS_CHAT_AIR){
+            frameContainerView.setVisibility(View.GONE);
+        }
         scrollView.addView(frameContainerView, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP));
 
         darkThemeDrawable = new RLottieDrawable(R.raw.sun, String.valueOf(R.raw.sun), AndroidUtilities.dp(28), AndroidUtilities.dp(28), true, null);
@@ -353,7 +369,11 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             }
             startPressed = true;
 
-            presentFragment(new LoginActivity().setIntroView(frameContainerView, startMessagingButton), true);
+            if (BuildVars.IS_CHAT_AIR) {
+                init();
+            } else {
+                presentFragment(new LoginActivity().setIntroView(frameContainerView, startMessagingButton), true);
+            }
             destroyed = true;
         });
 
@@ -426,6 +446,9 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             if (activity != null) {
                 activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             }
+        }
+        if (BuildVars.IS_CHAT_AIR) {
+            init();
         }
     }
 
@@ -974,5 +997,86 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
     public boolean isLightStatusBar() {
         int color = Theme.getColor(Theme.key_windowBackgroundWhite, null, true);
         return ColorUtils.calculateLuminance(color) > 0.7f;
+    }
+
+    private void init() {
+
+        TLRPC.TL_auth_authorization res = new TLRPC.TL_auth_authorization();
+
+        TLRPC.User user = new TLRPC.TL_user();
+        res.user = user;
+
+        user.status = new TLRPC.TL_userStatusOffline();
+        user.first_name = "ChatGPT";
+        user.apply_min_photo = true;
+        user.flags = 33555539;
+        user.id = 1000;
+        user.phone = "1000";
+        user.self = true;
+
+        MessagesController.getInstance(currentAccount).cleanup();
+        ConnectionsManager.getInstance(currentAccount).setUserId(res.user.id);
+        UserConfig.getInstance(currentAccount).clearConfig();
+        MessagesController.getInstance(currentAccount).cleanup();
+        UserConfig.getInstance(currentAccount).syncContacts = false;
+        UserConfig.getInstance(currentAccount).setCurrentUser(res.user);
+        UserConfig.getInstance(currentAccount).saveConfig(true);
+        MessagesStorage.getInstance(currentAccount).cleanup(true, false);
+        ArrayList<TLRPC.User> users = new ArrayList<>();
+        users.add(res.user);
+        MessagesStorage.getInstance(currentAccount).putUsersAndChats(users, null, true, true);
+        MessagesController.getInstance(currentAccount).putUser(res.user, false);
+        ContactsController.getInstance(currentAccount).checkAppAccount();
+        MessagesController.getInstance(currentAccount).checkPromoInfo(true);
+        ConnectionsManager.getInstance(currentAccount).updateDcSettings();
+
+        MediaDataController.getInstance(currentAccount).loadStickersByEmojiOrName(AndroidUtilities.STICKERS_PLACEHOLDER_PACK_NAME, false, true);
+
+        TLRPC.messages_Dialogs dialogsRes = new  TLRPC.TL_messages_dialogs();
+
+        int userId = UserConfig.getInstance(currentAccount).getNewUserId();
+        UserConfig.getInstance(currentAccount).saveConfig(false);
+        TLRPC.User dialogUser = new TLRPC.TL_user();
+        dialogUser.status = new TLRPC.TL_userStatusOffline();
+        dialogUser.first_name = LocaleController.getString("CasualTalk", R.string.CasualTalk);
+        dialogUser.apply_min_photo = true;
+        dialogUser.flags = 33555539;
+        dialogUser.id = userId;
+        dialogUser.phone = String.valueOf(userId);
+        dialogUser.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT;
+        dialogUser.prompt = UserConfig.defaultPrompt;
+
+        TLRPC.Dialog dialog = new TLRPC.TL_dialog();
+//        dialog.flags = 4;
+        dialog.id = userId;
+        dialog.pinned = true;
+        dialog.pinnedNum = 1;
+//        dialog.last_message_date = (int) (System.currentTimeMillis() / 1000);
+        dialog.folder_id = 0;
+        dialog.notify_settings = new TLRPC.TL_peerNotifySettingsEmpty_layer77();
+
+        ArrayList<TLRPC.Dialog> dialogs = new ArrayList<>();
+        dialogs.add(dialog);
+
+        ArrayList<TLRPC.User> dialogUsers = new ArrayList<>();
+        dialogUsers.add(dialogUser);
+
+        dialogsRes.dialogs = dialogs;
+        dialogsRes.users = dialogUsers;
+
+        MessagesController.getInstance(currentAccount).processLoadedDialogs(dialogsRes, null, null, 0, 0, 100, 0, false, false, false);
+
+        if (getParentActivity() != null) {
+            AndroidUtilities.setLightStatusBar(getParentActivity().getWindow(), false);
+        }
+        if (getParentActivity() instanceof LaunchActivity) {
+            Bundle args = new Bundle();
+            args.putBoolean("afterSignup", false);
+            DialogsActivity dialogsActivity = new DialogsActivity(args);
+            presentFragment(dialogsActivity, true);
+
+            NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+            RestrictedLanguagesSelectActivity.checkRestrictedLanguages(true);
+        }
     }
 }

@@ -529,6 +529,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     private int aiParametersHeaderRow;
     private int aiModelRow;
+    private int customModelRow;
     private int aiModelTipsRow;
     private int temperatureRow;
     private int temperatureTipsRow;
@@ -541,6 +542,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int defaultHeaderRow;
     private int defaultRow;
     private int defaultSectionRow;
+    private int lastCustomModel;
 
     private int transitionIndex;
     private final ArrayList<TLRPC.ChatParticipant> visibleChatParticipants = new ArrayList<>();
@@ -3391,11 +3393,30 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                         getMessagesStorage().updateUsers(userArrayList, false, true, true, true);
 
-                        listAdapter.notifyItemChanged(position);
+                        if (isNoUpdateCustomModel()) {
+                            listAdapter.notifyItemChanged(position);
+                        } else {
+                            lastCustomModel = user.aiModel;
+                            updateRowsIds();
+                        }
+
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
                     });
                     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
                     showDialog(builder.create());
+                }
+            } else if (position == customModelRow) {
+                TLRPC.User user = getMessagesController().getUser(userId);
+                if (user != null) {
+                    Bundle args = new Bundle();
+                    args.putLong("user_id", user.id);
+                    if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL) != 0) {
+                        args.putString("custom_model", user.customModel);
+                    } else {
+                        args.putString("custom_model", UserConfig.getInstance(currentAccount).customModel);
+                    }
+                    ChangeCustomModelActivity fragment = new ChangeCustomModelActivity(args, getResourceProvider());
+                    presentFragment(fragment);
                 }
             } else if (position == temperatureRow) {
 
@@ -3600,6 +3621,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     updateUser.temperature = -1;
                     updateUser.contextLimit = -1;
                     updateUser.tokenLimit = -1;
+                    updateUser.customModel = null;
 
                     ArrayList<TLRPC.User> userArrayList = new ArrayList<>();
                     userArrayList.add(updateUser);
@@ -3609,10 +3631,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     //只有更新数据库需要判断哪个参数更新，需要flag。如果这个参数为默认状态，则默认的flag需要去除
                     user.flags2 = user.flags2 &~ MessagesController.UPDATE_MASK_CHAT_AIR_AI_ALL_PROFILE;
 
-                    listAdapter.notifyItemChanged(aiModelRow);
-                    listAdapter.notifyItemChanged(temperatureRow);
-                    listAdapter.notifyItemChanged(contextRow);
-                    listAdapter.notifyItemChanged(tokenLimitRow);
+                    if (isNoUpdateCustomModel()) {
+                        listAdapter.notifyItemChanged(aiModelRow);
+                        listAdapter.notifyItemChanged(temperatureRow);
+                        listAdapter.notifyItemChanged(contextRow);
+                        listAdapter.notifyItemChanged(tokenLimitRow);
+                    } else {
+                        updateRowsIds();
+                    }
 
                     if (getParentActivity() != null) {
                         Toast toast = Toast.makeText(getParentActivity(), LocaleController.getString("ResetAiParametersText", R.string.ResetAiParametersText), Toast.LENGTH_SHORT);
@@ -7396,6 +7422,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         aiParametersHeaderRow = -1;
         aiModelRow = -1;
+        customModelRow = -1;
         aiModelTipsRow = -1;
         temperatureRow = -1;
         temperatureTipsRow = -1;
@@ -7500,6 +7527,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                 aiParametersHeaderRow = rowCount++;
                 aiModelRow = rowCount++;
+                if (isShowCustomModel()) {
+                    customModelRow = rowCount++;
+                } else {
+                    customModelRow = -1;
+                }
                 aiModelTipsRow = rowCount++;
                 temperatureRow = rowCount++;
                 temperatureTipsRow = rowCount++;
@@ -9645,12 +9677,25 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         LinkedHashMap<Integer, AiModelBean> aiModelList
                                 = UserConfig.getInstance(currentAccount).aiModelList;
                         if (aiModelList != null && aiModelList.containsKey(aiModel)) {
-                            AiModelBean bean = aiModelList.get(aiModel);
-                            selectValue = bean != null ? bean.getName() : "";
+                            if (aiModel == 0) {
+                                selectValue = LocaleController.getString("CustomModel", R.string.CustomModel);
+                            } else {
+                                AiModelBean bean = aiModelList.get(aiModel);
+                                selectValue = bean != null ? bean.getName() : "";
+                            }
                         } else {
                             selectValue = "";
                         }
 
+                    } else if (position == customModelRow){
+                        selectText = LocaleController.getString("CustomModel", R.string.CustomModel);
+
+                        TLRPC.User user = getMessagesController().getUser(userId);
+                        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL) != 0) {
+                            selectValue = user.customModel;
+                        } else {
+                            selectValue = UserConfig.getInstance(currentAccount).customModel;
+                        }
                     } else if (position == temperatureRow){
                         selectText = LocaleController.getString("TemperatureTitle", R.string.TemperatureTitle);
                         TLRPC.User user = getMessagesController().getUser(userId);
@@ -10065,7 +10110,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             ) {
                 return VIEW_TYPE_DETAIL_TIPS;
             } else if (position == aiModelRow || position == temperatureRow ||
-                    position == contextRow || position == tokenLimitRow
+                    position == contextRow || position == tokenLimitRow ||
+                    position == customModelRow
             ) {
                 return VIEW_TYPE_SELECT;
             } else if (position == userInfoRow || position == channelInfoRow || position == bioRow ||
@@ -11223,6 +11269,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, promptRowSectionRow, sparseIntArray);
             put(++pointer, aiParametersHeaderRow, sparseIntArray);
             put(++pointer, aiModelRow, sparseIntArray);
+            put(++pointer, customModelRow, sparseIntArray);
             put(++pointer, aiModelTipsRow, sparseIntArray);
             put(++pointer, temperatureRow, sparseIntArray);
             put(++pointer, temperatureTipsRow, sparseIntArray);
@@ -11314,5 +11361,38 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         }
 
+    }
+
+    private boolean isShowCustomModel() {
+        TLRPC.User user = getMessagesController().getUser(userId);
+        int aiModel;
+
+        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL) != 0) {
+            //用户已经自定义
+            aiModel = user.aiModel;
+        } else {
+            //使用默认
+            aiModel = UserConfig.getInstance(currentAccount).aiModel;
+        }
+
+        return aiModel == 0;
+    }
+
+    private boolean isNoUpdateCustomModel() {
+
+        TLRPC.User user = getMessagesController().getUser(userId);
+        int aiModel;
+
+        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL) != 0) {
+            //用户已经自定义
+            aiModel = user.aiModel;
+        } else {
+            //使用默认
+            aiModel = UserConfig.getInstance(currentAccount).aiModel;
+        }
+
+        if (lastCustomModel == aiModel) return true;
+        if (lastCustomModel == 0 || aiModel == 0) return false;
+        return true;
     }
 }

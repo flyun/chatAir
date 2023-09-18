@@ -2,6 +2,7 @@ package org.telegram.ui;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -9,12 +10,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import com.theokanning.openai.OpenAiHttpException;
-import com.theokanning.openai.OpenAiResponse;
-import com.theokanning.openai.model.Model;
-import com.theokanning.openai.service.OpenAiService;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -22,59 +17,52 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.browser.Browser;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
-import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
 
-import okhttp3.internal.Util;
-
 /**
- * Created by flyun on 2023/7/14.
+ * Created by flyun on 2023/9/17.
  */
-public class ChangeApiKeyActivity extends BaseFragment {
+class ChangeCustomModelActivity extends BaseFragment {
 
     private EditTextBoldCursor firstNameField;
     private View doneButton;
-    private View findKeyButton;
+
+    private long userId = 0;
+    private String customModel;
 
     private Theme.ResourcesProvider resourcesProvider;
 
     private final static int done_button = 1;
-    private final static int find_key_button = 2;
 
-    private OpenAiService openAiService;
+    public ChangeCustomModelActivity(Bundle args, Theme.ResourcesProvider resourcesProvider) {
+        super(args);
+        this.resourcesProvider = resourcesProvider;
+    }
 
-    private volatile boolean isReq;
-
-    public ChangeApiKeyActivity(Theme.ResourcesProvider resourcesProvider) {
+    public ChangeCustomModelActivity(Theme.ResourcesProvider resourcesProvider) {
         this.resourcesProvider = resourcesProvider;
     }
 
     @Override
     public boolean onFragmentCreate() {
-
-        String token = UserConfig.getInstance(currentAccount).apiKey;
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
-        openAiService = new OpenAiService(token, 5, apiServer);
-
-        return super.onFragmentCreate();
-    }
-
-    @Override
-    public void onFragmentDestroy() {
-        if (openAiService != null) {
-            openAiService.clean();
+        if (arguments != null) {
+            userId = arguments.getLong("user_id", 0);
         }
-        super.onFragmentDestroy();
+        if (userId != 0) {
+            customModel = arguments.getString("custom_model", "");
+        } else {
+            customModel = UserConfig.getInstance(currentAccount).customModel;
+        }
+        return super.onFragmentCreate();
     }
 
     @Override
@@ -83,7 +71,7 @@ public class ChangeApiKeyActivity extends BaseFragment {
         actionBar.setItemsColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider), false);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString("ChangeApiKey", R.string.ChangeApiKey));
+        actionBar.setTitle(LocaleController.getString("ChangeCustomModel", R.string.ChangeCustomModel));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -91,16 +79,13 @@ public class ChangeApiKeyActivity extends BaseFragment {
                     finishFragment();
                 } else if (id == done_button) {
                     if (firstNameField.getText() != null) {
-                        saveApiKey();
+                        saveCustomModel();
                     }
-                } else if (id == find_key_button) {
-                    Browser.openUrl(getParentActivity(), LocaleController.getString("FindKeyUrl", R.string.FindKeyUrl));
                 }
             }
         });
 
         ActionBarMenu menu = actionBar.createMenu();
-        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link2, AndroidUtilities.dp(56), LocaleController.getString("FindKeyUrl", R.string.FindKeyUrl));
         doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_ab_done, AndroidUtilities.dp(56), LocaleController.getString("Done", R.string.Done));
 
         LinearLayout linearLayout = new LinearLayout(context);
@@ -125,33 +110,17 @@ public class ChangeApiKeyActivity extends BaseFragment {
         firstNameField.setSingleLine(true);
         firstNameField.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         firstNameField.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
-        firstNameField.setHint(LocaleController.formatApiKey(UserConfig.getInstance(currentAccount).apiKey));
+        firstNameField.setHint(LocaleController.getString("CustomModel", R.string.CustomModel));
         firstNameField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         firstNameField.setCursorSize(AndroidUtilities.dp(20));
         firstNameField.setCursorWidth(1.5f);
+
+        if (!TextUtils.isEmpty(customModel)) {
+            firstNameField.setText(customModel);
+            firstNameField.setSelection(customModel.length());
+        }
+
         linearLayout.addView(firstNameField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36, 24, 24, 24, 0));
-
-        TextView buttonTextView = new TextView(context);
-
-        buttonTextView.setPadding(AndroidUtilities.dp(34), 0, AndroidUtilities.dp(34), 0);
-        buttonTextView.setGravity(Gravity.CENTER);
-        buttonTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        buttonTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
-
-        buttonTextView.setText(LocaleController.getString("ValidateTitle", R.string.ValidateTitle));
-
-        buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
-        buttonTextView.setBackgroundDrawable(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(6), Theme.getColor(Theme.key_featuredStickers_addButton), Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
-
-        buttonTextView.setOnClickListener(view -> {
-            if (getParentActivity() == null) {
-                return;
-            }
-            verifyKey();
-        });
-
-        linearLayout.addView(buttonTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM, 16, 15, 16, 16));
-
 
         return fragmentView;
     }
@@ -167,107 +136,71 @@ public class ChangeApiKeyActivity extends BaseFragment {
         }
     }
 
-    private void saveApiKey() {
-
+    private void saveCustomModel() {
         if (firstNameField.getText() == null) {
             return;
         }
 
-        final String newFirst = firstNameField.getText().toString().replace("\n", "");
-        String apiKey = UserConfig.getInstance(currentAccount).apiKey;
-        if (apiKey != null && apiKey.equals(newFirst)) {
-            return;
-        }
-        if (newFirst.length() == 0) {
+        String newFirst = firstNameField.getText().toString().replace("\n", "");
 
-            AlertDialog alertDialog = AlertsCreator.createSimpleAlert(getContext(),
-                    LocaleController.getString("ChangeApiKey", R.string.ChangeApiKey),
-                    LocaleController.getString("ClearApiKey", R.string.ClearApiKey),
-                    LocaleController.getString("OK", R.string.OK),
-                    () -> {
-                        changeApiKey(newFirst);
-                    }, null).create();
-            alertDialog.show();
+        if (userId == 0) {
+            if (newFirst.equals(UserConfig.getInstance(currentAccount).customModel)){
+                finishFragment();
+                return;
+            }
+
+            UserConfig.getInstance(currentAccount).customModel = newFirst;
+            UserConfig.getInstance(currentAccount).saveConfig(false);
+            NotificationCenter.getInstance(currentAccount)
+                    .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL);
         } else {
-            changeApiKey(newFirst);
+
+            final TLRPC.UserFull userFull = MessagesController.getInstance(currentAccount).getUserFull(userId);
+            final TLRPC.User user = getMessagesController().getUser(userId);
+            if (getParentActivity() == null || userFull == null || user == null) {
+                return;
+            }
+
+            final String customModelTx = firstNameField.getText().toString();
+
+            //传入的值与编辑的值相同则不修改
+            if (customModelTx.equals(customModel)){
+                finishFragment();
+                return;
+            }
+            ArrayList<TLRPC.User> userArrayList = new ArrayList<>();
+
+            if (!TextUtils.isEmpty(customModelTx)) {
+                //更新
+                user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL;
+                user.customModel = customModelTx;
+                //如果更新自定义model，则说明model选择也需要更新
+                user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL;
+                user.aiModel = 0;
+                userArrayList.add(user);
+
+            } else {
+                //重置
+                //更新内存
+                user.flags2 = user.flags2 &~ MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL;
+                user.customModel = null;
+
+                //更新数据库
+                TLRPC.User updateUser = new TLRPC.TL_user();
+                updateUser.id = userId;
+                updateUser.flags2 = MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT;
+                userArrayList.add(updateUser);
+
+            }
+
+            userFull.user = user;
+            getMessagesStorage().updateUsers(userArrayList, false, true, true, true);
+
+            NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.userInfoDidLoad, user.id, userFull);
+
         }
-    }
-
-    private void changeApiKey(String newFirst) {
-
-        if (!TextUtils.isEmpty(newFirst) && checkValue(newFirst)) return;
-
-        UserConfig.getInstance(currentAccount).apiKey = newFirst;
-        UserConfig.getInstance(currentAccount).saveConfig(false);
-
-        NotificationCenter.getInstance(currentAccount)
-                .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_API_KEY);
 
         finishFragment();
-    }
-
-    private void verifyKey() {
-        if (isReq) return;
-        String newFirst;
-        if (firstNameField.getText() == null) {
-            return;
-        } else if (firstNameField.getText().length() > 0){
-            newFirst = firstNameField.getText().toString().replace("\n", "");
-        } else {
-            newFirst = UserConfig.getInstance(currentAccount).apiKey;
-        }
-
-        if (TextUtils.isEmpty(newFirst) || checkValue(newFirst)) return;
-
-        openAiService.changeToken(newFirst);
-
-        isReq = true;
-
-        openAiService.baseCompletion(openAiService.listModels,
-                new OpenAiService.CompletionCallBack<OpenAiResponse<Model>>() {
-                    @Override
-                    public void onSuccess(Object o) {
-//                        OpenAiResponse<Model> openAiResponse = (OpenAiResponse<Model>) o;
-
-                        AndroidUtilities.runOnUIThread(() -> {
-                            isReq = false;
-
-                            AlertsCreator.showSimpleAlert(ChangeApiKeyActivity.this,
-                                    LocaleController.getString("ValidateSuccess", R.string.ValidateSuccess));
-                        });
-
-                    }
-
-                    @Override
-                    public void onError(OpenAiHttpException error, Throwable throwable) {
-                        AndroidUtilities.runOnUIThread(() -> {
-                            String errorTx;
-                            isReq = false;
-                            if (error != null) {
-                                errorTx = error.getMessage();
-                            } else {
-                                errorTx = throwable.getMessage();
-                            }
-
-                            AlertsCreator.processError(errorTx, ChangeApiKeyActivity.this);
-                        });
-                    }
-                });
-    }
-
-    //检查添加的token格式是否正确参照Headers.checkValue
-    private boolean checkValue(String value) {
-        for (int i = 0, length = value.length(); i < length; i++) {
-            char c = value.charAt(i);
-            if ((c <= '\u001f' && c != '\t') || c >= '\u007f') {
-                String errorTx = Util.format(
-                        "Unexpected char %#04x at %d value: %s", (int) c, i, value);
-                AlertsCreator.processError(errorTx, ChangeApiKeyActivity.this);
-                return true;
-            }
-        }
-
-        return false;
     }
 
     @Override

@@ -38,7 +38,7 @@ import androidx.recyclerview.widget.RecyclerView;
 /**
  * Created by flyun on 2023/7/13.
  */
-public class AiParametersActivity extends BaseFragment {
+public class AiParametersActivity extends BaseFragment  implements NotificationCenter.NotificationCenterDelegate{
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -46,6 +46,7 @@ public class AiParametersActivity extends BaseFragment {
 
     private int aiParametersHeaderRow;
     private int aiModelRow;
+    private int customModelRow;
     private int aiModelTipsRow;
     private int temperatureRow;
     private int temperatureTipsRow;
@@ -60,11 +61,26 @@ public class AiParametersActivity extends BaseFragment {
 
     private int rowCount = 0;
 
+    private int lastModel;
+
     @Override
     public boolean onFragmentCreate() {
 
+        updateRow(true);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateInterfaces);
+
+        return super.onFragmentCreate();
+    }
+
+    private void updateRow(boolean notify) {
+        rowCount = 0;
         aiParametersHeaderRow = rowCount++;
         aiModelRow = rowCount++;
+        if (UserConfig.getInstance(currentAccount).aiModel == 0) {
+            customModelRow = rowCount++;
+        } else {
+            customModelRow = 0;
+        }
         aiModelTipsRow = rowCount++;
         temperatureRow = rowCount++;
         temperatureTipsRow = rowCount++;
@@ -76,11 +92,14 @@ public class AiParametersActivity extends BaseFragment {
         defaultRow = rowCount++;
         defaultSectionRow = rowCount++;
 
-        return super.onFragmentCreate();
+        if (notify && adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     @Override
     public void onFragmentDestroy() {
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateInterfaces);
         super.onFragmentDestroy();
     }
 
@@ -115,6 +134,7 @@ public class AiParametersActivity extends BaseFragment {
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(adapter = new ListAdapter(context));
 
+        lastModel = UserConfig.getInstance(currentAccount).aiModel;
         //点击
         listView.setOnItemClickListener((view, position, x, y) ->{
 
@@ -149,12 +169,22 @@ public class AiParametersActivity extends BaseFragment {
                         UserConfig.getInstance(currentAccount).aiModel = list.get(which);
                         UserConfig.getInstance(currentAccount).saveConfig(false);
 
-                        adapter.notifyItemChanged(position);
+
+                        if (isNoUpdateCustomModel()) {
+                            adapter.notifyItemChanged(position);
+                        }else {
+                            lastModel = UserConfig.getInstance(currentAccount).aiModel;
+                            updateRow(true);
+                        }
+
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
                     });
                     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
                     showDialog(builder.create());
                 }
+            } else if (position == customModelRow) {
+                ChangeCustomModelActivity fragment = new ChangeCustomModelActivity(getResourceProvider());
+                presentFragment(fragment);
             } else if (position == temperatureRow) {
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
@@ -332,12 +362,19 @@ public class AiParametersActivity extends BaseFragment {
                     UserConfig.getInstance(currentAccount).temperature = UserConfig.defaultTemperature;
                     UserConfig.getInstance(currentAccount).contextLimit = UserConfig.defaultContextLimit;
                     UserConfig.getInstance(currentAccount).tokenLimit = UserConfig.defaultTokenLimit;
+                    UserConfig.getInstance(currentAccount).customModel = UserConfig.defaultCustomModel;
                     UserConfig.getInstance(currentAccount).saveConfig(false);
 
-                    adapter.notifyItemChanged(aiModelRow);
-                    adapter.notifyItemChanged(temperatureRow);
-                    adapter.notifyItemChanged(contextRow);
-                    adapter.notifyItemChanged(tokenLimitRow);
+                    if (isNoUpdateCustomModel()) {
+                        adapter.notifyItemChanged(aiModelRow);
+                        adapter.notifyItemChanged(temperatureRow);
+                        adapter.notifyItemChanged(contextRow);
+                        adapter.notifyItemChanged(tokenLimitRow);
+                    }else {
+                        lastModel = UserConfig.getInstance(currentAccount).aiModel;
+                        updateRow(true);
+                    }
+
 
                     if (getParentActivity() != null) {
                         Toast toast = Toast.makeText(getParentActivity(), LocaleController.getString("ResetAiParametersText", R.string.ResetAiParametersText), Toast.LENGTH_SHORT);
@@ -358,6 +395,24 @@ public class AiParametersActivity extends BaseFragment {
 
         return fragmentView;
 
+    }
+
+    private boolean isNoUpdateCustomModel() {
+        if (lastModel == UserConfig.getInstance(currentAccount).aiModel) return true;
+        if (lastModel == 0 || UserConfig.getInstance(currentAccount).aiModel == 0) return false;
+        return true;
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.updateInterfaces) {
+            int mask = (Integer) args[0];
+            if ((mask & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL) != 0) {
+                if (adapter != null){
+                    adapter.notifyItemChanged(customModelRow);
+                }
+            }
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -447,6 +502,9 @@ public class AiParametersActivity extends BaseFragment {
                         } else {
                             selectValue = "";
                         }
+                    } else if (position == customModelRow){
+                        selectText = LocaleController.getString("CustomModel", R.string.CustomModel);
+                        selectValue = UserConfig.getInstance(currentAccount).customModel;
                     } else if (position == temperatureRow){
                         selectText = LocaleController.getString("TemperatureTitle", R.string.TemperatureTitle);
                         selectValue = Double.toString(UserConfig.getInstance(currentAccount).temperature);
@@ -511,7 +569,8 @@ public class AiParametersActivity extends BaseFragment {
             if (position == aiParametersHeaderRow || position == defaultHeaderRow) {
                 return VIEW_TYPE_HEADER;
             } else if (position == aiModelRow || position == temperatureRow ||
-                    position == contextRow || position == tokenLimitRow){
+                    position == contextRow || position == tokenLimitRow ||
+                    position == customModelRow){
                 return VIEW_TYPE_SELECT;
             } else if (position == aiModelTipsRow ||
                     position == temperatureTipsRow || position == contextTipsRow ||
