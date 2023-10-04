@@ -97,6 +97,7 @@ public class UserConfig extends BaseController {
 
     public final static boolean defaultStreamResponses = true;
     public final static boolean defaultRenderMarkdown = true;
+    public final static boolean defaultAutoHideKeyboard = false;
 
     public final static int defaultUserId = 2000;
 
@@ -113,6 +114,7 @@ public class UserConfig extends BaseController {
 
     public boolean streamResponses = defaultStreamResponses;
     public boolean renderMarkdown = defaultRenderMarkdown;
+    public boolean autoHideKeyboard = defaultAutoHideKeyboard;
 
 
     private static volatile UserConfig[] Instance = new UserConfig[UserConfig.MAX_ACCOUNT_COUNT];
@@ -254,6 +256,7 @@ public class UserConfig extends BaseController {
                         editor.putString("apiServer", apiServer);
                         editor.putBoolean("streamResponses", streamResponses);
                         editor.putBoolean("renderMarkdown", renderMarkdown);
+                        editor.putBoolean("autoHideKeyboard", autoHideKeyboard);
                     }
 
                     if (unacceptedTermsOfService != null) {
@@ -463,6 +466,7 @@ public class UserConfig extends BaseController {
                 apiServer = preferences.getString("apiServer", defaultApiServer);
                 streamResponses = preferences.getBoolean("streamResponses", defaultStreamResponses);
                 renderMarkdown = preferences.getBoolean("renderMarkdown", defaultRenderMarkdown);
+                autoHideKeyboard = preferences.getBoolean("autoHideKeyboard", defaultAutoHideKeyboard);
             }
 
             configLoaded = true;

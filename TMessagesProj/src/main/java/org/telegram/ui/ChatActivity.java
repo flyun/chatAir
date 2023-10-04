@@ -3276,7 +3276,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         }
 
-        if (BuildVars.IS_CHAT_AIR) {
+        if (BuildVars.IS_CHAT_AIR && currentUser == null || !currentUser.self) {
             contextClearIconItem = menu.lazilyAddItem(context_clear, R.drawable.msg_clear, themeDelegate);
             contextClearIconItem.setContentDescription(LocaleController.getString("ContextClear", R.string.ContextClear));
             contextClearIconItem.setVisibility(isContextClear ? View.VISIBLE: View.GONE);
@@ -3434,7 +3434,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             }
-            if (currentUser != null && currentUser.self) {
+            if (currentUser != null && currentUser.self || true) {
                 headerItem.lazilyAddSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString("AddShortcut", R.string.AddShortcut));
             }
             if (currentUser != null && currentEncryptedChat == null && currentUser.bot) {
@@ -9934,7 +9934,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private void showVoiceHint(boolean hide, boolean video) {
-        if (getParentActivity() == null || fragmentView == null || hide && voiceHintTextView == null || chatMode != 0 || chatActivityEnterView == null  || chatActivityEnterView.getAudioVideoButtonContainer() == null || chatActivityEnterView.getAudioVideoButtonContainer().getVisibility() != View.VISIBLE || isInPreviewMode()) {
+        if (BuildVars.IS_CHAT_AIR || getParentActivity() == null || fragmentView == null || hide && voiceHintTextView == null || chatMode != 0 || chatActivityEnterView == null  || chatActivityEnterView.getAudioVideoButtonContainer() == null || chatActivityEnterView.getAudioVideoButtonContainer().getVisibility() != View.VISIBLE || isInPreviewMode()) {
             return;
         }
         if (voiceHintTextView == null) {
@@ -13668,7 +13668,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 } else {
                     showSearchAsIcon = false;
                 }
-                if (showSearchAsIcon || showAudioCallAsIcon) {
+                if (showSearchAsIcon || showAudioCallAsIcon || BuildVars.IS_CHAT_AIR) {
                     if (avatarContainer != null && avatarContainer.getLayoutParams() != null) {
                         ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = AndroidUtilities.dp(96);
                     }

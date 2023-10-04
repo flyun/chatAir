@@ -3918,6 +3918,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     dialogUser.flags = 33555539;
                     dialogUser.id = id;
                     dialogUser.phone = String.valueOf(id);
+                    dialogUser.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT;
+                    dialogUser.prompt = UserConfig.defaultPrompt;
 
                     //写入内存
                     MessagesController.getInstance(currentAccount).putUser(dialogUser, false);
@@ -3937,7 +3939,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
                     ArrayList<TLRPC.Dialog> dialogs = new ArrayList<>();
                     dialogs.add(newDialog);
-
 
                     ArrayList<TLRPC.User> dialogUsers = new ArrayList<>();
                     dialogUsers.add(dialogUser);

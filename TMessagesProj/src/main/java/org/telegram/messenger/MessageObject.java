@@ -4465,7 +4465,9 @@ public class MessageObject {
     //渲染markdown
     private CharSequence replaceMarkdown(CharSequence source, TLObject object) {
         if (object instanceof TLRPC.TL_message) {
-            if (!((TLRPC.TL_message) object).chat_air){
+            TLRPC.TL_message message = (TLRPC.TL_message) object;
+            //只有接收处理过的消息以及Save Messages中的消息才进行处理
+            if (!message.chat_air) {
                 return source;
             }
 

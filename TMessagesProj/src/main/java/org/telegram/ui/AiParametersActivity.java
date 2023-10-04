@@ -38,7 +38,7 @@ import androidx.recyclerview.widget.RecyclerView;
 /**
  * Created by flyun on 2023/7/13.
  */
-public class AiParametersActivity extends BaseFragment  implements NotificationCenter.NotificationCenterDelegate{
+public class AiParametersActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate{
 
     private RecyclerListView listView;
     private ListAdapter adapter;

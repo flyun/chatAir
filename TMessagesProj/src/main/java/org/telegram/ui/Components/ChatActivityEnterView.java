@@ -2037,6 +2037,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         audioVideoButtonContainer.setFocusable(true);
         audioVideoButtonContainer.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         audioVideoButtonContainer.setOnTouchListener((view, motionEvent) -> {
+            if (BuildVars.IS_CHAT_AIR) {
+                view.onTouchEvent(motionEvent);
+                return false;
+            }
             createRecordCircle();
             if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                 if (recordCircle.isSendButtonVisible()) {
@@ -5500,6 +5504,11 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                            if (i > contextLimit) break;
                            messageOwners.add(messageObject.messageOwner);
                        }
+                   }
+
+                   if (UserConfig.getInstance(currentAccount).autoHideKeyboard
+                           && messageEditText != null && messageEditText.isFocused()) {
+                       AndroidUtilities.hideKeyboard(messageEditText);
                    }
 
                    SendMessagesHelper.getInstance(currentAccount).sendMessage(message[0].toString(), messageOwners, dialog_id, replyingMessageObject, getThreadMessage(), messageWebPage, messageWebPageSearch, entities, null, null, notify, scheduleDate, sendAnimationData, updateStickersOrder);

@@ -246,7 +246,11 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
     }
 
     protected boolean onAvatarClick() {
-        return false;
+        if (!BuildVars.IS_CHAT_AIR) {
+            return false;
+        } else {
+            return parentFragment.getCurrentUser() != null && parentFragment.getCurrentUser().self;
+        }
     }
 
     public void setTitleExpand(boolean titleExpand) {

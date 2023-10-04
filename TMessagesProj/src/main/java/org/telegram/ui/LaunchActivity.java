@@ -629,6 +629,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     //点击进入AI Server配置
                     presentFragment(new ServerSettingActivity());
                     drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 34) {
+                    //点击进入prompt
+                    presentFragment(new PromptListActivity());
+                    drawerLayoutContainer.closeDrawer(false);
+
                 }
             }
         });

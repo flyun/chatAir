@@ -974,7 +974,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private boolean invalidatesParent;
 
-    public boolean isChat;
+    public boolean isChat;//save messages中isChat为true
     public boolean isBot;
     public boolean isMegagroup;
     public boolean isForum;
@@ -4256,7 +4256,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             hasNewLineForTime = false;
             flipImage = false;
             isThreadPost = isThreadChat && messageObject.messageOwner.fwd_from != null && messageObject.messageOwner.fwd_from.channel_post != 0 && messageObject.messageOwner.reply_to == null;
-            isAvatarVisible = !isThreadPost && isChat && !messageObject.isOutOwner() && messageObject.needDrawAvatar() && (currentPosition == null || currentPosition.edge);
+            isAvatarVisible = !BuildVars.IS_CHAT_AIR && !isThreadPost && isChat && !messageObject.isOutOwner() && messageObject.needDrawAvatar() && (currentPosition == null || currentPosition.edge);
             boolean drawAvatar = isChat && !isThreadPost && !messageObject.isOutOwner() && messageObject.needDrawAvatar();
             if (messageObject.customAvatarDrawable != null) {
                 isAvatarVisible = true;
@@ -12948,7 +12948,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private String getAuthorName() {
         if (currentUser != null) {
-            return UserObject.getUserName(currentUser);
+            if (!currentUser.self) {
+                return UserObject.getUserName(currentUser);
+            } else {
+                return "SELF";
+            }
         } else if (currentChat != null) {
             return currentChat.title;
         } else if (currentMessageObject != null && currentMessageObject.isSponsored()) {
@@ -13275,6 +13279,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
         }
+        //绘制聊天内容中的开头名字
         if (currentPosition == null && !transitionParams.animateBackgroundBoundsInner && !(enterTransitionInProgress && !currentMessageObject.isVoice())) {
             drawNamesLayout(canvas, 1f);
         }

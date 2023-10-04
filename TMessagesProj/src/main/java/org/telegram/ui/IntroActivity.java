@@ -58,6 +58,7 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -448,7 +449,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             }
         }
         if (BuildVars.IS_CHAT_AIR) {
-            init();
+            Utilities.stageQueue.postRunnable(() -> AndroidUtilities.runOnUIThread(this::init));
         }
     }
 

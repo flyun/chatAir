@@ -29,12 +29,6 @@ import android.view.ViewOutlineProvider;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 
-import androidx.annotation.NonNull;
-import androidx.collection.LongSparseArray;
-import androidx.core.graphics.ColorUtils;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ChatObject;
@@ -62,6 +56,13 @@ import org.telegram.ui.LaunchActivity;
 
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
+import androidx.collection.LongSparseArray;
+import androidx.core.graphics.ColorUtils;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.RecyclerView;
+
+//小组件添加用户
 public class InviteMembersBottomSheet extends UsersAlertBase implements NotificationCenter.NotificationCenterDelegate {
 
     private LongSparseArray<TLObject> ignoreUsers;

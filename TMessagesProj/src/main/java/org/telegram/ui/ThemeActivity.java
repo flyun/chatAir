@@ -201,6 +201,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
 
     private int streamResponsesRow;
     private int renderMarkdownRow;
+    private int autoHideKeyboardRow;
 
     private int rowCount;
 
@@ -557,6 +558,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
 
         streamResponsesRow = -1;
         renderMarkdownRow = -1;
+        autoHideKeyboardRow = -1;
 
         appIconHeaderRow = -1;
         appIconSelectorRow = -1;
@@ -687,6 +689,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 streamResponsesRow = rowCount++;
                 //渲染markdown
                 renderMarkdownRow = rowCount++;
+                //发送后自动隐藏键盘
+                autoHideKeyboardRow = rowCount++;
             }
 
             settings2Row = rowCount++;
@@ -1203,6 +1207,16 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 SharedConfig.toggleCustomTabs();
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(SharedConfig.customTabs);
+                }
+            } else if (position == autoHideKeyboardRow) {
+
+                boolean autoHideKeyboard = getUserConfig().autoHideKeyboard;
+
+                getUserConfig().autoHideKeyboard = !autoHideKeyboard;
+                getUserConfig().saveConfig(false);
+
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(getUserConfig().autoHideKeyboard);
                 }
             } else if (position == directShareRow) {
                 SharedConfig.toggleDirectShare();
@@ -2333,6 +2347,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.PauseMusicOnRecord), SharedConfig.pauseMusicOnRecord, true);
                     } else if (position == customTabsRow) {
                         textCheckCell.setTextAndValueAndCheck(LocaleController.getString("ChromeCustomTabs", R.string.ChromeCustomTabs), LocaleController.getString("ChromeCustomTabsInfo", R.string.ChromeCustomTabsInfo), SharedConfig.customTabs, false, true);
+                    } else if (position == autoHideKeyboardRow) {
+                        textCheckCell.setTextAndValueAndCheck(LocaleController.getString("AutoHideKeyboard", R.string.AutoHideKeyboard), LocaleController.getString("AutoHideKeyboardInfo", R.string.AutoHideKeyboardInfo), getUserConfig().autoHideKeyboard, false, true);
                     } else if (position == directShareRow) {
                         textCheckCell.setTextAndValueAndCheck(LocaleController.getString("DirectShare", R.string.DirectShare), LocaleController.getString("DirectShareInfo", R.string.DirectShareInfo), SharedConfig.directShare, false, true);
                     } else if (position == chatBlurRow) {
@@ -2454,7 +2470,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             } else if (position == scheduleLocationRow || position == enableAnimationsRow || position == sendByEnterRow ||
                     position == raiseToSpeakRow || position == pauseOnRecordRow || position == customTabsRow ||
                     position == directShareRow || position == chatBlurRow || position == streamResponsesRow ||
-                    position == renderMarkdownRow) {
+                    position == renderMarkdownRow || position == autoHideKeyboardRow) {
                 return TYPE_TEXT_CHECK;
             } else if (position == textSizeRow) {
                 return TYPE_TEXT_SIZE;

@@ -1865,6 +1865,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             newMsg.fwd_from.flags |= 8;
                             newMsg.fwd_from.post_author = msgObj.messageOwner.fwd_from.post_author;
                         }
+                        //发往收藏夹
                         if ((peer == myId || isChannel) && (msgObj.messageOwner.fwd_from.flags & 16) != 0 && !UserObject.isReplyUser(msgObj.getDialogId())) {
                             newMsg.fwd_from.flags |= 16;
                             newMsg.fwd_from.saved_from_peer = msgObj.messageOwner.fwd_from.saved_from_peer;
@@ -2058,9 +2059,34 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         newMsg.media_unread = true;
                     }
                 }
+                /**
+                 *todo Save Messages中转发到Save Messages因为newMsg
+                 *                 .chat_air判断不准（无法判断是发出还是接收），markdown显示有问题。
+                 */
+                //消息上次来源以及消息最终来源
+                boolean isSavedFwdSelf = newMsg.fwd_from != null
+                        && newMsg.fwd_from.saved_from_peer != null
+                        && newMsg.fwd_from.saved_from_peer.user_id == myId
+                        && newMsg.from_id != null && newMsg.from_id.user_id == myId;
+
+                //转发到Save Messages的消息为处理过的
+                boolean forwardFromSaved = msgObj.getDialogId() == myId && msgObj.isFromUser() && msgObj.messageOwner.from_id.user_id == myId;
+
+                if (BuildVars.IS_CHAT_AIR
+                        //发送目标Save Messages
+                        && peer == getUserConfig().clientUserId
+                        //来自除了Save Messages以外的消息转发以及Save Messages自己的转发
+                        && (msgObj.messageOwner.dialog_id != peer) || (forwardFromSaved && !isSavedFwdSelf)) {
+                    newMsg.chat_air = true;
+                } else {
+                    newMsg.chat_air = false;
+                }
+
+
                 MessageObject newMsgObj = new MessageObject(currentAccount, newMsg, true, true);
                 newMsgObj.scheduled = scheduleDate != 0;
-                newMsgObj.messageOwner.send_state = MessageObject.MESSAGE_SEND_STATE_SENDING;
+                newMsgObj.messageOwner.send_state = BuildVars.IS_CHAT_AIR
+                        ? MessageObject.MESSAGE_SEND_STATE_SENT : MessageObject.MESSAGE_SEND_STATE_SENDING;
                 newMsgObj.wasJustSent = true;
                 objArr.add(newMsgObj);
                 arr.add(newMsg);
@@ -2075,7 +2101,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     }
                 }
 
-                putToSendingMessages(newMsg, scheduleDate != 0);
+                if (!BuildVars.IS_CHAT_AIR) putToSendingMessages(newMsg, scheduleDate != 0);
                 boolean differentDialog = false;
 
                 if (BuildVars.LOGS_ENABLED) {
@@ -5669,6 +5695,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(newMsgObj.dialog_id);
             if (user == null) return;
+            if (user.self) return;
 
             String prompt = null;
             int aiModel = 1;
