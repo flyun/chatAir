@@ -5,3 +5,5 @@ obj/
 *.iml
 local.properties
 .cxx/
+/key.jks
+/TMessagesProj_App/afat/
