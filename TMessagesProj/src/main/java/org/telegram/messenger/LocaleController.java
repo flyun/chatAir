@@ -255,10 +255,11 @@ public class LocaleController {
         addRules(new String[]{"lag"}, new PluralRules_Langi());
         addRules(new String[]{"shi"}, new PluralRules_Tachelhit());
         addRules(new String[]{"mt"}, new PluralRules_Maltese());
+        addRules(new String[]{"zh","zh-tw","zh-hk","zh-sg"}, new PluralRules_One());
         addRules(new String[]{"ga", "se", "sma", "smi", "smj", "smn", "sms"}, new PluralRules_Two());
         addRules(new String[]{"ak", "am", "bh", "fil", "tl", "guw", "hi", "ln", "mg", "nso", "ti", "wa"}, new PluralRules_Zero());
         addRules(new String[]{"az", "bm", "fa", "ig", "hu", "ja", "kde", "kea", "ko", "my", "ses", "sg", "to",
-                "tr", "vi", "wo", "yo", "zh", "bo", "dz", "id", "jv", "jw", "ka", "km", "kn", "ms", "th", "in"}, new PluralRules_None());
+                "tr", "vi", "wo", "yo", "bo", "dz", "id", "jv", "jw", "ka", "km", "kn", "ms", "th", "in"}, new PluralRules_None());
 
         LocaleInfo localeInfo = new LocaleInfo();
         localeInfo.name = "English";
@@ -327,6 +328,34 @@ public class LocaleController {
         localeInfo.name = "한국어";
         localeInfo.nameEnglish = "Korean";
         localeInfo.shortName = localeInfo.pluralLangCode = "ko";
+        localeInfo.pathToFile = null;
+        localeInfo.builtIn = true;
+        languages.add(localeInfo);
+        languagesDict.put(localeInfo.shortName, localeInfo);
+
+        localeInfo = new LocaleInfo();
+        localeInfo.name = "简体中文";
+        localeInfo.nameEnglish = "简体中文";
+        localeInfo.shortName = localeInfo.pluralLangCode = "zh";
+        localeInfo.pathToFile = null;
+        localeInfo.builtIn = true;
+        languages.add(localeInfo);
+        languagesDict.put(localeInfo.shortName, localeInfo);
+
+        localeInfo = new LocaleInfo();
+        localeInfo.name = "台灣正體";
+        localeInfo.nameEnglish = "台灣正體";
+        localeInfo.shortName = localeInfo.pluralLangCode = "zh_tw";
+        localeInfo.pathToFile = null;
+        localeInfo.builtIn = true;
+        languages.add(localeInfo);
+        languagesDict.put(localeInfo.shortName, localeInfo);
+
+
+        localeInfo = new LocaleInfo();
+        localeInfo.name = "繁体中文";
+        localeInfo.nameEnglish = "繁体(香港/澳门)";
+        localeInfo.shortName = localeInfo.pluralLangCode = "zh_hk";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
         languages.add(localeInfo);
@@ -2076,9 +2105,9 @@ public class LocaleController {
 
     public static String formatUserStatus(int contextNum, int contextLimit, long tokens, long words) {
         String s = "N:" + contextNum +"/"+ contextLimit
-                + "⋅T:" + tokens
-//                + "⋅W:" + (words > 1000 ? (words / 1000) + "k" : words)
-                + "⋅W:" + words
+//                + "⋅T:" + tokens
+                + "⋅W:" + (words > 100000 ? (words / 1000) + "k" : words)
+//                + "⋅W:" + words
                 ;
         return s;
     }

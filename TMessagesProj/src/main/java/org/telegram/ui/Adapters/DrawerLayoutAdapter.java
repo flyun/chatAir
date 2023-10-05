@@ -358,7 +358,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
 
         if (!BuildVars.IS_CHAT_AIR) items.add(null); // divider
         if (!BuildVars.IS_CHAT_AIR) items.add(new Item(7, LocaleController.getString("InviteFriends", R.string.InviteFriends), inviteIcon));
-        items.add(new Item(13, LocaleController.getString("TelegramFeatures", R.string.TelegramFeatures), helpIcon));
+        items.add(new Item(13, LocaleController.getString("TelegramFaq", R.string.TelegramFaq), helpIcon));
     }
 
     public int getId(int position) {

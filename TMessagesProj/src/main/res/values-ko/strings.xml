@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="AppName">텔레그램</string>
-    <string name="AppNameBeta">Telegram Beta</string>
+    <string name="AppName">ChatAir</string>
+    <string name="AppNameBeta">ChatAir Beta</string>
     <string name="LanguageName">한국어</string>
     <string name="English">영어</string>
     <string name="LanguageNameInEnglish">한국어</string>
@@ -23,8 +23,8 @@
     <!--code enter view-->
     <string name="YourCode">휴대전화 인증</string>
     <string name="SentSmsCode">**%1$s** 번호로 인증 코드가 담긴 SMS를 보냈습니다.</string>
-    <string name="SentAppCode">회원님의 다른 기기에 설치된 **텔레그램** 앱으로 코드를 보냈습니다.</string>
-    <string name="SentAppCodeTitle">텔레그램 메시지를 확인하세요</string>
+    <string name="SentAppCode">회원님의 다른 기기에 설치된 **ChatAir** 앱으로 코드를 보냈습니다.</string>
+    <string name="SentAppCodeTitle">ChatAir 메시지를 확인하세요</string>
     <string name="SentSmsCodeTitle">코드를 입력하세요</string>
     <string name="SentCallCode">**%1$s** 번호로 인증 전화를 걸었습니다. \n\n전화를 받지 마세요. 텔레그램이 모든 것을 자동으로 처리합니다.</string>
     <string name="SentCallOnly">코드를 말씀해 드리기 위해 **%1$s** 번호로 전화합니다.</string>
@@ -37,7 +37,7 @@
     <string name="DidNotGetTheCode">코드를 받지 못하셨나요?</string>
     <string name="DidNotGetTheCodeSms">코드를 SMS로 보내기</string>
     <string name="CancelAccountReset">계정 초기화 취소</string>
-    <string name="CancelAccountResetInfo2">**%1$s**에 접근이 가능한 누군가가 회원님의 텔레그램 계정삭제 및 2단계 인증 초기화를 요청했습니다.\n\n만약 이것을 요청 하신게 아니라면, 저희가 방금 보낸 SMS 코드를 입력해주세요. 또한 *전화번호를 변경을 하여* 취소를 할 수 있습니다.</string>
+    <string name="CancelAccountResetInfo2">**%1$s**에 접근이 가능한 누군가가 회원님의 ChatAir 계정삭제 및 2단계 인증 초기화를 요청했습니다.\n\n만약 이것을 요청 하신게 아니라면, 저희가 방금 보낸 SMS 코드를 입력해주세요. 또한 *전화번호를 변경을 하여* 취소를 할 수 있습니다.</string>
     <string name="ResetAccount">계정 초기화</string>
     <string name="ResetAccountInfo">계정 **%1$s**이 비밀번호로 보호되어 있기에, 보안 목적으로 1주일 뒤에 이 계정을 삭제할 것입니다. 보안목적에 따라 지연기간을 두게 되었습니다.\n\n이 작업은 언제든지 취소하실 수 있습니다.</string>
     <string name="ResetAccountStatus">아래 시간이 지나야 계정을 초기화하실 수 있습니다:</string>
@@ -45,7 +45,7 @@
     <string name="ResetAccountButton">초기화</string>
     <string name="CancelLinkExpired">링크가 폐기되거나 만료되었습니다.</string>
     <string name="CancelLinkSuccess">%1$s 계정 탈퇴 작업이 취소되었습니다. 이제 이 창을 닫으셔도 좋습니다.</string>
-    <string name="OtherLoginCode">로그인 코드는 **%1$s**입니다. 로그인하고자 하는 텔레그램 앱에 입력하세요.\n\n아무에게도 이 코드를 주지 마세요.</string>
+    <string name="OtherLoginCode">로그인 코드는 **%1$s**입니다. 로그인하고자 하는 ChatAir 앱에 입력하세요.\n\n아무에게도 이 코드를 주지 마세요.</string>
     <!--signup view-->
     <string name="YourName">성명</string>
     <string name="RegisterText2">이름을 입력하고 프로필 사진을 추가하세요.</string>
@@ -199,7 +199,7 @@
     <string name="DisappearingPhoto">비밀 사진</string>
     <string name="DisappearingVideo">사라지는 동영상</string>
     <string name="DisappearingGif">비밀 GIF</string>
-    <string name="CompatibilityChat">%1$s님의 텔레그램 버전이 낮아 비밀 사진을 호환성 모드로 표시합니다.\n\n%2$s님이 텔레그램을 업데이트하고 나면, 자동삭제 시간이 1분 이하인 사진은 \"탭하고 누르고 있어야 보임\" 상태가 되며, 상대방이 화면을 캡처할 때 마다 알림을 받습니다.</string>
+    <string name="CompatibilityChat">%1$s님의 ChatAir 버전이 낮아 비밀 사진을 호환성 모드로 표시합니다.\n\n%2$s님이 텔레그램을 업데이트하고 나면, 자동삭제 시간이 1분 이하인 사진은 \"탭하고 누르고 있어야 보임\" 상태가 되며, 상대방이 화면을 캡처할 때 마다 알림을 받습니다.</string>
     <string name="SearchMessages">메시지</string>
     <string name="Search">검색</string>
     <string name="MuteNotifications">알림 끄기</string>
@@ -237,7 +237,7 @@
     <string name="Strike">취소선</string>
     <string name="Underline">밑줄</string>
     <string name="Regular">일반</string>
-    <string name="ContactsPermissionAlert">모든 기기에 걸쳐 친구들과 소통하려면 **텔레그램**의 연락처 접근을 허용해 주세요. 단단히 암호화된 텔레그램 서버로 회원님의 연락처가 지속적으로 동기화될 것입니다.</string>
+    <string name="ContactsPermissionAlert">모든 기기에 걸쳐 친구들과 소통하려면 **ChatAir**의 연락처 접근을 허용해 주세요. 단단히 암호화된 ChatAir 서버로 회원님의 연락처가 지속적으로 동기화될 것입니다.</string>
     <string name="ContactsPermissionAlertNotNow">지금 안 함</string>
     <string name="ContactsPermissionAlertContinue">계속</string>
     <string name="YourContacts">텔레그램에 있는 회원님의 연락처</string>
@@ -337,7 +337,7 @@
     <string name="MegaLeaveAlertWithName">정말 **%1$s**에서 나가시겠습니까?</string>
     <string name="GroupUserCantAdd">죄송합니다. 이 사용자를 그룹에 추가하실 수 없습니다.</string>
     <string name="GroupUserAddLimit">죄송합니다. 그룹이 가득 찼습니다.</string>
-    <string name="GroupUserLeftError">죄송합니다. 채널에서 나간 사용자를 다시 추가하시려면 회원님이 사용자의 텔레그램 연락처에 저장되어 있어야 합니다.\n\n사용자가 추방된 사용자 목록에 있지 않는 한 채널의 초대 링크를 통해 언제든 들어올 수 있다는 점을 알아 두세요.</string>
+    <string name="GroupUserLeftError">죄송합니다. 채널에서 나간 사용자를 다시 추가하시려면 회원님이 사용자의 ChatAir 연락처에 저장되어 있어야 합니다.\n\n사용자가 추방된 사용자 목록에 있지 않는 한 채널의 초대 링크를 통해 언제든 들어올 수 있다는 점을 알아 두세요.</string>
     <string name="GroupUserCantAdmin">죄송합니다, 그룹에 너무 많은 관리자가 있습니다.</string>
     <string name="PublicChannelsTooMuch">죄송합니다. 해당 사용자에게 너무 많은 공개 그룹과 채널이 있습니다. 먼저 기존 그룹이나 채널을 비공개로 돌리도록 요청해 주세요.</string>
     <string name="LocatedChannelsTooMuch">죄송합니다. 해당 사용자가 위치 기반 그룹을 너무 많이 소유하고 있습니다. 먼저 기존 그룹 하나를 삭제하거나 소유권을 넘기도록 요청해 주세요.</string>
@@ -464,7 +464,7 @@
     <string name="ChannelCantOpenBanned">안타깝지만, 공개 그룹에 참가하시는 것이 금지되었습니다.</string>
     <string name="ChannelCantOpenNa">죄송합니다. 이 대화방에는 더 이상 접근하실 수 없습니다.</string>
     <string name="ChannelAddTo">%1$s 님을 채널에 추가할까요?</string>
-    <string name="ChannelUserLeftError">죄송합니다. 채널에서 나간 사용자를 다시 추가하시려면 회원님이 사용자의 텔레그램 연락처에 저장되어 있어야 합니다.\n\n사용자가 추방된 사용자 목록에 있지 않는 한 채널의 초대 링크를 통해 언제든 들어올 수 있다는 점을 알아 두세요.</string>
+    <string name="ChannelUserLeftError">죄송합니다. 채널에서 나간 사용자를 다시 추가하시려면 회원님이 사용자의 ChatAir 연락처에 저장되어 있어야 합니다.\n\n사용자가 추방된 사용자 목록에 있지 않는 한 채널의 초대 링크를 통해 언제든 들어올 수 있다는 점을 알아 두세요.</string>
     <string name="ChannelUserCantAdd">죄송합니다. 이 사용자를 채널에 추가하실 수 없습니다.</string>
     <string name="ChannelUserCantAdmin">죄송합니다, 채널에 너무 많은 관리자가 있습니다.</string>
     <string name="ChannelUserCantBot">죄송합니다. 이 채널에는 봇이 너무 많습니다.</string>
@@ -957,7 +957,7 @@
     <string name="OpenUrlOption1">**%2$s** 님으로 %1$s에 로그인</string>
     <string name="OpenUrlOption2">**%1$s**에서 나에게 메시지를 보내도록 허용합니다</string>
     <string name="CancelSending">보내기 취소</string>
-    <string name="BotPermissionGameAlert">%1$s이(가) 앞으로 여실 페이지로 회원님의 텔레그램 이름과 아이디(전화번호 아님)를 전달할 수 있도록 허락할까요?</string>
+    <string name="BotPermissionGameAlert">%1$s이(가) 앞으로 여실 페이지로 회원님의 ChatAir 이름과 아이디(전화번호 아님)를 전달할 수 있도록 허락할까요?</string>
     <string name="ReportSpamLocation">이 장소와 관련 없는 그룹인가요?</string>
     <string name="ReportUnrelatedGroup">관련 없는 그룹 신고</string>
     <string name="ReportUnrelatedGroupText">그룹이 이 장소와 관련 없는 경우 알려 주세요:\n\n**%1$s**</string>
@@ -970,7 +970,7 @@
     <string name="AddContactChat">연락처에 추가</string>
     <string name="AddContactFullChat">%1$s 님을 연락처에 추가하기</string>
     <string name="ViewContact">연락처 보기</string>
-    <string name="BlockUserAlert">텔레그램 메시지와 전화 수신에서 **%1$s** 님을 차단하시겠습니까?</string>
+    <string name="BlockUserAlert">ChatAir 메시지와 전화 수신에서 **%1$s** 님을 차단하시겠습니까?</string>
     <string name="BlockUserReplyAlert">**%1$s**님의 메시지를 차단하겠습니까?</string>
     <string name="ReportSpamAlert">정말 이 사용자가 보낸 스팸을 신고하시겠습니까?</string>
     <string name="ReportSpamAlertGroup">정말 이 그룹의 스팸 메시지를 신고하시겠습니까?</string>
@@ -1018,7 +1018,7 @@
     <string name="ReportInfo">신고와 관련된 추가 정보를 입력해주세요.</string>
     <string name="ReportHint">추가 정보...</string>
     <string name="ReportSend">신고하기</string>
-    <string name="ReportSentInfo">텔레그램 모더레이터가 신고내역을 확인할 것입니다. 감사합니다!</string>
+    <string name="ReportSentInfo">ChatAir 모더레이터가 신고내역을 확인할 것입니다. 감사합니다!</string>
     <string name="ReportChatSpam">스팸</string>
     <string name="ReportChatFakeAccount">가짜 계정</string>
     <string name="ReportChatViolence">폭력성</string>
@@ -1096,7 +1096,7 @@
     <string name="URL">URL</string>
     <string name="MapPreviewProvider">지도 미리보기 제공 기관</string>
     <string name="MapPreviewProviderTitle">지도 미리보기 제공 기관</string>
-    <string name="MapPreviewProviderTelegram">텔레그램</string>
+    <string name="MapPreviewProviderTelegram">ChatAir</string>
     <string name="MapPreviewProviderGoogle">Google</string>
     <string name="MapPreviewProviderYandex">Yandex</string>
     <string name="MapPreviewProviderNobody">미리보기 없음</string>
@@ -1269,14 +1269,14 @@
     <string name="NotificationGroupKickYou">%1$s 님이 나를 %2$s 그룹에서 추방했습니다</string>
     <string name="NotificationGroupLeftMember">%1$s 님이 %2$s 그룹에서 나갔습니다</string>
     <string name="NotificationContactJoined">%1$s 님이 텔레그램에 가입했습니다!</string>
-    <string name="NotificationUnrecognizedDevice">%1$s 님,\n%2$s에 새로운 기기가 회원님의 계정에 로그인한 것을 감지했습니다.\n\n기기: %3$s\n위치: %4$s\n\n본인이 아니라면  설정 &gt; 기기에서  해당 세션을 종료하실 수 있습니다.\n\n누군가가 회원님의 뜻과 달리 계정에 접속했다고 생각하시면, 설정에서 2단계 인증을 활성화하실 수 있습니다.\n\n감사합니다.\n텔레그램 팀</string>
+    <string name="NotificationUnrecognizedDevice">%1$s 님,\n%2$s에 새로운 기기가 회원님의 계정에 로그인한 것을 감지했습니다.\n\n기기: %3$s\n위치: %4$s\n\n본인이 아니라면  설정 &gt; 기기에서  해당 세션을 종료하실 수 있습니다.\n\n누군가가 회원님의 뜻과 달리 계정에 접속했다고 생각하시면, 설정에서 2단계 인증을 활성화하실 수 있습니다.\n\n감사합니다.\nChatAir 팀</string>
     <string name="NotificationContactNewPhoto">%1$s 님이 프로필 사진을 업데이트했습니다</string>
     <string name="NotificationInvitedToGroupByLink">초대 링크를 통해 %1$s 님이 %2$s 그룹에 들어왔습니다.</string>
     <string name="NotificationGroupFew">%1$s 님이 %2$s 그룹에 %3$s을(를) 보냈습니다</string>
     <string name="NotificationGroupAlbum">%1$s 님이 사진첩을 %2$s 그룹에 보냈습니다</string>
     <string name="NotificationGroupForwardedFew">%1$s 님이 %2$s 그룹에 %3$s을(를) 전달했습니다</string>
-    <string name="NotificationHiddenName">텔레그램</string>
-    <string name="NotificationHiddenChatName">텔레그램</string>
+    <string name="NotificationHiddenName">ChatAir</string>
+    <string name="NotificationHiddenChatName">ChatAir</string>
     <string name="NotificationHiddenChatUserName">사용자</string>
     <string name="NotificationHiddenMessage">새로운 메시지</string>
     <string name="Reply">답장</string>
@@ -1341,7 +1341,7 @@
     <string name="NotificationActionPinnedGeoLiveUser">%1$s님이 실시간 위치를 고정했습니다</string>
     <string name="NotificationActionPinnedGifUser">%1$s님이 GIF를 고정했습니다</string>
     <string name="NotificationActionPinnedMusicUser">%1$s님이 오디오 파일을 고정했습니다</string>
-    <string name="SecretChatName">텔레그램</string>
+    <string name="SecretChatName">ChatAir</string>
     <!--contacts view-->
     <string name="SelectContact">연락처 선택</string>
     <string name="SelectContacts">연락처 선택</string>
@@ -1368,9 +1368,9 @@
     <string name="WithinAMonth">한 달 이내 마지막으로 접속함</string>
     <string name="ALongTimeAgo">마지막으로 접속한 지 오래됨</string>
     <string name="NewMessageTitle">메시지 보내기</string>
-    <string name="InviteFriendsHelp">텔레그램 초대장을 보낼 연락처를 선택하세요</string>
+    <string name="InviteFriendsHelp">ChatAir 초대장을 보낼 연락처를 선택하세요</string>
     <string name="InviteToTelegram">텔레그램으로 초대</string>
-    <string name="ShareTelegram">텔레그램 공유하기...</string>
+    <string name="ShareTelegram">ChatAir 공유하기...</string>
     <string name="UpdateContactsTitle">연락처를 업데이트할까요?</string>
     <string name="UpdateContactsMessage">텔레그램이 아직 동기화되지 않은 여러 연락처를 찾아냈습니다. 연락처를 동기화하시겠습니까? 본인의 기기, SIM 카드와 Google 계정을 사용하는 중이라면 \'확인\'을 누르십시오.</string>
     <string name="SortedByName">이름순으로 정렬</string>
@@ -1468,8 +1468,8 @@
     <string name="BlockContact">사용자 차단</string>
     <string name="BlockUser">사용자 차단</string>
     <string name="BlockUsers">사용자 차단</string>
-    <string name="BlockUserMessage">텔레그램 메시지와 전화 수신에서 **%1$s** 님을 차단하시겠습니까?</string>
-    <string name="BlockUsersMessage">텔레그램 메시지와 전화 수신에서 **%1$s** 님을 차단하시겠습니까?</string>
+    <string name="BlockUserMessage">ChatAir 메시지와 전화 수신에서 **%1$s** 님을 차단하시겠습니까?</string>
+    <string name="BlockUsersMessage">ChatAir 메시지와 전화 수신에서 **%1$s** 님을 차단하시겠습니까?</string>
     <string name="UserBlocked">사용자가 차단되었습니다</string>
     <string name="UserUnblocked">사용자가 차단 해제되었습니다</string>
     <string name="EditContact">연락처 수정</string>
@@ -1534,7 +1534,7 @@
     <string name="UsernameInvalidShort">사용자명은 5자 이상이어야 합니다.</string>
     <string name="UsernameInvalidLong">사용자명은 32자를 넘길 수 없습니다.</string>
     <string name="UsernameInvalidStartNumber">사용자명은 숫자로 시작할 수 없습니다.</string>
-    <string name="UsernameHelp">**텔레그램** 사용자명을 정하실 수 있습니다. 회원님의 전화번호를 모르는 사람도 이 사용자명으로 회원님을 찾아 연락할 수 있습니다.\n\n**a부터 z 사이 글자**, **0부터 9 사이 숫자**와 밑줄을 사용하실 수 있습니다. 최소 길이는 **다섯** 자입니다.</string>
+    <string name="UsernameHelp">**ChatAir** 사용자명을 정하실 수 있습니다. 회원님의 전화번호를 모르는 사람도 이 사용자명으로 회원님을 찾아 연락할 수 있습니다.\n\n**a부터 z 사이 글자**, **0부터 9 사이 숫자**와 밑줄을 사용하실 수 있습니다. 최소 길이는 **다섯** 자입니다.</string>
     <string name="UsernameHelpLink">아래 링크로 회원님과의 대화방이 열립니다:\n%1$s</string>
     <string name="UsernameChecking">사용자명을 확인하고 있습니다...</string>
     <string name="UsernameAvailable">%1$s: 사용하실 수 있습니다.</string>
@@ -1586,7 +1586,7 @@
     <string name="NoEmojiFound">이모지 없음</string>
     <string name="NoMasks">마스크 없음</string>
     <string name="EmojiSuggestions">이모지 추천</string>
-    <string name="EmojiSuggestionsInfo">**텔레그램**에서 회원님이 이모지를 손쉽게 찾으실 수 있도록 수천 개의 키워드를 지원해 드리지만, 누락된 키워드들이란 있기 마련입니다. 새로운 이모지 대치어를 제안하고 싶다면, 다음 사이트에서 도움을 주세요:</string>
+    <string name="EmojiSuggestionsInfo">**ChatAir**에서 회원님이 이모지를 손쉽게 찾으실 수 있도록 수천 개의 키워드를 지원해 드리지만, 누락된 키워드들이란 있기 마련입니다. 새로운 이모지 대치어를 제안하고 싶다면, 다음 사이트에서 도움을 주세요:</string>
     <string name="EmojiSuggestionsUrl">https://translations.telegram.org/%1$s/emoji</string>
     <string name="Masks">마스크</string>
     <string name="MasksInfo">보내고자 하는 사진에 마스크를 추가하실 수 있습니다. 사진을 보내기 전에 사진 편집기를 열어 보세요.</string>
@@ -1683,7 +1683,7 @@
     <string name="NewThemeTitle">새로운 테마</string>
     <string name="EditThemeTitle">테마 수정</string>
     <string name="CreateNewThemeHelp">각 화면의 구성 요소 목록을 보려면 팔레트 아이콘을 누르세요. 이들을 수정하실 수 있습니다.</string>
-    <string name="CreateNewThemeAlert">앱 안에서 색들을 바꾸어 회원님만의 테마를 만드실 수 있습니다.\n\n여기서 언제든지 기본 텔레그램 테마로 돌리실 수 있습니다.</string>
+    <string name="CreateNewThemeAlert">앱 안에서 색들을 바꾸어 회원님만의 테마를 만드실 수 있습니다.\n\n여기서 언제든지 기본 ChatAir 테마로 돌리실 수 있습니다.</string>
     <string name="ThemeSetUrlHelp">a부터 z, 0부터 9와 밑줄을 사용하실 수 있습니다.\n적어도 다섯 자이어야 합니다.</string>
     <string name="ThemeHelpLink">테마를 수정하시는 족족 테마가 사용자에게 업데이트됩니다.\n이 링크로 누구든 테마를 설치할 수 있습니다:\n%1$s</string>
     <string name="ThemeCreateHelp">누구든 이 링크로 회원님의 테마를 설치할 수 있습니다. 테마를 수정하시는 족족 테마를 설치한 사용자가 업데이트를 받습니다.\n\n현재 선택된 색과 배경을 바탕으로 테마가 만들어집니다.</string>
@@ -1869,7 +1869,7 @@
     <string name="MessagesSettings">메시지</string>
     <string name="SendByEnter">엔터 키로 보내기</string>
     <string name="Events">이벤트</string>
-    <string name="ContactJoined">친구의 텔레그램 가입</string>
+    <string name="ContactJoined">친구의 ChatAir 가입</string>
     <string name="PinnedMessages">메시지 고정</string>
     <string name="Language">언어</string>
     <string name="LanguageCustom">맞춤</string>
@@ -1881,11 +1881,11 @@
     <string name="LanguageUnsupportedError">해당 언어가 없습니다.</string>
     <string name="LanguageSame">이미 이 언어 묶음(**%1$s**)을 사용하고 계십니다. 언제든 설정에서 언어를 바꾸실 수 있습니다.</string>
     <string name="LanguageUnknownCustomAlert">안타깝게도 이 맞춤 언어 묶음(**%1$s**)에는 Android 텔레그램용 데이터가 들어 있지 않습니다.</string>
-    <string name="AskAQuestionInfo">텔레그램 지원 사항은 자원봉사자들이 처리합니다. 신속하게 응답해 드리고자 노력하지만, 다소 시간이 걸릴 수 있습니다.\n\n<![CDATA[<a href=\"https://telegram.org/faq/ko#325188137\"> 자주 묻는 질문</a>]]>을 확인해 보세요. 잦은 질문에 대한 답과 <![CDATA[<a href=\"https://telegram.org/faq/ko#1478791328\">문제 해결</a>]]>을 위한 중요한 조언이 있습니다.</string>
+    <string name="AskAQuestionInfo">ChatAir 지원 사항은 자원봉사자들이 처리합니다. 신속하게 응답해 드리고자 노력하지만, 다소 시간이 걸릴 수 있습니다.\n\n<![CDATA[<a href=\"https://telegram.org/faq/ko#325188137\"> 자주 묻는 질문</a>]]>을 확인해 보세요. 잦은 질문에 대한 답과 <![CDATA[<a href=\"https://telegram.org/faq/ko#1478791328\">문제 해결</a>]]>을 위한 중요한 조언이 있습니다.</string>
     <string name="AskButton">봉사자에게 질문하기</string>
     <string name="TelegramFAQ">자주 묻는 질문</string>
     <string name="TelegramFaq">자주 묻는 질문</string>
-    <string name="TelegramFeatures">텔레그램 기능 소개</string>
+    <string name="TelegramFeatures">ChatAir 기능 소개</string>
     <string name="TelegramFeaturesUrl">https://t.me/TelegramTipsKo</string>
     <string name="AddAccount">계정 추가</string>
     <string name="SelectAccount">계정을 선택하세요</string>
@@ -1984,13 +1984,13 @@
     <string name="NotificationsPriorityUrgent">긴급</string>
     <string name="RepeatNotificationsNever">사용 안 함</string>
     <string name="RepeatNotifications">알림 반복</string>
-    <string name="PhoneNumberHelp">여기서 텔레그램 전화번호를 바꾸실 수 있습니다. 회원님의 계정과 함께 메시지와 미디어, 연락처 따위의 모든 클라우드 데이터가 새 번호로 옮겨집니다.</string>
+    <string name="PhoneNumberHelp">여기서 ChatAir 전화번호를 바꾸실 수 있습니다. 회원님의 계정과 함께 메시지와 미디어, 연락처 따위의 모든 클라우드 데이터가 새 번호로 옮겨집니다.</string>
     <string name="PhoneNumberAlert">회원님이 주소록에 저장되어 있거나, 회원님의 개인 정보 설정으로 번호 열람이 승인된 사용자들은 회원님의 전화번호를 볼 수 있습니다. 설정 &gt; 개인 정보 및 보안 &gt; 전화번호에서 이 설정을 수정하실 수 있습니다.</string>
     <string name="PhoneNumberChange2">번호 바꾸기</string>
     <string name="PhoneNumberChangeTitle">번호 바꾸기</string>
     <string name="ChangePhoneNewNumber">새 번호</string>
     <string name="ChangePhoneHelp">회원님의 새 번호로 인증 코드가 담긴 SMS를 보내 드립니다.</string>
-    <string name="ChangePhoneNumberOccupied">그 번호는 이미 텔레그램 계정에 연결되어 있습니다. 새 번호로 이동하기 전에 %1$s 계정에서 탈퇴해 주세요.</string>
+    <string name="ChangePhoneNumberOccupied">그 번호는 이미 ChatAir 계정에 연결되어 있습니다. 새 번호로 이동하기 전에 %1$s 계정에서 탈퇴해 주세요.</string>
     <string name="NotificationsOther">기타</string>
     <string name="VibrationDisabled">사용 안 함</string>
     <string name="PopupEnabled">사용</string>
@@ -2018,7 +2018,7 @@
     <string name="SmartNotificationsAlert">소리 알림 간격</string>
     <string name="SmartNotificationsDetail">"%2$s 이내 %1$s "</string>
     <string name="SecretWebPage">링크 미리보기</string>
-    <string name="SecretWebPageInfo">링크 미리보기는 텔레그램 서버에 생성됩니다. 회원님이 보내시는 링크에 관한 데이터는 보관되지 않습니다.</string>
+    <string name="SecretWebPageInfo">링크 미리보기는 ChatAir 서버에 생성됩니다. 회원님이 보내시는 링크에 관한 데이터는 보관되지 않습니다.</string>
     <string name="SecretChat">비밀 대화</string>
     <string name="ChromeCustomTabs">앱 안 브라우저</string>
     <string name="ChromeCustomTabsInfo">앱 안에서 외부 링크 열기</string>
@@ -2027,7 +2027,7 @@
     <string name="Emoji">이모지</string>
     <string name="LargeEmoji">대용량 이모지</string>
     <string name="EmojiUseDefault">시스템 기본 이모지 사용</string>
-    <string name="TelegramVersion">Android용 텔레그램 %1$s</string>
+    <string name="TelegramVersion">Android용 ChatAir %1$s</string>
     <string name="DebugMenu">디버그 메뉴</string>
     <string name="DebugSendLogs">로그 보내기</string>
     <string name="DebugSendLastLogs">최신 로그 전송</string>
@@ -2067,10 +2067,10 @@
     <string name="UseProxyTelegram">MTProto 프록시</string>
     <string name="UseProxyTelegramError">사용하고 계신 프록시는 올바르게 설정되지 않았기에 비활성화될 것입니다. 다른 프록시를 사용해 주세요.</string>
     <string name="UseProxySponsor">프록시 협찬</string>
-    <string name="UseProxySponsorInfo">이 채널은 회원님의 프록시 서버로 인해 나타났습니다. 채널을 대화방 목록에서 제거하려면, 텔레그램 설정에서 프록시 사용을 해제하세요.</string>
+    <string name="UseProxySponsorInfo">이 채널은 회원님의 프록시 서버로 인해 나타났습니다. 채널을 대화방 목록에서 제거하려면, ChatAir 설정에서 프록시 사용을 해제하세요.</string>
     <string name="UseProxyInfo">SOCKS5 프록시 설정입니다.</string>
     <string name="UseProxyTelegramInfo">MTProto 프록시 설정입니다.</string>
-    <string name="UseProxyTelegramInfo2">이 프록시를 사용하시면 후원 받은 채널이 대화방 목록에 표시될 수 있습니다. 이는 회원님의 텔레그램 트래픽을 공개하지 않습니다.</string>
+    <string name="UseProxyTelegramInfo2">이 프록시를 사용하시면 후원 받은 채널이 대화방 목록에 표시될 수 있습니다. 이는 회원님의 ChatAir 트래픽을 공개하지 않습니다.</string>
     <string name="UseProxyForCalls">전화에 프록시 사용</string>
     <string name="UseProxyForCallsInfo">프록시 서버는 통화 품질을 저하시킬 수 있습니다.</string>
     <string name="ConnectingToProxyEnable">사용</string>
@@ -2086,7 +2086,7 @@
     <string name="AutodownloadSizeLimitUpTo">최대 %1$s</string>
     <string name="Streaming">스트리밍</string>
     <string name="EnableStreaming">동영상 및 음악 파일 스트리밍</string>
-    <string name="EnableAllStreamingInfo">어떤 동영상은 스트리밍할 수 없습니다 – 예로, 안드로이드에서 텔레그램 4.7 이하 버전으로 보낸 동영상은 모두 스트리밍할 수 없습니다.</string>
+    <string name="EnableAllStreamingInfo">어떤 동영상은 스트리밍할 수 없습니다 – 예로, 안드로이드에서 ChatAir 4.7 이하 버전으로 보낸 동영상은 모두 스트리밍할 수 없습니다.</string>
     <string name="TapToChangePhone">전화번호를 바꾸려면 누르세요</string>
     <string name="Appearance">외관</string>
     <string name="StickersAndMasks">스티커 및 마스크</string>
@@ -2107,7 +2107,7 @@
     <string name="TapToChange">바꾸려면 누르세요</string>
     <string name="AlternativeOptions">대체 옵션</string>
     <string name="AddAnotherAccount">다른 계정 추가</string>
-    <string name="AddAnotherAccountInfo">다른 텔레그램 계정을 연결하여 두 계정 간 손쉽게 전환하세요.</string>
+    <string name="AddAnotherAccountInfo">다른 ChatAir 계정을 연결하여 두 계정 간 손쉽게 전환하세요.</string>
     <string name="SetPasscode">암호 설정하기</string>
     <string name="SetPasscodeInfo">다른 사람이 열 수 없도록 앱을 암호로 잠그세요.</string>
     <string name="ClearCache">캐시 비우기</string>
@@ -2136,12 +2136,12 @@
     <string name="AuthAnotherClientOk">인증되었습니다</string>
     <string name="AuthAnotherClientDownloadClientUrl">https://desktop.telegram.org/</string>
     <string name="AuthAnotherClientInfo1">컴퓨터에 텔레그램을 다운로드하세요\n*desktop.telegram.org*.</string>
-    <string name="AuthAnotherClientInfo2">QR 코드를 받으려면 텔레그램 데스크탑을 실행하세요.</string>
+    <string name="AuthAnotherClientInfo2">QR 코드를 받으려면 ChatAir 데스크탑을 실행하세요.</string>
     <string name="AuthAnotherClientInfo3">회원님의 계정을 연결하려면 QR 코드를 스캔하세요.</string>
-    <string name="AuthAnotherClientUrl">이 코드는 누군가가 회원님의 텔레그램 계정에 로그인할 수 있도록 하는 데 사용될 수 있습니다.\n\n텔레그램 로그인을 인증하려면, 설정 &gt; 기기 &gt; QR 코드 스캔으로 이동하여 코드를 스캔해 주세요.</string>
+    <string name="AuthAnotherClientUrl">이 코드는 누군가가 회원님의 ChatAir 계정에 로그인할 수 있도록 하는 데 사용될 수 있습니다.\n\nChatAir 로그인을 인증하려면, 설정 &gt; 기기 &gt; QR 코드 스캔으로 이동하여 코드를 스캔해 주세요.</string>
     <string name="QRCodePermissionNoCamera">QR 코드를 스캔하려면 텔레그램에게 카메라 접근 권한이 필요합니다.</string>
     <string name="SetProfilePhoto">프로필 사진 설정하기</string>
-    <string name="AppUpdate">텔레그램 업데이트</string>
+    <string name="AppUpdate">ChatAir 업데이트</string>
     <string name="AppUpdateVersionAndSize">버전  %1$s • %2$s</string>
     <string name="AppUpdateDownloading">%1$d%% 다운로드 중...</string>
     <string name="AppUpdateNow">지금 업데이트 하세요</string>
@@ -2189,22 +2189,22 @@
     <string name="LocalCache">다른 파일</string>
     <string name="CacheEmpty">비어 있음</string>
     <string name="KeepMedia">미디어 저장 기간</string>
-    <string name="KeepMediaInfo">이 기간 동안 회원님이 **접근하지 않으신** 클라우드 대화방의 사진, 동영상과 그 밖의 파일들이 디스크 공간 확보를 위해 이 기기에서 제거됩니다.\n\n모든 미디어는 텔레그램 클라우드에 남으며 필요할 때 다시 다운로드하실 수 있습니다.</string>
+    <string name="KeepMediaInfo">이 기간 동안 회원님이 **접근하지 않으신** 클라우드 대화방의 사진, 동영상과 그 밖의 파일들이 디스크 공간 확보를 위해 이 기기에서 제거됩니다.\n\n모든 미디어는 ChatAir 클라우드에 남으며 필요할 때 다시 다운로드하실 수 있습니다.</string>
     <string name="KeepMediaForever">무기한</string>
     <string name="AudioAutodownload">음성 메시지</string>
     <string name="VideoMessagesAutodownload">동영상 메시지</string>
     <!--passport view-->
-    <string name="TelegramPassport">텔레그램 패스포트</string>
+    <string name="TelegramPassport">ChatAir 패스포트</string>
     <string name="PassportRequestedInformation">"요청 받은 정보 "</string>
     <string name="PassportProvidedInformation">제공한 정보</string>
-    <string name="PassportInfoTitle">텔레그램 패스포트가 무엇인가요?</string>
-    <string name="PassportInfo2">텔레그램 패스포트와 함께라면, 신분 인증이 필요한 여러 웹 사이트와 서비스에 손쉽게 로그인하실 수 있습니다.\n\n회원님의 정보와 개인 데이터, 서류들은 단대단 암호화로 보호됩니다. 텔레그램을 포함하여, 그 누구도 회원님의 허가 없이 이들에 접근할 수 없습니다.\n\n*자주 묻는 질문*을 방문하여 자세히 알아보실 수 있습니다.</string>
+    <string name="PassportInfoTitle">ChatAir 패스포트가 무엇인가요?</string>
+    <string name="PassportInfo2">ChatAir 패스포트와 함께라면, 신분 인증이 필요한 여러 웹 사이트와 서비스에 손쉽게 로그인하실 수 있습니다.\n\n회원님의 정보와 개인 데이터, 서류들은 단대단 암호화로 보호됩니다. 텔레그램을 포함하여, 그 누구도 회원님의 허가 없이 이들에 접근할 수 없습니다.\n\n*자주 묻는 질문*을 방문하여 자세히 알아보실 수 있습니다.</string>
     <string name="PassportInfoUrl">https://telegram.org/faq/ko#1660002760</string>
     <string name="TelegramPassportCreatePasswordInfo">단대단 암호화로 개인 데이터를 보호하려면 비밀번호를 만드셔야 합니다.\n\n새로운 기기로 텔레그램에 로그인할 때 이 비밀번호가 필요할 것입니다.</string>
     <string name="TelegramPassportCreatePassword">비밀번호 만들기</string>
-    <string name="TelegramPassportDelete">텔레그램 패스포트 삭제</string>
-    <string name="TelegramPassportDeleteTitle">텔레그램 패스포트 삭제</string>
-    <string name="TelegramPassportDeleteAlert">정말 텔레그램 패스포트를 삭제하시겠습니까?</string>
+    <string name="TelegramPassportDelete">ChatAir 패스포트 삭제</string>
+    <string name="TelegramPassportDeleteTitle">ChatAir 패스포트 삭제</string>
+    <string name="TelegramPassportDeleteAlert">정말 ChatAir 패스포트를 삭제하시겠습니까?</string>
     <string name="PassportUseLatinOnly">로마자만 사용해 주세요.</string>
     <string name="PassportAddPassportInfo">회원님 여권의 공증된 영문 번역본을 스캔하여 업로드하세요.</string>
     <string name="PassportAddInternalPassportInfo">회원님 내부 여권의 공증된 영문 번역본을 스캔하여 업로드하세요.</string>
@@ -2252,7 +2252,7 @@
     <string name="PassportEmailVerifyInfo">방금 %1$s(으)로 받은 인증 코드를 입력해 주세요.</string>
     <string name="PassportSelfRequest">개인 데이터에 접근하려면 비밀번호를 입력해 주세요.</string>
     <string name="PassportRequest">**%1$s**이(가) 서비스에 회원님을 등록하기 위해 개인 데이터 접근 권한을 요청합니다.</string>
-    <string name="PassportRequestPasswordInfo">데이터를 해독하려면 텔레그램 비밀번호를 입력해 주세요.</string>
+    <string name="PassportRequestPasswordInfo">데이터를 해독하려면 ChatAir 비밀번호를 입력해 주세요.</string>
     <string name="PassportPolicy">*%1$s 개인 정보 정책*을 수락하시어 @%2$s 봇이 회원님에게 메시지를 보낼 수 있도록 합니다.</string>
     <string name="PassportNoPolicy">서류를 %1$s에 곧바로 보내고 %2$s에서 회원님에게 메시지를 보낼 수 있도록 허용합니다.</string>
     <string name="PassportAuthorize">승인</string>
@@ -2401,7 +2401,7 @@
     <string name="NoOtherWebSessionsInfo">텔레그램으로 로그인하기를 지원하는 웹 사이트에 로그인하실 수 있습니다.</string>
     <string name="OtherWebSessions">연결된 웹 사이트</string>
     <string name="WebSessionsTitle">텔레그램으로 로그인된 웹 사이트</string>
-    <string name="TerminateWebSessionInfo">텔레그램 계정과 연결을 끊으려면 짧게 누르세요.</string>
+    <string name="TerminateWebSessionInfo">ChatAir 계정과 연결을 끊으려면 짧게 누르세요.</string>
     <string name="TerminateWebSessionText">정말 %1$s과(와) 연결을 끊으시겠습니까?</string>
     <string name="TerminateWebSessionTitle">웹 사이트 연결 끊기</string>
     <string name="TerminateWebSessionsTitle">웹 사이트 연결 끊기</string>
@@ -2833,7 +2833,7 @@
     <string name="CancelPasswordQuestion">정말 2단계 인증 설정을 중단하시겠습니까?</string>
     <string name="CancelEmailQuestion">정말 복구 이메일 설정을 중단하시겠습니까?</string>
     <string name="CancelEmailQuestionTitle">설치 중단</string>
-    <string name="TurnPasswordOffPassport">경고! 텔레그램 패스포트에 저장된 데이터가 모두 사라집니다!</string>
+    <string name="TurnPasswordOffPassport">경고! ChatAir 패스포트에 저장된 데이터가 모두 사라집니다!</string>
     <string name="PasswordHint">비밀번호 힌트</string>
     <string name="PasswordHintPlaceholder">힌트</string>
     <string name="PasswordHintText">비밀번호 힌트를 만드세요</string>
@@ -2871,7 +2871,7 @@
     <string name="VerificationCode">인증 코드</string>
     <string name="EnterCode">코드 입력</string>
     <string name="ResendCodeInfo">인증 코드를 이메일로 보냈습니다.</string>
-    <string name="EnabledPasswordText">2단계 인증이 활성화되었습니다.\n회원님의 텔레그램 계정에 로그인하려면 여기서 설정하신 비밀번호가 필요합니다.</string>
+    <string name="EnabledPasswordText">2단계 인증이 활성화되었습니다.\n회원님의 ChatAir 계정에 로그인하려면 여기서 설정하신 비밀번호가 필요합니다.</string>
     <!--data settings-->
     <string name="DataSettings">데이터 및 저장 공간</string>
     <string name="DataUsage">디스크 및 네트워크 사용량</string>
@@ -2981,7 +2981,7 @@
     <string name="InviteToGroupError">죄송합니다. 사용자의 개인 정보 설정으로 인해 이 사용자를 그룹에 추가하실 수 없습니다.</string>
     <string name="InviteToChannelError">죄송합니다. 사용자의 개인 정보 설정으로 인해 이 사용자를 채널에 추가하실 수 없습니다.</string>
     <string name="CreateGroupError">죄송합니다. 이 사용자의 개인 정보 설정으로 인해 함께 그룹을 만드실 수 없습니다.</string>
-    <string name="PrivacyCallsP2PHelp">단대단을 끄시면, 회원님의 IP 주소를 노출시키지 않도록 모든 통화가 텔레그램 서버를 통해 전달됩니다. 다만 음성 및 영상 품질이 저하될 수 있습니다.</string>
+    <string name="PrivacyCallsP2PHelp">단대단을 끄시면, 회원님의 IP 주소를 노출시키지 않도록 모든 통화가 ChatAir 서버를 통해 전달됩니다. 다만 음성 및 영상 품질이 저하될 수 있습니다.</string>
     <string name="SyncContactsDelete">동기화된 연락처 삭제</string>
     <string name="SuggestContacts">자주 이용하는 연락처 추천</string>
     <string name="SuggestContactsInfo">신속한 연락을 위해 검색 구역 위쪽에 자주 대화하는 사람을 표시합니다.</string>
@@ -2991,7 +2991,7 @@
     <string name="PrivacyExceptions">예외</string>
     <string name="BlockedEmpty">없음</string>
     <string name="SyncContactsDeleteTitle">연락처 삭제</string>
-    <string name="SyncContactsDeleteText">연락처가 텔레그램 서버에서 제거됩니다.\n\n\'**연락처 동기화**\'가 켜져 있다면, 연락처가 다시 동기화됩니다.</string>
+    <string name="SyncContactsDeleteText">연락처가 ChatAir 서버에서 제거됩니다.\n\n\'**연락처 동기화**\'가 켜져 있다면, 연락처가 다시 동기화됩니다.</string>
     <!--edit video view-->
     <string name="SendingVideo">동영상 보내는 중...</string>
     <string name="SendingGif">GIF 보내는 중...</string>
@@ -3117,7 +3117,7 @@
     <string name="ActionBotDocumentRentalAgreement">임대 계약서</string>
     <string name="ActionBotDocumentPhone">전화번호</string>
     <string name="ActionBotDocumentEmail">이메일 주소</string>
-    <string name="UnsupportedMedia">이 메시지는 현재 사용하고 있는 텔레그램 버전에서 지원되지 않습니다.\n메시지를 보시려면 http://telegram.org/update 에서 앱을 업데이트하세요.</string>
+    <string name="UnsupportedMedia">이 메시지는 현재 사용하고 있는 ChatAir 버전에서 지원되지 않습니다.\n메시지를 보시려면 http://telegram.org/update 에서 앱을 업데이트하세요.</string>
     <string name="AttachPhoto">사진</string>
     <string name="AttachVideo">동영상</string>
     <string name="AttachDestructingPhoto">자동 삭제되는 사진</string>
@@ -3153,9 +3153,9 @@
     <string name="DeleteAll">모두 삭제</string>
     <string name="StopLoading">불러오기를 중단할까요?</string>
     <string name="UpdateTelegram">텔레그램을 업데이트하세요</string>
-    <string name="UpdateAppAlert">죄송합니다. 텔레그램 앱이 최신 버전이 아니기에 이 요청을 받을 수 없습니다. 텔레그램을 업데이트해 주세요.</string>
+    <string name="UpdateAppAlert">죄송합니다. ChatAir 앱이 최신 버전이 아니기에 이 요청을 받을 수 없습니다. 텔레그램을 업데이트해 주세요.</string>
     <string name="InvalidPhoneNumber">전화번호가 잘못되었습니다. 번호를 확인하여 다시 시도해 주세요.</string>
-    <string name="PleaseLoginPassport">텔레그램 패스포트를 사용하려면 텔레그램 계정에 로그인해 주세요.</string>
+    <string name="PleaseLoginPassport">ChatAir 패스포트를 사용하려면 ChatAir 계정에 로그인해 주세요.</string>
     <string name="BannedPhoneNumber">차단된 전화번호입니다.</string>
     <string name="CodeExpired">코드가 만료되었습니다. 다시 로그인하세요.</string>
     <string name="FloodWait">너무 많이 시도하셨습니다. 나중에 다시 시도하세요.</string>
@@ -3240,9 +3240,9 @@
     <string name="SendMessagesToGroupText">**%1$s** 님에게 이 메시지를 보내시겠습니까?</string>
     <string name="SendGameToGroupText">**%1$s** 님에게 이 게임을 공유하시겠습니까?</string>
     <string name="SendContactToGroupText">**%1$s** 님에게 이 연락처를 보내시겠습니까?</string>
-    <string name="NoUsernameFound">이 사용자명을 가진 텔레그램 계정이 없습니다.</string>
+    <string name="NoUsernameFound">이 사용자명을 가진 ChatAir 계정이 없습니다.</string>
     <string name="BotCantJoinGroups">이 봇은 그룹에 들어올 수 없습니다.</string>
-    <string name="SecretLinkPreviewAlert">비밀 대화에서 링크 미리보기를 활성화하시겠습니까? 링크 미리보기는 텔레그램 서버에서 만들어지는 점을 유의하시기 바랍니다.</string>
+    <string name="SecretLinkPreviewAlert">비밀 대화에서 링크 미리보기를 활성화하시겠습니까? 링크 미리보기는 ChatAir 서버에서 만들어지는 점을 유의하시기 바랍니다.</string>
     <string name="SecretChatContextBotAlert">인라인 봇은 제3 개발자가 제공한다는 점을 유의하시기 바랍니다. 봇이 작동을 하기 위해서, 봇의 사용자명 뒤에 입력한 내역이 해당 개발자에게 보내지게 됩니다.</string>
     <string name="EditMessageError">죄송합니다. 메시지를 수정할 수 없습니다.</string>
     <string name="AllowReadCall">텔레그램이 전화를 수신 할 수 있도록 설정해주셔야 자동으로 코드 입력이 가능합니다.</string>
@@ -3267,7 +3267,7 @@
     <string name="PrivacyPolicyAndTerms">개인 정보 정책 및 이용 약관</string>
     <string name="TosAgeText">귀하가 %1$s세 이상임을 인증하려면 동의를 누르세요.</string>
     <string name="TosUpdateDecline">유감스럽게도, 텔레그램에 가입하실 수 없습니다.\n\n다른 서비스와 달리 저희는 광고 타겟팅이나 다른 상업적 목적으로 귀하의 데이터를 사용하지 않습니다. 텔레그램이 안전하고 기능이 풍부한 클라우드 서비스로서 작동하는 데 필요한 정보만을 저장합니다. 개인 정보 및 보안 설정에서 데이터 사용 방식(동기화된 연락처 삭제 따위)을 설정하실 수 있습니다.\n\n하지만 텔레그램의 간소한 요구 사항에 두루 동의하실 수 없다면 저희로서 이 서비스를 제공해 드리기가 어렵습니다.</string>
-    <string name="TosDeclineDeleteAccount">주의! 텔레그램 클라우드에 저장하신 모든 데이터와 함께 회원님의 텔레그램 계정이 삭제되며, 되돌릴 수 없습니다.\n\n중요: 지금 취소하여 계정을 삭제하기 전에 데이터를 내보내실 수 있습니다. (최신 텔레그램 데스크톱을 열고 설정 &gt; 고급 설정 &gt; 텔레그램 데이터 내보내기에서 진행하실 수 있습니다.)</string>
+    <string name="TosDeclineDeleteAccount">주의! ChatAir 클라우드에 저장하신 모든 데이터와 함께 회원님의 ChatAir 계정이 삭제되며, 되돌릴 수 없습니다.\n\n중요: 지금 취소하여 계정을 삭제하기 전에 데이터를 내보내실 수 있습니다. (최신 ChatAir 데스크톱을 열고 설정 &gt; 고급 설정 &gt; ChatAir 데이터 내보내기에서 진행하실 수 있습니다.)</string>
     <!--permissions-->
     <string name="PermissionContacts">회원님이 모든 기기에서 친구들과 연락하실 수 있도록, 텔레그램의 단단히 암호화된 클라우드 서비스로 연락처가 계속 동기화됩니다.</string>
     <string name="PermissionStorage">사진, 동영상, 음악과 그 밖의 미디어를 보내고 저장하려면 텔레그램에게 저장 공간 접근 권한이 필요합니다.</string>
@@ -3300,14 +3300,14 @@
     <string name="NotificationsChartTitle">알림</string>
     <string name="DeviceStorage">기기 저장 공간</string>
     <string name="TotalDeviceFreeSize">%s 여유</string>
-    <string name="ClearTelegramCache">텔레그램 캐시 비우기</string>
+    <string name="ClearTelegramCache">ChatAir 캐시 비우기</string>
     <string name="StatisticOverview">개요</string>
     <string name="ViewsPerPost">게시글당 조회수</string>
     <string name="SharesPerPost">게시글당 공유수</string>
     <string name="EnabledNotifications">알림 켬</string>
     <string name="ClearLocalDatabase">로컬 데이터베이스 비우기</string>
-    <string name="TelegramCacheSize">%s 텔레그램 캐시</string>
-    <string name="LocalDatabaseSize">%s 텔레그램 로컬 데이터베이스</string>
+    <string name="TelegramCacheSize">%s ChatAir 캐시</string>
+    <string name="LocalDatabaseSize">%s ChatAir 로컬 데이터베이스</string>
     <string name="CacheWasCleared">%s를 회원님 기기에 확보했습니다!</string>
     <string name="TotalDeviceSize">%s 기타 앱</string>
     <string name="GroupMembersChartTitle">그룹 참가자들</string>
@@ -3366,18 +3366,18 @@
     <string name="ViewMessageStatistic">메시지 통계</string>
     <string name="ViewMessage">메시지 보기</string>
     <!--Intro view-->
-    <string name="Page1Title">텔레그램</string>
+    <string name="Page1Title">ChatAir</string>
     <string name="Page2Title">눈부신 속도</string>
     <string name="Page3Title">평생 무료</string>
     <string name="Page4Title">철통 보안</string>
     <string name="Page5Title">강력함</string>
     <string name="Page6Title">클라우드 기반</string>
     <string name="Page1Message">세상에서 가장 **빠른** 메신저입니다.\n **무료**이며 **안전합니다**.</string>
-    <string name="Page2Message">**텔레그램**은 어느 메신저보다도\n빠르게 메시지를 전달합니다.</string>
-    <string name="Page3Message">**텔레그램**은 영원히 무료입니다. \n광고도, 구독료도 없습니다.</string>
-    <string name="Page4Message">**텔레그램**은 회원님의 메시지를\n해커의 공격으로부터 안전하게 지켜냅니다.</string>
-    <string name="Page5Message">**텔레그램**으로 대화와 미디어를\n용량 걱정 없이 즐기세요.</string>
-    <string name="Page6Message">**텔레그램**은 몇 대의 기기에서든\n자유롭게 이용하실 수 있습니다.</string>
+    <string name="Page2Message">**ChatAir**은 어느 메신저보다도\n빠르게 메시지를 전달합니다.</string>
+    <string name="Page3Message">**ChatAir**은 영원히 무료입니다. \n광고도, 구독료도 없습니다.</string>
+    <string name="Page4Message">**ChatAir**은 회원님의 메시지를\n해커의 공격으로부터 안전하게 지켜냅니다.</string>
+    <string name="Page5Message">**ChatAir**으로 대화와 미디어를\n용량 걱정 없이 즐기세요.</string>
+    <string name="Page6Message">**ChatAir**은 몇 대의 기기에서든\n자유롭게 이용하실 수 있습니다.</string>
     <string name="StartMessaging">시작하기</string>
     <!-- VoIP -->
     <string name="AccountSettings">계정설정</string>
@@ -3392,8 +3392,8 @@
     <string name="VoipFailed">연결 실패</string>
     <string name="VoipRinging">전화 거는 중</string>
     <string name="VoipBusy">통화 중</string>
-    <string name="VoipInCallBranding">텔레그램 전화</string>
-    <string name="VoipInVideoCallBranding">텔레그램 영상 통화</string>
+    <string name="VoipInCallBranding">ChatAir 전화</string>
+    <string name="VoipInVideoCallBranding">ChatAir 영상 통화</string>
     <string name="VoipOutgoingCall">텔레그램으로 통화 중</string>
     <string name="VoipVoiceChat">참여중인 음성 대화</string>
     <string name="VoipEndCall">통화 종료</string>
@@ -3447,7 +3447,7 @@
     <string name="VoipPeerOutdated">**%1$s** 님의 텔레그램은 전화를 지원하지 않습니다. 이 사용자의 앱을 업데이트한 뒤에 전화할 수 있습니다.</string>
     <string name="VoipPeerVideoOutdated">%1$s 님의 앱이 영상 통화를 지원하지 않습니다. 전화를 거시기 전에 이 사용자가 앱을 업데이트해야 합니다.</string>
     <string name="VoipPeerVideoOutdatedMakeVoice">음성 통화 걸기</string>
-    <string name="VoipRateCallAlert">텔레그램 전화의 품질을 평가해주세요.</string>
+    <string name="VoipRateCallAlert">ChatAir 전화의 품질을 평가해주세요.</string>
     <string name="VoipNeedMicPermission">전화를 걸려면 텔레그램에게 마이크 접근 권한을 부여하셔야 합니다.</string>
     <string name="VoipNeedMicCameraPermission">텔레그램이 영상 통화를 하기 위하여 기기의 마이크와 카메라에 접근이 필요합니다.</string>
     <string name="VoipNeedCameraPermission">텔레그램이 영상 통화를 하려면 카메라 접근 권한이 필요합니다.</string>
@@ -3456,8 +3456,8 @@
     <string name="CallAgain">다시 전화 걸기</string>
     <string name="DefaultRingtone">기본값</string>
     <string name="ConfirmDeleteCallLog">이 항목을 통화 기록에서 삭제하시겠습니까?</string>
-    <string name="CallViaTelegram">텔레그램 전화</string>
-    <string name="VideoCallViaTelegram">텔레그램 영상 통화</string>
+    <string name="CallViaTelegram">ChatAir 전화</string>
+    <string name="VideoCallViaTelegram">ChatAir 영상 통화</string>
     <string name="VoipAudioRoutingEarpiece">이어폰</string>
     <string name="VoipAudioRoutingHeadset">헤드셋</string>
     <string name="VoipAudioRoutingSpeaker">스피커</string>
@@ -3471,10 +3471,10 @@
     <string name="CallReportHint">무엇이 잘못됐나요?</string>
     <string name="CallReportIncludeLogs">기술 정보 포함</string>
     <string name="CallReportLogsExplain">대화 내용은 공개되지 않으며 빠른 시일 내로 문제를 해결해 드리는 데 도움이 됩니다.</string>
-    <string name="CallReportSent">텔레그램 전화를 개선할 수 있도록 도와주셔서 감사합니다.</string>
+    <string name="CallReportSent">ChatAir 전화를 개선할 수 있도록 도와주셔서 감사합니다.</string>
     <string name="VoipAnsweringAsAccount">%s 님으로 받는 중</string>
     <string name="VoipQuickReplies">문자로 응답</string>
-    <string name="VoipQuickRepliesExplain">이 빠른 응답 문구들을 전화가 걸려올 때 텔레그램 메시지로 보내실 수 있습니다. 무엇이든지 원하는 말로 바꾸세요.</string>
+    <string name="VoipQuickRepliesExplain">이 빠른 응답 문구들을 전화가 걸려올 때 ChatAir 메시지로 보내실 수 있습니다. 무엇이든지 원하는 말로 바꾸세요.</string>
     <string name="QuickReplyDefault1">지금 대화할 수 없어요. 무슨 일인가요?</string>
     <string name="QuickReplyDefault2">곧바로 전화할게요.</string>
     <string name="QuickReplyDefault3">나중에 전화할게요.</string>
@@ -4483,4 +4483,59 @@
     <string name="RemindDayAt">MMM d HH:mm\'에 알리기\'</string>
     <string name="RemindDayYearAt">yyyy\'년\' M\'월\' d\'일\' HH:mm\'에 알림\'</string>
     <string name="BotsMenuTitle">메뉴</string>
+
+    <!--chatAir Start-->
+    <string name="ContextClear">ClearContext</string>
+    <string name="UndoContextClear">UndoClearContext</string>
+    <string name="ActionContextClear">컨텍스트 지우기</string>
+    <string name="TitleHeaderSetting">채팅 설정</string>
+    <string name="PromptHeader">프롬프트</string>
+    <string name="ChatUsernameTips">채팅 이름</string>
+    <string name="ChangePrompt">탭하여 프롬프트 변경</string>
+    <string name="PromptTips">시스템 메시지는 어시스턴트의 동작을 설정하는 데 도움이 됩니다.</string>
+    <string name="PromptUnknown">프롬프트가 비어 있습니다</string>
+    <string name="AiParametersHeader">채팅 AI 매개변수</string>
+    <string name="AiModelTitle">AI 모델</string>
+    <string name="AiModelTips">다른 모델로 전환하기 전에 API 키가 해당 모델에 액세스할 수 있는지 확인하십시오.</string>
+    <string name="TemperatureTitle">온도</string>
+    <string name="TemperatureTips">샘플링 온도는 생성된 출력의 무작위성을 조절합니다. 높은 값은 출력을 더 무작위하게 만들고, 낮은 값은 더 집중된 결정론적인 출력을 생성합니다.</string>
+    <string name="ContextTitle">이전 메시지</string>
+    <string name="ContextTips">대화 기록을 포함시키는 것은 사용자 지시가 이전 메시지를 참조할 때 도움이 됩니다.</string>
+    <string name="TokenLimitTitle">답변 길이 제한</string>
+    <string name="TokenLimitTips">AI가 생성한 답변의 최대 길이를 제어합니다. 적절한 길이 제한을 설정하여 답변이 완전하고 너무 길지 않도록 보장하세요.</string>
+    <string name="ResetAiParameters">채팅 AI 매개변수 재설정</string>
+    <string name="ResetAiParametersTips">현재 채팅 AI 전용</string>
+    <string name="ResetAllAiParametersTips">매개변수가 구성되지 않은 채팅 AI 전용</string>
+    <string name="ResetAiParametersText">채팅 AI 매개변수가 기본값으로 재설정되었습니다</string>
+    <string name="TemperatureLowValue">가장 정확한</string>
+    <string name="TemperatureHighValue">가장 무작위한</string>
+    <string name="TokenText">토큰</string>
+    <string name="EditChatName">채팅 이름 수정</string>
+    <string name="GlobalAiParametersHeader">전역 AI 매개변수</string>
+    <string name="ApiServerSetting">API 서버 설정</string>
+    <string name="ApiKey">API 키</string>
+    <string name="ApiKeyTips">탭하여 API 키 변경</string>
+    <string name="ApiServer">API 서버</string>
+    <string name="ApiServerTips">탭하여 API 서버 변경</string>
+    <string name="ChangeApiKey">API 키</string>
+    <string name="ValidateTitle">유효성 검사</string>
+    <string name="ValidateSuccess">유효성 검사 성공</string>
+    <string name="FindKey">API 키 찾기</string>
+    <string name="FindKeyUrl">https://platform.openai.com/account/api-keys</string>
+    <string name="ChangeApiServer">API 서버</string>
+    <string name="DefaultApiServe">API 서버 기본값으로 재설정</string>
+    <string name="MalformedUrl">잘못된 URL</string>
+    <string name="ClearApiKey">API 키를 지우시겠습니까?</string>
+    <string name="StreamResponses">스트리밍 응답</string>
+    <string name="RenderMarkdown">Markdown 렌더링</string>
+    <string name="AutoHideKeyboard">키보드 자동 숨기기</string>
+    <string name="AutoHideKeyboardInfo">메시지 전송 후 자동으로 키보드 숨기기</string>
+    <string name="CustomModel">사용자 정의 모델</string>
+    <string name="ChangeCustomModel">사용자 정의 모델 변경</string>
+    <string name="CasualTalk">일상 대화</string>
+    <string name="promptListHeaderRow">프롬프트</string>
+    <string name="Prompts">프롬프트</string>
+    <string name="AddPrompt">프롬프트 추가</string>
+    <!--chatAir End-->
+
 </resources>
