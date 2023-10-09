@@ -3,7 +3,10 @@
     <item>
         <bitmap android:src="@drawable/icon_background_sa"/>
     </item>
-    <item>
-        <bitmap android:src="@drawable/icon_background_clip"/>
-    </item>
+<!--    <item>-->
+<!--        <bitmap android:src="@drawable/icon_background_sa"/>-->
+<!--    </item>-->
+<!--    <item>-->
+<!--        <bitmap android:src="@drawable/icon_background_clip"/>-->
+<!--    </item>-->
 </layer-list>
