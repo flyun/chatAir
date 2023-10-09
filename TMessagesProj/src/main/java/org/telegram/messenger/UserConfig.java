@@ -488,6 +488,7 @@ public class UserConfig extends BaseController {
         aiModelList.put(6, new AiModelBean("GPT-4-0613", "gpt-4-0613", false));
         aiModelList.put(7, new AiModelBean("GPT-4-32k", "gpt-4-32k", true));
         aiModelList.put(8, new AiModelBean("GPT-4-32k-0613", "gpt-4-32k-0613", false));
+//        initOpenrouter();
         aiModelList.put(0, new AiModelBean(LocaleController.getString("CustomModel", R.string.CustomModel), "custom Model", true));
 
     }
@@ -495,25 +496,25 @@ public class UserConfig extends BaseController {
     //https://openrouter.ai/docs
     private void initOpenrouter() {
         if (aiModelList == null) return;
-//        aiModelList.put(101, new AiModelBean("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo", true));
-//        aiModelList.put(102, new AiModelBean("openai/gpt-3.5-turbo-0301", "openai/gpt-3.5-turbo-0301", true));
-//        aiModelList.put(103, new AiModelBean("openai/gpt-3.5-turbo-16k", "openai/gpt-3.5-turbo-16k", true));
-//        aiModelList.put(104, new AiModelBean("openai/gpt-4", "openai/gpt-4", true));
-//        aiModelList.put(105, new AiModelBean("openai/gpt-4-0314", "openai/gpt-4-0314", true));
-//        aiModelList.put(106, new AiModelBean("openai/gpt-4-32k", "openai/gpt-4-32k", true));
-//        aiModelList.put(107, new AiModelBean("openai/gpt-4-32k-0314", "openai/gpt-4-32k-0314", true));
-//        aiModelList.put(108, new AiModelBean("anthropic/claude-2", "anthropic/claude-2", true));
-//        aiModelList.put(109, new AiModelBean("anthropic/claude-instant-v1", "anthropic/claude-instant-v1", true));
-//        aiModelList.put(110, new AiModelBean("anthropic/claude-instant-v1-100k", "anthropic/claude-instant-v1-100k", true));
-//        aiModelList.put(111, new AiModelBean("google/palm-2-chat-bison", "google/palm-2-chat-bison", true));
-//        aiModelList.put(112, new AiModelBean("google/palm-2-codechat-bison", "google/palm-2-codechat-bison", true));
-//        aiModelList.put(113, new AiModelBean("meta-llama/llama-2-13b-chat", "meta-llama/llama-2-13b-chat", true));
-//        aiModelList.put(114, new AiModelBean("meta-llama/llama-2-70b-chat", "meta-llama/llama-2-70b-chat", true));
-//        aiModelList.put(115, new AiModelBean("meta-llama/codellama-34b-instruct", "meta-llama/codellama-34b-instruct", true));
-//        aiModelList.put(116, new AiModelBean("nousresearch/nous-hermes-llama2-13b", "nousresearch/nous-hermes-llama2-13b", true));
-//        aiModelList.put(117, new AiModelBean("mancer/weaver", "mancer/weaver", true));
-//        aiModelList.put(118, new AiModelBean("gryphe/mythomax-L2-13b", "gryphe/mythomax-L2-13b", true));
-//        aiModelList.put(119, new AiModelBean("jondurbin/airoboros-l2-70b-2.1", "jondurbin/airoboros-l2-70b-2.1", true));
+        aiModelList.put(101, new AiModelBean("openrouter/gpt-3.5-turbo", "openai/gpt-3.5-turbo", true));
+        aiModelList.put(102, new AiModelBean("openroutergpt-3.5-turbo-0301", "openai/gpt-3.5-turbo-0301", true));
+        aiModelList.put(103, new AiModelBean("openrouter/gpt-3.5-turbo-16k", "openai/gpt-3.5-turbo-16k", true));
+        aiModelList.put(104, new AiModelBean("openrouter/gpt-4", "openai/gpt-4", true));
+        aiModelList.put(105, new AiModelBean("openrouter/gpt-4-0314", "openai/gpt-4-0314", true));
+        aiModelList.put(106, new AiModelBean("openrouter/gpt-4-32k", "openai/gpt-4-32k", true));
+        aiModelList.put(107, new AiModelBean("openrouter/gpt-4-32k-0314", "openai/gpt-4-32k-0314", true));
+        aiModelList.put(108, new AiModelBean("openrouter/anthropic/claude-2", "anthropic/claude-2", true));
+        aiModelList.put(109, new AiModelBean("openrouter/anthropic/claude-instant-v1", "anthropic/claude-instant-v1", true));
+        aiModelList.put(110, new AiModelBean("openrouter/anthropic/claude-instant-v1-100k", "anthropic/claude-instant-v1-100k", true));
+        aiModelList.put(111, new AiModelBean("openrouter/google/palm-2-chat-bison", "google/palm-2-chat-bison", true));
+        aiModelList.put(112, new AiModelBean("openrouter/google/palm-2-codechat-bison", "google/palm-2-codechat-bison", true));
+        aiModelList.put(113, new AiModelBean("openrouter/meta-llama/llama-2-13b-chat", "meta-llama/llama-2-13b-chat", true));
+        aiModelList.put(114, new AiModelBean("openrouter/meta-llama/llama-2-70b-chat", "meta-llama/llama-2-70b-chat", true));
+        aiModelList.put(115, new AiModelBean("openrouter/meta-llama/codellama-34b-instruct", "meta-llama/codellama-34b-instruct", true));
+        aiModelList.put(116, new AiModelBean("openrouter/nousresearch/nous-hermes-llama2-13b", "nousresearch/nous-hermes-llama2-13b", true));
+        aiModelList.put(117, new AiModelBean("openrouter/mancer/weaver", "mancer/weaver", true));
+        aiModelList.put(118, new AiModelBean("openrouter/gryphe/mythomax-L2-13b", "gryphe/mythomax-L2-13b", true));
+        aiModelList.put(119, new AiModelBean("openrouter/jondurbin/airoboros-l2-70b-2.1", "jondurbin/airoboros-l2-70b-2.1", true));
     }
 
     public boolean isConfigLoaded() {

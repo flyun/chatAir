@@ -4430,7 +4430,7 @@
     <!--chatAir Start-->
     <string name="ContextClear">清除上下文</string>
     <string name="UndoContextClear">撤銷清除上下文</string>
-    <string name="ActionContextClear">清除上下文</string>
+    <string name="ActionContextClear">上下文已清除</string>
     <string name="TitleHeaderSetting">聊天設置</string>
     <string name="PromptHeader">提示</string>
     <string name="ChatUsernameTips">聊天名稱</string>

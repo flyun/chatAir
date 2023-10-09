@@ -22,8 +22,6 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.SparseIntArray;
 
-import androidx.collection.LongSparseArray;
-
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.tgnet.NativeByteBuffer;
@@ -34,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+
+import androidx.collection.LongSparseArray;
 
 @SuppressLint("MissingPermission")
 public class LocationController extends BaseController implements NotificationCenter.NotificationCenterDelegate, ILocationServiceProvider.IAPIConnectionCallbacks, ILocationServiceProvider.IAPIOnConnectionFailedListener {
@@ -781,6 +781,7 @@ public class LocationController extends BaseController implements NotificationCe
     }
 
     private void startService() {
+        if (BuildVars.IS_CHAT_AIR) return;
         try {
             /*if (Build.VERSION.SDK_INT >= 26) {
                 ApplicationLoader.applicationContext.startForegroundService(new Intent(ApplicationLoader.applicationContext, LocationSharingService.class));
@@ -793,6 +794,7 @@ public class LocationController extends BaseController implements NotificationCe
     }
 
     private void stopService() {
+        if (BuildVars.IS_CHAT_AIR) return;
         ApplicationLoader.applicationContext.stopService(new Intent(ApplicationLoader.applicationContext, LocationSharingService.class));
     }
 

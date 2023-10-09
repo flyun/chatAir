@@ -3526,7 +3526,7 @@
     <!--chatAir Start-->
     <string name="ContextClear">ClearContext</string>
     <string name="UndoContextClear">UndoClearContext</string>
-    <string name="ActionContextClear">Context Clear</string>
+    <string name="ActionContextClear">Context cleared</string>
     <string name="TitleHeaderSetting">Chat Settings</string>
     <string name="PromptHeader">Prompt</string>
     <string name="ChatUsernameTips">Chat Name</string>
