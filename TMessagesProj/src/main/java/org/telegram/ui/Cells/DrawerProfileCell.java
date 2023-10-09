@@ -657,6 +657,7 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         accountsShown = accounts;
         setArrowState(false);
         CharSequence text = UserObject.getUserName(user);
+        if (BuildVars.IS_CHAT_AIR && user.self) text = LocaleController.getString(R.string.AppName);
         try {
             text = Emoji.replaceEmoji(text, nameTextView.getPaint().getFontMetricsInt(), AndroidUtilities.dp(22), false);
         } catch (Exception ignore) {}
@@ -686,7 +687,11 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         phoneTextView.setText(PhoneFormat.getInstance().format("+" + user.phone));
         AvatarDrawable avatarDrawable = new AvatarDrawable(user);
         avatarDrawable.setColor(Theme.getColor(Theme.key_avatar_backgroundInProfileBlue));
-        avatarImageView.setForUserOrChat(user, avatarDrawable);
+        if (BuildVars.IS_CHAT_AIR && user.self) {
+            avatarImageView.setImageDrawable(getResources().getDrawable(R.mipmap.ic_launcher));
+        } else {
+            avatarImageView.setForUserOrChat(user, avatarDrawable);
+        }
         applyBackground(true);
         updateRightDrawable = true;
     }

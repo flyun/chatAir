@@ -609,7 +609,15 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 13) {
                     //点击进入客服频道
-                    Browser.openUrl(LaunchActivity.this, LocaleController.getString("TelegramFeaturesUrl", R.string.TelegramFeaturesUrl));
+                    if (!BuildVars.IS_CHAT_AIR) {
+                        Browser.openUrl(LaunchActivity.this, LocaleController.getString("TelegramFeaturesUrl", R.string.TelegramFeaturesUrl));
+                    } else {
+                        Browser.openUrl(LaunchActivity.this, LocaleController.getString("FaqUrl", R.string.FaqUrl),
+                                true, false);
+                    }
+                    drawerLayoutContainer.closeDrawer(false);
+                } else if (id == 14) {
+                    Browser.openUrl(LaunchActivity.this, LocaleController.getString("AskAQuestionUrl", R.string.AskAQuestionUrl), true, false);
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 15) {
                     showSelectStatusDialog();

@@ -271,6 +271,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         int apiServerIcon = 0;
         int promptIcon = 0;
         int aiIcon = 0;
+        int askAQuestion = 0;
         //不同主题下的图标
         if (eventType == 0) {
             newGroupIcon = R.drawable.msg_groups_ny;
@@ -324,6 +325,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             aiIcon = R.drawable.msg_bot;
             apiServerIcon = R.drawable.msg_link;
             promptIcon = R.drawable.list_reorder;
+            askAQuestion = R.drawable.msg2_ask_question;
         }
 
         UserConfig me = UserConfig.getInstance(UserConfig.selectedAccount);
@@ -359,6 +361,9 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         if (!BuildVars.IS_CHAT_AIR) items.add(null); // divider
         if (!BuildVars.IS_CHAT_AIR) items.add(new Item(7, LocaleController.getString("InviteFriends", R.string.InviteFriends), inviteIcon));
         items.add(new Item(13, LocaleController.getString("TelegramFaq", R.string.TelegramFaq), helpIcon));
+        if (BuildVars.IS_CHAT_AIR) {
+            items.add(new Item(14, LocaleController.getString("AskAQuestion", R.string.AskAQuestion), askAQuestion));
+        }
     }
 
     public int getId(int position) {

@@ -3575,6 +3575,8 @@
     <string name="promptListHeaderRow">Prompts</string>
     <string name="Prompts">Prompts</string>
     <string name="AddPrompt">Add Prompt</string>
+    <string name="AskAQuestionUrl">https://github.com/flyun/chatAir/discussions</string>
+    <string name="FaqUrl">https://github.com/flyun/chatAir/wiki</string>
 
     <!--chatAir End-->
 
