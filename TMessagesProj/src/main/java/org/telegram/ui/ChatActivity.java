@@ -10053,7 +10053,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private void showSearchAsListHint() {
-        if (getParentActivity() == null || fragmentView == null || searchCountText == null) {
+        if (BuildVars.IS_CHAT_AIR || getParentActivity() == null || fragmentView == null || searchCountText == null) {
             return;
         }
         if (searchAsListHint == null) {
@@ -10068,7 +10068,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
     private void showScheduledOrNoSoundHint() {
         boolean disableNoSound = (UserObject.isUserSelf(currentUser) || (chatInfo != null && chatInfo.slowmode_next_send_date > 0) && chatMode == 0);
-        if (SharedConfig.scheduledOrNoSoundHintShows >= 3 || System.currentTimeMillis() % 4 != 0 || disableNoSound) {
+        if (BuildVars.IS_CHAT_AIR || SharedConfig.scheduledOrNoSoundHintShows >= 3 || System.currentTimeMillis() % 4 != 0 || disableNoSound) {
             return;
         }
         AndroidUtilities.cancelRunOnUIThread(showScheduledOrNoSoundRunnable);
