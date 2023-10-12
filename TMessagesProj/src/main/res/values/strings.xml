@@ -297,6 +297,12 @@
     <string name="ContactsPermissionAlert">**ChatAir** needs access to your contacts so that you can connect with your friends across all your devices. Your contacts will be continuously synced with ChatAir\'s heavily encrypted cloud servers.</string>
     <string name="ContactsPermissionAlertNotNow">Not now</string>
     <string name="ContactsPermissionAlertContinue">Continue</string>
+    <string name="NotificationsPermissionAlertTitle">Turn on notifications</string>
+    <string name="NotificationsPermissionAlertSubtitle">Please allow Telegram to send you notifications to stay in touch with your friends and family.</string>
+    <string name="NotificationsPermissionAlert1">Get notified about new messages</string>
+    <string name="NotificationsPermissionAlert2">Learn when you are mentioned in groups</string>
+    <string name="NotificationsPermissionAlert3">Mute specific chats and types of chats</string>
+    <string name="NotificationsPermissionContinue">Continue</string>
     <string name="YourContacts">Your contacts on ChatAir</string>
     <string name="ConnectingYourContacts">Connecting your contacts...</string>
     <string name="ArchiveHintHeader1">This is your Archive</string>

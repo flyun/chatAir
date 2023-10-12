@@ -8,6 +8,7 @@
 
 package org.telegram.messenger;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
@@ -2800,7 +2801,11 @@ public class AndroidUtilities {
     }
 
     private static File getAlbumDir(boolean secretChat) {
-        if (secretChat || !BuildVars.NO_SCOPED_STORAGE || (Build.VERSION.SDK_INT >= 23 && ApplicationLoader.applicationContext.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
+        if (secretChat ||!BuildVars.NO_SCOPED_STORAGE ||(Build.VERSION.SDK_INT >= 33
+                && ApplicationLoader.applicationContext.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES)
+                != PackageManager.PERMISSION_GRANTED)
+                || (Build.VERSION.SDK_INT >= 23 && Build.VERSION.SDK_INT <= 33
+                && ApplicationLoader.applicationContext.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
             return FileLoader.getDirectory(FileLoader.MEDIA_DIR_IMAGE);
         }
         File storageDir = null;

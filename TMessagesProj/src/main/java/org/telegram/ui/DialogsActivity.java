@@ -5692,11 +5692,32 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 checkPermission = false;
                 boolean hasNotContactsPermission = activity.checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED;
                 boolean hasNotStoragePermission = (Build.VERSION.SDK_INT <= 28 || BuildVars.NO_SCOPED_STORAGE) && activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+                boolean hasNotNotificationsPermission = Build.VERSION.SDK_INT >= 33 && activity.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED;
                 AndroidUtilities.runOnUIThread(() -> {
+                    if (getParentActivity() == null) {
+                        return;
+                    }
                     afterSignup = false;
-                    if (hasNotContactsPermission || hasNotStoragePermission) {
+                    if (hasNotNotificationsPermission || hasNotContactsPermission || hasNotStoragePermission) {
                         askingForPermissions = true;
-                        if (hasNotContactsPermission && askAboutContacts && getUserConfig().syncContacts && activity.shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
+                        if (hasNotNotificationsPermission && NotificationPermissionDialog.shouldAsk(activity)) {
+                            if (BuildVars.IS_CHAT_AIR) {
+                                activity.requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, 1);
+                            } else {
+                                NotificationPermissionDialog sheet = new NotificationPermissionDialog(activity, granted -> {
+                                    if (granted) {
+                                        activity.requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+                                    }
+                                });
+                                if (showDialog(sheet) == null) {
+                                    try {
+                                        sheet.show();
+                                    } catch (Throwable throwable) {
+                                        FileLog.e(throwable);
+                                    }
+                                }
+                            }
+                        } else if (hasNotContactsPermission && askAboutContacts && getUserConfig().syncContacts && activity.shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
                             AlertDialog.Builder builder = AlertsCreator.createContactsPermissionDialog(activity, param -> {
                                 askAboutContacts = param != 0;
                                 MessagesController.getGlobalNotificationsSettings().edit().putBoolean("askAboutContacts", askAboutContacts).apply();
@@ -5712,7 +5733,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             askForPermissons(true);
                         }
                     }
-                }, afterSignup && hasNotContactsPermission ? 4000 : 0);
+                }, afterSignup && (hasNotContactsPermission || hasNotNotificationsPermission) ? 4000 : 0);
             }
         } else if (!onlySelect && XiaomiUtilities.isMIUI() && Build.VERSION.SDK_INT >= 19 && !XiaomiUtilities.isCustomPermissionGranted(XiaomiUtilities.OP_SHOW_WHEN_LOCKED)) {
             if (getParentActivity() == null) {
@@ -8516,6 +8537,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             return;
         }
         ArrayList<String> permissons = new ArrayList<>();
+        if (Build.VERSION.SDK_INT >= 33 && NotificationPermissionDialog.shouldAsk(activity)) {
+            if (alert && !BuildVars.IS_CHAT_AIR) {
+                showDialog(new NotificationPermissionDialog(activity, granted -> {
+                    if (granted) {
+                        activity.requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, 1);
+                    }
+                }));
+                return;
+            }
+            permissons.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
         if (getUserConfig().syncContacts && askAboutContacts && activity.checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             if (alert) {
                 AlertDialog.Builder builder = AlertsCreator.createContactsPermissionDialog(activity, param -> {
@@ -8530,7 +8562,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             permissons.add(Manifest.permission.WRITE_CONTACTS);
             permissons.add(Manifest.permission.GET_ACCOUNTS);
         }
-        if ((Build.VERSION.SDK_INT <= 28 || BuildVars.NO_SCOPED_STORAGE) && activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (activity.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                permissons.add(Manifest.permission.READ_MEDIA_IMAGES);
+            }
+            if (activity.checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                permissons.add(Manifest.permission.READ_MEDIA_VIDEO);
+            }
+            if (activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissons.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+        } else if ((Build.VERSION.SDK_INT <= 28 || BuildVars.NO_SCOPED_STORAGE) && activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissons.add(Manifest.permission.READ_EXTERNAL_STORAGE);
             permissons.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }

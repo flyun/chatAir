@@ -8,8 +8,6 @@
 
 package org.telegram.ui.Components;
 
-import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -22,13 +20,11 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.media.MediaMetadataRetriever;
@@ -37,7 +33,6 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -53,13 +48,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import androidx.annotation.Keep;
-import androidx.exifinterface.media.ExifInterface;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.LinearSmoothScroller;
-import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -88,12 +76,14 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.BasePermissionsActivity;
 import org.telegram.ui.Cells.PhotoAttachCameraCell;
 import org.telegram.ui.Cells.PhotoAttachPermissionCell;
 import org.telegram.ui.Cells.PhotoAttachPhotoCell;
 import org.telegram.ui.ChatActivity;
+import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PhotoViewer;
 
 import java.io.ByteArrayOutputStream;
@@ -105,6 +95,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import androidx.annotation.Keep;
+import androidx.exifinterface.media.ExifInterface;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSmoothScroller;
+import androidx.recyclerview.widget.RecyclerView;
+
+import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
 public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayout implements NotificationCenter.NotificationCenterDelegate {
 
@@ -699,19 +698,30 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             if (!mediaEnabled || parentAlert.baseFragment == null || parentAlert.baseFragment.getParentActivity() == null) {
                 return;
             }
+            BaseFragment fragment = parentAlert.baseFragment;
+            if (fragment == null) {
+                fragment = LaunchActivity.getLastFragment();
+            }
+            if (fragment == null) {
+                return;
+            }
             if (Build.VERSION.SDK_INT >= 23) {
                 if (adapter.needCamera && selectedAlbumEntry == galleryAlbumEntry && position == 0 && noCameraPermissions) {
                     try {
-                        parentAlert.baseFragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.CAMERA}, 18);
+                        fragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.CAMERA}, 18);
                     } catch (Exception ignore) {
 
                     }
                     return;
                 } else if (noGalleryPermissions) {
-                    try {
-                        parentAlert.baseFragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
-                    } catch (Exception ignore) {
-
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        try {
+                            fragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_IMAGES}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
+                        } catch (Exception ignore) {}
+                    } else {
+                        try {
+                            fragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
+                        } catch (Exception ignore) {}
                     }
                     return;
                 }
@@ -734,7 +744,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                 if (position < 0 || position >= arrayList.size()) {
                     return;
                 }
-                PhotoViewer.getInstance().setParentActivity(parentAlert.baseFragment, resourcesProvider);
+                PhotoViewer.getInstance().setParentActivity(fragment, resourcesProvider);
                 PhotoViewer.getInstance().setParentAlert(parentAlert);
                 PhotoViewer.getInstance().setMaxSelectedPhotos(parentAlert.maxSelectedPhotos, parentAlert.allowOrder);
                 ChatActivity chatActivity;

@@ -15,21 +15,6 @@
  */
 package com.google.android.exoplayer2.util;
 
-import static android.content.Context.UI_MODE_SERVICE;
-import static com.google.android.exoplayer2.Player.COMMAND_SEEK_BACK;
-import static com.google.android.exoplayer2.Player.COMMAND_SEEK_FORWARD;
-import static com.google.android.exoplayer2.Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM;
-import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_DEFAULT_POSITION;
-import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_MEDIA_ITEM;
-import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_NEXT;
-import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM;
-import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_PREVIOUS;
-import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM;
-import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -67,10 +52,7 @@ import android.util.SparseLongArray;
 import android.view.Display;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-import androidx.annotation.DoNotInline;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.C.ContentType;
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
@@ -87,6 +69,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
+
+import org.checkerframework.checker.initialization.qual.UnknownInitialization;
+import org.checkerframework.checker.nullness.compatqual.NullableType;
+import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
+import org.checkerframework.checker.nullness.qual.PolyNull;
+
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
@@ -97,6 +85,7 @@ import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -118,10 +107,26 @@ import java.util.regex.Pattern;
 import java.util.zip.DataFormatException;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.Inflater;
-import org.checkerframework.checker.initialization.qual.UnknownInitialization;
-import org.checkerframework.checker.nullness.compatqual.NullableType;
-import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
-import org.checkerframework.checker.nullness.qual.PolyNull;
+
+import androidx.annotation.DoNotInline;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+
+import static android.content.Context.UI_MODE_SERVICE;
+import static com.google.android.exoplayer2.Player.COMMAND_SEEK_BACK;
+import static com.google.android.exoplayer2.Player.COMMAND_SEEK_FORWARD;
+import static com.google.android.exoplayer2.Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM;
+import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_DEFAULT_POSITION;
+import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_MEDIA_ITEM;
+import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_NEXT;
+import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM;
+import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_PREVIOUS;
+import static com.google.android.exoplayer2.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM;
+import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /** Miscellaneous utility methods. */
 public final class Util {
@@ -2844,13 +2849,31 @@ public final class Util {
 
   @RequiresApi(api = Build.VERSION_CODES.M)
   private static boolean requestExternalStoragePermission(Activity activity) {
-    if (activity.checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
-        != PackageManager.PERMISSION_GRANTED) {
-      activity.requestPermissions(
-          new String[] {permission.READ_EXTERNAL_STORAGE}, /* requestCode= */ 0);
-      return true;
+    if (Build.VERSION.SDK_INT >= 33) {
+      ArrayList<String> permissions = new ArrayList<>();
+      if (activity.checkSelfPermission(permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+        permissions.add(permission.READ_MEDIA_VIDEO);
+      }
+      if (activity.checkSelfPermission(permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+        permissions.add(permission.READ_MEDIA_IMAGES);
+      }
+      if (activity.checkSelfPermission(permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+        permissions.add(permission.READ_MEDIA_AUDIO);
+      }
+      if (!permissions.isEmpty()) {
+        activity.requestPermissions(permissions.toArray(new String[0]), /* requestCode= */ 0);
+        return true;
+      }
+      return false;
+    } else {
+      if (activity.checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
+              != PackageManager.PERMISSION_GRANTED) {
+        activity.requestPermissions(
+                new String[]{permission.READ_EXTERNAL_STORAGE}, /* requestCode= */ 0);
+        return true;
+      }
+      return false;
     }
-    return false;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.N)

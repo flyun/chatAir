@@ -15,6 +15,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
@@ -37,7 +38,6 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.ImageSpan;
-import android.util.Log;
 import android.util.LongSparseArray;
 import android.util.Property;
 import android.util.TypedValue;
@@ -58,16 +58,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.Keep;
-import androidx.annotation.NonNull;
-import androidx.core.graphics.ColorUtils;
-import androidx.dynamicanimation.animation.DynamicAnimation;
-import androidx.dynamicanimation.animation.FloatValueHolder;
-import androidx.dynamicanimation.animation.SpringAnimation;
-import androidx.dynamicanimation.animation.SpringForce;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
@@ -83,7 +73,6 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SendMessagesHelper;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.ConnectionsManager;
@@ -115,6 +104,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+
+import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
+import androidx.core.graphics.ColorUtils;
+import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.FloatValueHolder;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class ChatAttachAlert extends BottomSheet implements NotificationCenter.NotificationCenterDelegate, BottomSheet.BottomSheetDelegateInterface {
 
@@ -2018,10 +2017,15 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         buttonsRecyclerView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         containerView.addView(buttonsRecyclerView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 84, Gravity.BOTTOM | Gravity.LEFT));
         buttonsRecyclerView.setOnItemClickListener((view, position) -> {
-            if (baseFragment.getParentActivity() == null) {
+            BaseFragment lastFragment = baseFragment;
+            if (lastFragment == null) {
+                lastFragment = LaunchActivity.getLastFragment();
+            }
+            if (lastFragment == null || lastFragment.getParentActivity() == null) {
                 return;
             }
             if (view instanceof AttachButton) {
+                final Activity activity = lastFragment.getParentActivity();
                 int num = (Integer) view.getTag();
                 if (num == 1) {
                     if (!photosEnabled && !videosEnabled) {
@@ -2029,21 +2033,32 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     }
                     showLayout(photoLayout);
                 } else if (num == 3) {
-                    if (Build.VERSION.SDK_INT >= 23 && baseFragment.getParentActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                        baseFragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        if (activity.checkSelfPermission(Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                            activity.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_AUDIO}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
+                            return;
+                        }
+                    } else if (Build.VERSION.SDK_INT >= 23 && activity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        AndroidUtilities.findActivity(getContext()).requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
                         return;
                     }
                     openAudioLayout(true);
                 } else if (num == 4) {
-                    if (Build.VERSION.SDK_INT >= 23 && baseFragment.getParentActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                        baseFragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        if (activity.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED ||
+                                activity.checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                            activity.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
+                            return;
+                        }
+                    } else if (Build.VERSION.SDK_INT >= 23 && activity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        AndroidUtilities.findActivity(getContext()).requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
                         return;
                     }
                     openDocumentsLayout(true);
                 } else if (num == 5) {
                     if (Build.VERSION.SDK_INT >= 23 && plainTextEnabled) {
-                        if (baseFragment.getParentActivity().checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-                            baseFragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, BasePermissionsActivity.REQUEST_CODE_ATTACH_CONTACT);
+                        if (getContext().checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                            AndroidUtilities.findActivity(getContext()).requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, BasePermissionsActivity.REQUEST_CODE_ATTACH_CONTACT);
                             return;
                         }
                     }

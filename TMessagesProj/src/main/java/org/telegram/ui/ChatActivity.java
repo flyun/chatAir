@@ -10746,13 +10746,21 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 FileLog.e(e);
             }
         } else if (which == attach_gallery) {
-            if (Build.VERSION.SDK_INT >= 23 && getParentActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                try {
-                    getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
-                } catch (Throwable ignore) {
-
+            final Activity activity = getParentActivity();
+            if (Build.VERSION.SDK_INT >= 33) {
+                if (activity.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                    try {
+                        getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
+                    } catch (Throwable ignore) {}
+                    return;
                 }
-                return;
+            } else if (Build.VERSION.SDK_INT >= 23) {
+                if (activity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    try {
+                        getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE);
+                    } catch (Throwable ignore) {}
+                    return;
+                }
             }
             boolean allowGifs;
             if (ChatObject.isChannel(currentChat) && currentChat.banned_rights != null && currentChat.banned_rights.send_gifs) {

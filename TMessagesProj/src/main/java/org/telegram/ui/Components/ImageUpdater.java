@@ -24,9 +24,6 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
 
-import androidx.core.content.FileProvider;
-import androidx.exifinterface.media.ExifInterface;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
@@ -62,6 +59,9 @@ import org.telegram.ui.PhotoViewer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import androidx.core.content.FileProvider;
+import androidx.exifinterface.media.ExifInterface;
 
 public class ImageUpdater implements NotificationCenter.NotificationCenterDelegate, PhotoCropActivity.PhotoEditActivityDelegate {
     private final static int ID_TAKE_PHOTO = 0,
@@ -687,9 +687,15 @@ public class ImageUpdater implements NotificationCenter.NotificationCenterDelega
         if (parentFragment == null) {
             return;
         }
-        if (Build.VERSION.SDK_INT >= 23 && parentFragment.getParentActivity() != null) {
-            if (parentFragment.getParentActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                parentFragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE_FOR_AVATAR);
+        final Activity activity = parentFragment.getParentActivity();
+        if (Build.VERSION.SDK_INT >= 33 && activity != null) {
+            if (activity.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED || activity.checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                activity.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE_FOR_AVATAR);
+                return;
+            }
+        } else if (Build.VERSION.SDK_INT >= 23 && activity != null) {
+            if (activity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                activity.requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, BasePermissionsActivity.REQUEST_CODE_EXTERNAL_STORAGE_FOR_AVATAR);
                 return;
             }
         }
