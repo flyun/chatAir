@@ -1,39 +1,29 @@
-## Telegram messenger for Android
+<p align="left">
+  <a align="center" href="https://miaoyan.app/" target="_blank"><img src=https://github.com/flyun/chatAir/blob/chatair/TMessagesProj/src/main/ic_launcher-playstore.png width=138 /></a>
+  <h1 align="left">ChatAir</h1>
+  <div align="left">ChatAir is a native client for OpenAI and ChatGPT</div>
+</p>
 
-[Telegram](https://telegram.org) is a messaging app with a focus on speed and security. It’s superfast, simple and free.
-This repo contains the official source code for [Telegram App for Android](https://play.google.com/store/apps/details?id=org.telegram.messenger).
 
-## Creating your Telegram Application
+## ChatAir for Android
 
-We welcome all developers to use our API and source code to create applications on our platform.
-There are several things we require from **all developers** for the moment.
+ChatAir is a native client for OpenAI and ChatGPT, providing a smoother and faster chat experience than ChatGPT.
 
-1. [**Obtain your own api_id**](https://core.telegram.org/api/obtaining_api_id) for your application.
-2. Please **do not** use the name Telegram for your app — or make sure your users understand that it is unofficial.
-3. Kindly **do not** use our standard logo (white paper plane in a blue circle) as your app's logo.
-3. Please study our [**security guidelines**](https://core.telegram.org/mtproto/security_guidelines) and take good care of your users' data and privacy.
-4. Please remember to publish **your** code too in order to comply with the licences.
+<div align="left">
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/01.png" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/02.png"" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/03.png"" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/04.png"" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/05.png"" width ="160" />
+</div>
 
-### API, Protocol documentation
+## Installation
+download and install the APK package from the [Releases section](https://github.com/flyun/chatAir/releases/latest).
 
-Telegram API manuals: https://core.telegram.org/api
+## Features
+- 🚀 **Smooth**: Developed natively on Android, showcasing efficient performance and creating a seamless user experience.
+- 🔬 **Advanced**: Supports OpenAI API calls, as well as the replacement of custom server addresses like OpenRouter, allowing flexible customization of your server address.
+- 📝 **Professional**: Supports Markdown, code highlighting feature makes your code clear and easy to read.
+- 🛠️ **Customizable**: Customizable prompts, model, temperature, history, and reply length limit settings, offering a personalized user experience.
+- 🌙 **Stylish**: Provides dark mode and customized themes to protect your eyes while enhancing user experience.
 
-MTproto protocol manuals: https://core.telegram.org/mtproto
-
-### Compilation Guide
-
-**Note**: In order to support [reproducible builds](https://core.telegram.org/reproducible-builds), this repo contains dummy release.keystore,  google-services.json and filled variables inside BuildVars.java. Before publishing your own APKs please make sure to replace all these files with your own.
-
-You will require Android Studio 3.4, Android NDK rev. 20 and Android SDK 8.1
-
-1. Download the Telegram source code from https://github.com/DrKLO/Telegram ( git clone https://github.com/DrKLO/Telegram.git )
-2. Copy your release.keystore into TMessagesProj/config
-3. Fill out RELEASE_KEY_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_STORE_PASSWORD in gradle.properties to access your  release.keystore
-4.  Go to https://console.firebase.google.com/, create two android apps with application IDs org.telegram.messenger and org.telegram.messenger.beta, turn on firebase messaging and download google-services.json, which should be copied to the same folder as TMessagesProj.
-5. Open the project in the Studio (note that it should be opened, NOT imported).
-6. Fill out values in TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java – there’s a link for each of the variables showing where and which data to obtain.
-7. You are ready to compile Telegram.
-
-### Localization
-
-We moved all translations to https://translations.telegram.org/en/android/. Please use it.
