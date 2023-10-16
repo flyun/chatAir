@@ -1,3 +1,4 @@
+<h4 align="right"><strong><a href="https://github.com/flyun/chatAir">English</a></strong> | <strong><a href="https://github.com/flyun/chatAir/blob/chatair/README_CN.md">中文</a></strong></h4>
 <p align="left">
   <a align="center" href="https://miaoyan.app/" target="_blank"><img src=https://github.com/flyun/chatAir/blob/chatair/TMessagesProj/src/main/ic_launcher-playstore.png width=138 /></a>
   <h1 align="left">ChatAir</h1>
@@ -11,10 +12,10 @@ ChatAir is a native client for OpenAI and ChatGPT, providing a smoother and fast
 
 <div align="left">
 <img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/01.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/02.png"" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/03.png"" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/04.png"" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/05.png"" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/02.png" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/03.png" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/04.png" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/05.png" width ="160" />
 </div>
 
 ## Installation
