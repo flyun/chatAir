@@ -64,7 +64,7 @@ public class ChangeApiKeyActivity extends BaseFragment {
 
         String token = UserConfig.getInstance(currentAccount).apiKey;
         String apiServer = UserConfig.getInstance(currentAccount).apiServer;
-        openAiService = new OpenAiService(token, 5, apiServer);
+        openAiService = new OpenAiService(token, 5, apiServer, false);
 
         return super.onFragmentCreate();
     }
@@ -219,7 +219,7 @@ public class ChangeApiKeyActivity extends BaseFragment {
 
         if (TextUtils.isEmpty(newFirst) || checkValue(newFirst)) return;
 
-        openAiService.changeToken(newFirst);
+        openAiService.changeMatchToken(newFirst, UserConfig.getInstance(currentAccount).apiServer);
 
         isReq = true;
 

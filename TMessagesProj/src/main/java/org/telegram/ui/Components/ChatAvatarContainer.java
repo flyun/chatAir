@@ -889,14 +889,16 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 long tempWords = 0;
 
                 int contextLimit;
-                if (user != null && (user.flags2
+                if (UserConfig.isUserVision(currentAccount, user)) {
+                    contextLimit = UserConfig.defaultContextLimitGeminiProVision;
+                }else if (user != null && (user.flags2
                         & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0) {
                     contextLimit = user.contextLimit;
                 } else {
                     contextLimit = UserConfig.getInstance(currentAccount).contextLimit;
                 }
 
-                if (!TextUtils.isEmpty(user.prompt)) {
+                if (user != null && !TextUtils.isEmpty(user.prompt)) {
                     tempWords += user.prompt.length();
                 }
 
@@ -948,9 +950,20 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 //                    }
                 }
 
-                newSubtitle = LocaleController.formatUserStatus(tempContextNum, contextLimit,
-                        tempTokens, tempWords);
+                boolean switchSubtitleContent = UserConfig.getInstance(currentAccount).switchSubtitleContent;
 
+                if (!switchSubtitleContent) {
+                    newSubtitle = LocaleController.formatUserStatus(tempContextNum, contextLimit,
+                            tempTokens, tempWords);
+                } else {
+                    String aiModelReal = UserConfig.getUserAiModelName(currentAccount, user.id);
+                    if (!TextUtils.isEmpty(aiModelReal)) {
+                        newSubtitle = aiModelReal;
+                    } else {
+                        newSubtitle = "";
+                    }
+
+                }
                 user.status.contextNum = tempContextNum;
                 user.status.tokens = tempTokens;
                 user.status.words = tempWords;

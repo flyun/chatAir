@@ -34,9 +34,9 @@ import org.telegram.ui.Components.LayoutHelper;
 import java.util.ArrayList;
 
 /**
- * Created by flyun on 2023/7/15.
+ * Created by flyun on 2023/12/23.
  */
-public class ChangeApiServerActivity extends BaseFragment {
+public class ChangeGoogleApiServerActivity extends BaseFragment {
 
     private EditTextBoldCursor firstNameField;
     private View doneButton;
@@ -51,17 +51,17 @@ public class ChangeApiServerActivity extends BaseFragment {
 
     private volatile boolean isReq;
 
-    public ChangeApiServerActivity(Theme.ResourcesProvider resourcesProvider) {
+    public ChangeGoogleApiServerActivity(Theme.ResourcesProvider resourcesProvider) {
         this.resourcesProvider = resourcesProvider;
     }
 
     @Override
     public boolean onFragmentCreate() {
 
-        String token = UserConfig.getInstance(currentAccount).apiKey;
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
+        String token = UserConfig.getInstance(currentAccount).apiKeyGoogle;
+        String apiServer = UserConfig.getInstance(currentAccount).apiServerGoogle;
 
-        openAiService = new OpenAiService(token, 5, apiServer, false);
+        openAiService = new OpenAiService(token, 5, apiServer, true);
 
         return super.onFragmentCreate();
     }
@@ -92,8 +92,8 @@ public class ChangeApiServerActivity extends BaseFragment {
                     }
                 } else if (id == find_key_button) {
                     if (firstNameField != null) {
-                        firstNameField.setText(UserConfig.defaultApiServer);
-                        firstNameField.setSelection(UserConfig.defaultApiServer.length());
+                        firstNameField.setText(UserConfig.defaultApiServerGoogle);
+                        firstNameField.setSelection(UserConfig.defaultApiServerGoogle.length());
 //                        AlertsCreator.showSimpleToast(ChangeApiServerActivity.this,
 //                                LocaleController.getString("DefaultApiServe", R.string.DefaultApiServe));
                     }
@@ -102,7 +102,7 @@ public class ChangeApiServerActivity extends BaseFragment {
         });
 
         ActionBarMenu menu = actionBar.createMenu();
-        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link, AndroidUtilities.dp(56), LocaleController.getString("FindKeyUrl", R.string.FindKeyUrl));
+        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link, AndroidUtilities.dp(56), LocaleController.getString("FindGoogleKeyUrl", R.string.FindGoogleKeyUrl));
         doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_ab_done, AndroidUtilities.dp(56), LocaleController.getString("Done", R.string.Done));
 
         LinearLayout linearLayout = new LinearLayout(context);
@@ -127,13 +127,13 @@ public class ChangeApiServerActivity extends BaseFragment {
         firstNameField.setSingleLine(true);
         firstNameField.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         firstNameField.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
-        firstNameField.setHint(UserConfig.defaultApiServer);
+        String apiServer = UserConfig.getInstance(currentAccount).apiServerGoogle;
+        firstNameField.setHint(UserConfig.defaultApiServerGoogle);
         firstNameField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         firstNameField.setCursorSize(AndroidUtilities.dp(20));
         firstNameField.setCursorWidth(1.5f);
 
-        if (UserConfig.defaultApiServer.equals(apiServer)) {
+        if (UserConfig.defaultApiServerGoogle.equals(apiServer)) {
             firstNameField.setText("");
         } else {
             firstNameField.setText(apiServer);
@@ -152,6 +152,9 @@ public class ChangeApiServerActivity extends BaseFragment {
 
         buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
         buttonTextView.setBackgroundDrawable(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(6), Theme.getColor(Theme.key_featuredStickers_addButton), Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
+
+        // todo 修改后验证恢复
+        buttonTextView.setVisibility(View.GONE);
 
         buttonTextView.setOnClickListener(view -> {
             if (getParentActivity() == null) {
@@ -188,7 +191,7 @@ public class ChangeApiServerActivity extends BaseFragment {
         String formatUrl = formatUrl(newFirst);
         if (TextUtils.isEmpty(formatUrl)) {
             AlertsCreator.processError(LocaleController.getString("MalformedUrl", R.string.MalformedUrl),
-                    ChangeApiServerActivity.this);
+                    ChangeGoogleApiServerActivity.this);
             return;
         }
         if (!newFirst.equals(formatUrl)) {
@@ -197,16 +200,16 @@ public class ChangeApiServerActivity extends BaseFragment {
             firstNameField.setSelection(formatUrl.length());
         }
 
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
+        String apiServer = UserConfig.getInstance(currentAccount).apiServerGoogle;
         if (apiServer != null && apiServer.equals(newFirst)) {
             return;
         }
 
-        UserConfig.getInstance(currentAccount).apiServer = newFirst;
+        UserConfig.getInstance(currentAccount).apiServerGoogle = newFirst;
         UserConfig.getInstance(currentAccount).saveConfig(false);
 
         NotificationCenter.getInstance(currentAccount)
-                .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_API_SERVER);
+                .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_GOOGLE_API_SERVER);
 
         finishFragment();
     }
@@ -219,7 +222,7 @@ public class ChangeApiServerActivity extends BaseFragment {
         } else if (firstNameField.getText().length() > 0) {
             newFirst = firstNameField.getText().toString().replace("\n", "");
         } else {
-            newFirst = UserConfig.getInstance(currentAccount).apiServer;
+            newFirst = UserConfig.getInstance(currentAccount).apiServerGoogle;
 
         }
         isReq = true;
@@ -230,7 +233,7 @@ public class ChangeApiServerActivity extends BaseFragment {
         if (formatUrl == null) {
             isReq = false;
             AlertsCreator.processError(LocaleController.getString("MalformedUrl", R.string.MalformedUrl),
-                    ChangeApiServerActivity.this);
+                    ChangeGoogleApiServerActivity.this);
             return;
         }
         if (!newFirst.equals(formatUrl)) {
@@ -239,18 +242,17 @@ public class ChangeApiServerActivity extends BaseFragment {
             firstNameField.setSelection(formatUrl.length());
         }
 
-        openAiService.changeMatchServer(newFirst, UserConfig.getInstance(currentAccount).apiKey);
+        openAiService.changeMatchServerGoogle(newFirst, UserConfig.getInstance(currentAccount).apiKeyGoogle);
 
         openAiService.baseCompletion(openAiService.listModels,
                 new OpenAiService.CompletionCallBack<OpenAiResponse<Model>>() {
                     @Override
                     public void onSuccess(Object o) {
-//                        OpenAiResponse<Model> openAiResponse = (OpenAiResponse<Model>) o;
 
                         AndroidUtilities.runOnUIThread(() -> {
                             isReq = false;
 
-                            AlertsCreator.showSimpleAlert(ChangeApiServerActivity.this,
+                            AlertsCreator.showSimpleAlert(ChangeGoogleApiServerActivity.this,
                                     LocaleController.getString("ValidateSuccess", R.string.ValidateSuccess));
                         });
 
@@ -267,7 +269,7 @@ public class ChangeApiServerActivity extends BaseFragment {
                                 errorTx = throwable.getMessage();
                             }
 
-                            AlertsCreator.processError(errorTx, ChangeApiServerActivity.this);
+                            AlertsCreator.processError(errorTx, ChangeGoogleApiServerActivity.this);
                         });
                     }
                 });

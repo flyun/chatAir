@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+// 文件上传的路径获取
 public class FilePathDatabase {
 
     private DispatchQueue dispatchQueue;

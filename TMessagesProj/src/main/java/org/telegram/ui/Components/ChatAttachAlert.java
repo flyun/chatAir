@@ -126,6 +126,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
     public boolean canOpenPreview = false;
     private boolean isSoundPicker = false;
+    private boolean isPhotoPicker = false;
     private ImageUpdater.AvatarFor setAvatarFor;
 
     private PasscodeView passcodeView;
@@ -316,7 +317,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                                         }
                                     } else {
                                         buttonsRecyclerView.setAlpha(0f);
-                                        buttonsRecyclerView.setVisibility(View.VISIBLE);
+                                        if (!isPhotoPicker)buttonsRecyclerView.setVisibility(View.VISIBLE);
                                     }
                                 }
 
@@ -681,7 +682,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
     protected EditTextEmoji commentTextView;
     private int[] commentTextViewLocation = new int[2];
     private FrameLayout writeButtonContainer;
-    private ImageView writeButton;
+    private ImageView writeButton;// 发送按钮
     private Drawable writeButtonDrawable;
     private View selectedCountView;
     private TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
@@ -723,7 +724,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
     private boolean enterCommentEventSent;
 
-    protected RecyclerListView buttonsRecyclerView;
+    protected RecyclerListView buttonsRecyclerView;// 附件底部按钮
     private LinearLayoutManager buttonsLayoutManager;
     private ButtonsAdapter buttonsAdapter;
 
@@ -1999,6 +2000,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         shadow.getBackground().setColorFilter(new PorterDuffColorFilter(0xff000000, PorterDuff.Mode.MULTIPLY));
         containerView.addView(shadow, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 2, Gravity.BOTTOM | Gravity.LEFT, 0, 0, 0, 84));
 
+        // 附件底部按钮
         buttonsRecyclerView = new RecyclerListView(context) {
             @Override
             public void setTranslationY(float translationY) {
@@ -3101,7 +3103,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 shadow.setVisibility(View.VISIBLE);
             }
         } else if (typeButtonsAvailable) {
-            buttonsRecyclerView.setVisibility(View.VISIBLE);
+            if (!isPhotoPicker) buttonsRecyclerView.setVisibility(View.VISIBLE);
         }
         if (animated) {
             commentsAnimator = new AnimatorSet();
@@ -3606,7 +3608,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
             boolean needsSearchItem = avatarSearch || currentAttachLayout == photoLayout && !menuShowed && baseFragment instanceof ChatActivity && ((ChatActivity) baseFragment).allowSendGifs() && ((ChatActivity) baseFragment).allowSendPhotos();
             boolean needMoreItem = avatarPicker != 0 || !menuShowed && currentAttachLayout == photoLayout && (photosEnabled || videosEnabled);
-            if (currentAttachLayout == restrictedLayout) {
+            if (currentAttachLayout == restrictedLayout || isPhotoPicker) {
                 needsSearchItem = false;
                 needMoreItem = false;
             }
@@ -3618,7 +3620,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     selectedMenuItem.setVisibility(View.VISIBLE);
                 }
             } else if (typeButtonsAvailable && frameLayout2.getTag() == null) {
-                buttonsRecyclerView.setVisibility(View.VISIBLE);
+                if (!isPhotoPicker) buttonsRecyclerView.setVisibility(View.VISIBLE);
             }
 
             if (getWindow() != null && baseFragment != null) {
@@ -3753,7 +3755,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         currentAttachLayout.onSelectedItemsCountChanged(count);
 
         if (currentAttachLayout == photoLayout && ((baseFragment instanceof ChatActivity) || avatarPicker != 0) && (count == 0 && menuShowed || (count != 0 || avatarPicker != 0) && !menuShowed)) {
-            menuShowed = count != 0 || avatarPicker != 0;
+            menuShowed = !isPhotoPicker && (count != 0 || avatarPicker != 0);
             if (menuAnimator != null) {
                 menuAnimator.cancel();
                 menuAnimator = null;
@@ -3853,6 +3855,12 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         } else {
             commentTextView.setVisibility(View.INVISIBLE);
         }
+
+        if (isPhotoPicker) {
+            videosEnabled = false;
+            documentsEnabled = false;
+        }
+
         photoLayout.onInit(videosEnabled, photosEnabled, documentsEnabled);
         commentTextView.hidePopup(true);
         enterCommentEventSent = false;
@@ -3984,11 +3992,22 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         return selectedTextView;
     }
 
+    // 配置打开内部文件浏览器
     public void setSoundPicker() {
         isSoundPicker = true;
         buttonsRecyclerView.setVisibility(View.GONE);
         shadow.setVisibility(View.GONE);
         selectedTextView.setText(LocaleController.getString("ChoosePhotoOrVideo", R.string.ChoosePhotoOrVideo));
+    }
+
+    public void setPhotoPicker(boolean photoPicker) {
+        isPhotoPicker = photoPicker;
+    }
+
+
+    public void setPhotoPicker() {
+        buttonsRecyclerView.setVisibility(View.GONE);
+        shadow.setVisibility(View.GONE);
     }
 
     public void setMaxSelectedPhotos(int value, boolean order) {

@@ -881,6 +881,9 @@ public class MessagesController extends BaseController implements NotificationCe
     public static int UPDATE_MASK_API_KEY = 16777216;
     public static int UPDATE_MASK_API_SERVER = 33554432;
 
+    public static int UPDATE_MASK_GOOGLE_API_KEY = 67108864;
+    public static int UPDATE_MASK_GOOGLE_API_SERVER = 134217728;
+
     public static int UPDATE_MASK_CHAT_AIR_PROMPT = 1024;
     public static int UPDATE_MASK_CHAT_AIR_AI_MODEL = 2048;
     public static int UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE = 4096;

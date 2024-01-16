@@ -2309,6 +2309,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.messageTranslated);
         getNotificationCenter().addObserver(this, NotificationCenter.messageTranslating);
         getNotificationCenter().addObserver(this, NotificationCenter.showAlert);
+        getNotificationCenter().addObserver(this, NotificationCenter.updateModel);
 
         super.onFragmentCreate();
 
@@ -2669,6 +2670,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.messageTranslated);
         getNotificationCenter().removeObserver(this, NotificationCenter.messageTranslating);
         getNotificationCenter().removeObserver(this, NotificationCenter.showAlert);
+        getNotificationCenter().removeObserver(this, NotificationCenter.updateModel);
         if (currentEncryptedChat != null) {
             getNotificationCenter().removeObserver(this, NotificationCenter.didVerifyMessagesStickers);
         }
@@ -3038,7 +3040,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 } else if (id == context_clear) {
 
-                    if (messages != null && messages.size() > 0 && messages.get(0).type == 0) {
+                    if (messages != null && messages.size() > 0 && (messages.get(0).type != 10)) {
                         getMessagesController().clearContext(dialog_id);
                     }
 
@@ -9572,6 +9574,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    // 附件弹窗
     private void createChatAttachView() {
         if (getParentActivity() == null || getContext() == null) {
             return;
@@ -9601,9 +9604,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     onEditTextDialogClose(false, false);
                 }
             };
+            // 附件弹窗回调
             chatAttachAlert.setDelegate(new ChatAttachAlert.ChatAttachViewDelegate() {
                 @Override
                 public void didPressedButton(int button, boolean arg, boolean notify, int scheduleDate, boolean forceDocument) {
+
+                    // 附件发送消息
                     if (getParentActivity() == null || chatAttachAlert == null) {
                         return;
                     }
@@ -9621,7 +9627,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 for (int a = 0; a < count; a++) {
                                     if (i * 10 + a >= selectedPhotosOrder.size()) {
                                         continue;
-                                    }
+                                    }// 这里出现问题，因为从selectedPhotos获取，导致拍照的图片其他信息没有更新到selectedPhotos中
                                     MediaController.PhotoEntry photoEntry = (MediaController.PhotoEntry) selectedPhotos.get(selectedPhotosOrder.get(i * 10 + a));
 
                                     SendMessagesHelper.SendingMediaInfo info = new SendMessagesHelper.SendingMediaInfo();
@@ -10442,6 +10448,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return true;
     }
 
+    // 打开附件
     private void openAttachMenu() {
         if (getParentActivity() == null || chatActivityEnterView != null && !TextUtils.isEmpty(chatActivityEnterView.getSlowModeTimer())) {
             return;
@@ -10454,10 +10461,25 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (currentChat != null && !ChatObject.hasAdminRights(currentChat) && currentChat.slowmode_enabled) {
             chatAttachAlert.setMaxSelectedPhotos(10, true);
         } else {
-            chatAttachAlert.setMaxSelectedPhotos(-1, true);
+
+            if (BuildVars.IS_CHAT_AIR) {
+                chatAttachAlert.setMaxSelectedPhotos(1, true);
+
+            } else {
+                chatAttachAlert.setMaxSelectedPhotos(-1, true);
+            }
         }
-        chatAttachAlert.init();
-        chatAttachAlert.getCommentTextView().setText(chatActivityEnterView.getFieldText());
+        if (BuildVars.IS_CHAT_AIR) {
+
+            chatAttachAlert.setPhotoPicker(true);
+            chatAttachAlert.init();
+            chatAttachAlert.setPhotoPicker();
+
+            String prompt = UserConfig.getUserAiPrompt(currentAccount, dialog_id);
+            chatAttachAlert.getCommentTextView().setText(prompt);
+        } else {
+            chatAttachAlert.getCommentTextView().setText(chatActivityEnterView.getFieldText());
+        }
         chatAttachAlert.parentThemeDelegate = themeDelegate;
         showDialog(chatAttachAlert);
     }
@@ -14791,7 +14813,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         updateSelectedMessageReactions();
     }
 
+    // 更新表情反应弹窗
     private void updateSelectedMessageReactions() {
+        if (BuildVars.IS_CHAT_AIR) return;
+
         List<MessageObject> selected = new ArrayList<>();
         SparseArray<MessageObject> objs = selectedMessagesIds[0];
         for (int i = 0; i < objs.size(); i++) {
@@ -14889,7 +14914,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     avatarContainer.setTitle(UserObject.getUserName(currentUser), currentUser.scam, currentUser.fake, currentUser.verified, getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
                 }
             } else {
-                avatarContainer.setTitle(UserObject.getUserName(currentUser), currentUser.scam, currentUser.fake, currentUser.verified,  getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
+                String title = UserObject.getUserName(currentUser);
+                avatarContainer.setTitle(title, currentUser.scam, currentUser.fake, currentUser.verified,  getMessagesController().isPremiumUser(currentUser), currentUser.emoji_status, animated);
             }
         }
         setParentActivityTitle(avatarContainer.getTitleTextView().getText());
@@ -17834,6 +17860,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             ArrayList<TLRPC.Message> messageObjects = (ArrayList<TLRPC.Message>) args[1];
             updateMessageObjects(messageObjects);
+        } else if (id == NotificationCenter.updateModel) {
+
+            if (messages != null && messages.size() > 0
+                    && (messages.get(0).type != 10)) {
+
+                int lastModel = (int) args[0];
+
+                // 如果从图片切换为文字则处理，其他不处理
+                // todo 两个图片模型切换不应该发送清除上下文
+                boolean isVision
+                        = UserConfig.getInstance(currentAccount).isJudgeByModelVision(lastModel);
+
+                if (isVision) getMessagesController().clearContext(dialog_id);
+            }
 
         } else if (id == NotificationCenter.replaceMessagesObjects) {
             long did = (long) args[0];
@@ -22855,7 +22895,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
 
         fixLayout();
-        applyDraftMaybe(false);
+        if (BuildVars.IS_CHAT_AIR && !UserConfig.isUserVision(currentAccount, dialog_id)) {
+            applyDraftMaybe(false);
+        }
         if (bottomOverlayChat != null && bottomOverlayChat.getVisibility() != View.VISIBLE && !actionBar.isSearchFieldVisible()) {
             chatActivityEnterView.setFieldFocused(true);
         }
@@ -23057,6 +23099,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    // 载入草稿
     public void applyDraftMaybe(boolean canClear) {
         if (chatActivityEnterView == null || chatMode != 0) {
             return;
@@ -29898,6 +29941,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         }
 
+        // 聊天长按回调
         @Override
         public void didLongPress(ChatMessageCell cell, float x, float y) {
             createMenu(cell, false, false, x, y);
@@ -30042,6 +30086,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             invalidateMessagesVisiblePart();
         }
 
+        // 点击图片事件回调
         @Override
         public void didPressImage(ChatMessageCell cell, float x, float y) {
             MessageObject message = cell.getMessageObject();

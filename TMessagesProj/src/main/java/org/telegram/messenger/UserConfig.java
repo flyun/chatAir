@@ -11,6 +11,7 @@ package org.telegram.messenger;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.LongSparseArray;
 
@@ -98,10 +99,12 @@ public class UserConfig extends BaseController {
     public final static boolean defaultStreamResponses = true;
     public final static boolean defaultRenderMarkdown = true;
     public final static boolean defaultAutoHideKeyboard = false;
+    public final static boolean defaultSwitchSubtitleContent = false;
 
     public final static int defaultUserId = 2000;
 
-    public final static String defaultApiServer = "https://api.openai.com";
+    public final static String defaultApiServer = "https://api.openai.com/";
+    public final static String defaultApiServerGoogle = "https://generativelanguage.googleapis.com/";
 
     public int aiModel = defaultAiModel;
     public double temperature = defaultTemperature;
@@ -109,12 +112,19 @@ public class UserConfig extends BaseController {
     public int tokenLimit = defaultTokenLimit;
     public String customModel;
 
+    // GeminiProVision只支持一问一答，不支持上下文，不支持多轮会话
+    public final static  int defaultContextLimitGeminiProVision = 0;
+
     public String apiKey;
     public String apiServer = defaultApiServer;
+
+    public String apiKeyGoogle;
+    public String apiServerGoogle = defaultApiServerGoogle;
 
     public boolean streamResponses = defaultStreamResponses;
     public boolean renderMarkdown = defaultRenderMarkdown;
     public boolean autoHideKeyboard = defaultAutoHideKeyboard;
+    public boolean switchSubtitleContent = defaultSwitchSubtitleContent;
 
 
     private static volatile UserConfig[] Instance = new UserConfig[UserConfig.MAX_ACCOUNT_COUNT];
@@ -254,9 +264,12 @@ public class UserConfig extends BaseController {
                         editor.putString("customModel", customModel);
                         editor.putString("apiKey", apiKey);
                         editor.putString("apiServer", apiServer);
+                        editor.putString("apiKeyGoogle", apiKeyGoogle);
+                        editor.putString("apiServerGoogle", apiServerGoogle);
                         editor.putBoolean("streamResponses", streamResponses);
                         editor.putBoolean("renderMarkdown", renderMarkdown);
                         editor.putBoolean("autoHideKeyboard", autoHideKeyboard);
+                        editor.putBoolean("switchSubtitleContent", switchSubtitleContent);
                     }
 
                     if (unacceptedTermsOfService != null) {
@@ -467,6 +480,10 @@ public class UserConfig extends BaseController {
                 streamResponses = preferences.getBoolean("streamResponses", defaultStreamResponses);
                 renderMarkdown = preferences.getBoolean("renderMarkdown", defaultRenderMarkdown);
                 autoHideKeyboard = preferences.getBoolean("autoHideKeyboard", defaultAutoHideKeyboard);
+                switchSubtitleContent = preferences.getBoolean("switchSubtitleContent", defaultSwitchSubtitleContent);
+
+                apiKeyGoogle = preferences.getString("apiKeyGoogle", "");
+                apiServerGoogle = preferences.getString("apiServerGoogle", defaultApiServerGoogle);
             }
 
             configLoaded = true;
@@ -488,7 +505,10 @@ public class UserConfig extends BaseController {
         aiModelList.put(6, new AiModelBean("GPT-4-0613", "gpt-4-0613", false));
         aiModelList.put(7, new AiModelBean("GPT-4-32k", "gpt-4-32k", true));
         aiModelList.put(8, new AiModelBean("GPT-4-32k-0613", "gpt-4-32k-0613", false));
+        aiModelList.put(9, new AiModelBean("GPT-4-1106-preview", "gpt-4-1106-preview", true));
+        aiModelList.put(10, new AiModelBean("GPT-4-vision-preview", "gpt-4-vision-preview", true));
 //        initOpenrouter();
+        initGoogle();
         aiModelList.put(0, new AiModelBean(LocaleController.getString("CustomModel", R.string.CustomModel), "custom Model", true));
 
     }
@@ -515,6 +535,216 @@ public class UserConfig extends BaseController {
         aiModelList.put(117, new AiModelBean("openrouter/mancer/weaver", "mancer/weaver", true));
         aiModelList.put(118, new AiModelBean("openrouter/gryphe/mythomax-L2-13b", "gryphe/mythomax-L2-13b", true));
         aiModelList.put(119, new AiModelBean("openrouter/jondurbin/airoboros-l2-70b-2.1", "jondurbin/airoboros-l2-70b-2.1", true));
+    }
+
+    // https://ai.google.dev/models/gemini
+    public void initGoogle() {
+        if (aiModelList == null) return;
+        aiModelList.put(801, new AiModelBean("Gemini Pro", "gemini-pro", true));
+        aiModelList.put(802, new AiModelBean("Gemini Pro Vision", "gemini-pro-vision", true));
+
+    }
+
+    public String getAiModelName(int aiModel) {
+
+        String aiModelName = "";
+        LinkedHashMap<Integer, AiModelBean> aiModelList
+                = UserConfig.getInstance(currentAccount).aiModelList;
+        if (aiModelList != null && aiModelList.size() != 0) {
+            if (aiModelList.containsKey(aiModel)) {
+                if (aiModel == 0) {
+                    // 自定义model
+                    aiModelName = UserConfig.getInstance(currentAccount).customModel;
+                } else {
+                    AiModelBean bean = aiModelList.get(aiModel);
+                    if (bean != null) {
+                        aiModelName = bean.getName();
+                    }
+                }
+            }
+        }
+
+        return aiModelName;
+
+    }
+
+    public String getAiModelReal(int aiModel) {
+
+        String aiModelReal = "";
+        LinkedHashMap<Integer, AiModelBean> aiModelList
+                = UserConfig.getInstance(currentAccount).aiModelList;
+        if (aiModelList != null && aiModelList.size() != 0) {
+            if (aiModelList.containsKey(aiModel)) {
+                if (aiModel == 0) {
+                    // 自定义model
+                    aiModelReal = UserConfig.getInstance(currentAccount).customModel;
+                } else {
+                    AiModelBean bean = aiModelList.get(aiModel);
+                    if (bean != null) {
+                        aiModelReal = bean.getAiModel();
+                    }
+                }
+            }
+        }
+
+        return aiModelReal;
+
+    }
+
+    public boolean isDefaultGeminiProVision() {
+
+        int aiModel = UserConfig.getInstance(currentAccount).aiModel;
+        boolean isGeminiProVision = UserConfig.getInstance(currentAccount).isJudgeByModelGemini(aiModel);
+
+        return isGeminiProVision;
+
+    }
+
+    public boolean isDefaultVision() {
+
+        int aiModel = UserConfig.getInstance(currentAccount).aiModel;
+        boolean isGeminiProVision = UserConfig.getInstance(currentAccount).isJudgeByModelVision(aiModel);
+
+        return isGeminiProVision;
+
+    }
+
+    public static int getUserAiModel(int currentAccount , long userId) {
+
+        TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(userId);
+
+        return getUserAiModel(currentAccount, user);
+    }
+
+    /**
+     * 如果设置了个人model，则返回，否则返回系统model
+     * @param currentAccount
+     * @param user
+     * @return
+     */
+    public static int getUserAiModel(int currentAccount, TLRPC.User user) {
+
+        int aiModel = -1;
+
+        if (user == null) return aiModel;
+
+        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL) != 0) {
+            if (UserConfig.getInstance(currentAccount).aiModelList.containsKey(user.aiModel)) {
+                aiModel = user.aiModel;
+            } else {
+                aiModel = UserConfig.getInstance(currentAccount).aiModel;
+            }
+        } else {
+            aiModel = UserConfig.getInstance(currentAccount).aiModel;
+        }
+
+        return aiModel;
+
+    }
+
+    public static String getUserAiModelName(int currentAccount, long userId) {
+
+        int aiModel = getUserAiModel(currentAccount, userId);
+
+        String aiModelReal = UserConfig.getInstance(currentAccount).getAiModelName(aiModel);
+
+        if (aiModelReal == null) return "";
+
+        return aiModelReal;
+
+    }
+
+    public static String getUserAiModelReal(int currentAccount, long userId) {
+
+        int aiModel = getUserAiModel(currentAccount, userId);
+
+        String aiModelReal = UserConfig.getInstance(currentAccount).getAiModelReal(aiModel);
+
+        if (aiModelReal == null) return "";
+
+        return aiModelReal;
+
+    }
+
+    public static boolean isUserGemini(int currentAccount, long userId) {
+
+        int aiModel= getUserAiModel(currentAccount, userId);
+        return UserConfig.getInstance(currentAccount).isJudgeByModelGemini(aiModel);
+
+    }
+
+    public boolean isJudgeByModelGemini(int aiModel) {
+
+        if (aiModel == 801) return true;
+        if (aiModel == 802) return true;
+
+        return false;
+    }
+
+    public static boolean isUserGeminiProVision(int currentAccount, TLRPC.User user) {
+
+        int aiModel= getUserAiModel(currentAccount, user);
+        return UserConfig.getInstance(currentAccount).isJudgeByModelGeminiProVision(aiModel);
+
+    }
+    public static boolean isUserGeminiProVision(int currentAccount, long userId) {
+
+        int aiModel= getUserAiModel(currentAccount, userId);
+        return UserConfig.getInstance(currentAccount).isJudgeByModelGeminiProVision(aiModel);
+
+    }
+
+    public boolean isJudgeByModelGeminiProVision(int aiModel) {
+
+        if (aiModel == 802) return true;
+
+        return false;
+    }
+
+    public static boolean isUserVision(int currentAccount, TLRPC.User user) {
+
+        int aiModel= getUserAiModel(currentAccount, user);
+        return UserConfig.getInstance(currentAccount).isJudgeByModelVision(aiModel);
+
+    }
+    public static boolean isUserVision(int currentAccount, long userId) {
+
+        int aiModel= getUserAiModel(currentAccount, userId);
+        return UserConfig.getInstance(currentAccount).isJudgeByModelVision(aiModel);
+
+    }
+
+    // 是否使用图片模型
+    public boolean isJudgeByModelVision(int aiModel) {
+
+        if (aiModel == 802) return true;
+        if (aiModel == 10) return true;
+
+        return false;
+    }
+
+    public static String getUserAiPrompt(int currentAccount, long userId) {
+
+        TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(userId);
+
+        return getUserAiPrompt(currentAccount, user);
+
+    }
+
+    public static String getUserAiPrompt(int currentAccount, TLRPC.User user) {
+        String aiPrompt = "";
+
+        if (user == null) return aiPrompt;
+
+
+        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT) != 0
+                && !TextUtils.isEmpty(user.prompt)) {
+            aiPrompt = user.prompt;
+        } else {
+            //系统默认的prompt
+        }
+
+        return aiPrompt;
     }
 
     public boolean isConfigLoaded() {
@@ -653,6 +883,8 @@ public class UserConfig extends BaseController {
             customModel = defaultCustomModel;
             apiKey = "";
             apiServer = defaultApiServer;
+            apiKeyGoogle = "";
+            apiServerGoogle = defaultApiServerGoogle;
         }
 
         if (!hasActivated) {

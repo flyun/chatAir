@@ -397,7 +397,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     };
 
     @Nullable
-    protected EditTextCaption messageEditText;
+    protected EditTextCaption messageEditText;// 文字输入框
     private SimpleTextView slowModeButton;
     private int slowModeTimer;
     private Runnable updateSlowModeRunnable;
@@ -1824,6 +1824,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateBotMenuButton);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didUpdatePremiumGiftFieldIcon);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateSteam);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateModel);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
 
         parentActivity = context;
@@ -1958,8 +1959,11 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             attachLayout.setEnabled(false);
             attachLayout.setPivotX(AndroidUtilities.dp(48));
             attachLayout.setClipChildren(false);
-            messageEditTextContainer.addView(attachLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 48, Gravity.BOTTOM | Gravity.RIGHT));
-
+            if (BuildVars.IS_CHAT_AIR) {
+                messageEditTextContainer.addView(attachLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 48, Gravity.BOTTOM | Gravity.LEFT));
+            } else {
+                messageEditTextContainer.addView(attachLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 48, Gravity.BOTTOM | Gravity.RIGHT));
+            }
             //提醒按钮
             notifyButton = new ImageView(context);
             notifySilentDrawable = new CrossOutDrawable(context, R.drawable.input_notify_on, Theme.key_chat_messagePanelIcons);
@@ -4602,6 +4606,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.didUpdatePremiumGiftFieldIcon);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateSteam);
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateModel);
         if (emojiView != null) {
             emojiView.onDestroy();
         }
@@ -4757,6 +4762,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messageReceivedByServer);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.sendingMessagesChanged);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateSteam);
+            NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateModel);
             currentAccount = account;
             accountInstance = AccountInstance.getInstance(currentAccount);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.recordStarted);
@@ -4772,6 +4778,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messageReceivedByServer);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.sendingMessagesChanged);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateSteam);
+            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateModel);
         }
 
         sendPlainEnabled = true;
@@ -4787,6 +4794,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         updateFieldHint(false);
         if (messageEditText != null) {
             updateSendAsButton(parentFragment != null && parentFragment.getFragmentBeginToShow());
+        }
+
+        if (BuildVars.IS_CHAT_AIR) {
+            updateAttachInterface();
         }
     }
 
@@ -4857,6 +4868,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         return replyingMessageObject;
     }
 
+    // 更新是否可输入
     public void updateFieldHint(boolean animated) {
         if (messageEditText == null) {
             return;
@@ -5483,7 +5495,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 
                    int contextLimit;
 
-                   if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0
+                   if (UserConfig.isUserVision(currentAccount, user)) {
+                       contextLimit = UserConfig.defaultContextLimitGeminiProVision;
+                   } else if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0
                            && user.contextLimit != -1) {
                        contextLimit = user.contextLimit;
                    } else {
@@ -7402,6 +7416,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         }
     }
 
+    // 设置文本
     public void setFieldText(CharSequence text) {
         setFieldText(text, true);
     }
@@ -9415,6 +9430,28 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             boolean isShow = (boolean) args[0];
             cancelStreamButton.setVisibility(isShow ? VISIBLE : GONE);
             sendButtonContainer.setVisibility(!isShow ? VISIBLE : GONE);
+        } else if (id == NotificationCenter.updateModel) {
+            updateAttachInterface();
+        }
+    }
+
+    private void updateAttachInterface() {
+        boolean isVision;
+
+        isVision = UserConfig.isUserVision(currentAccount, dialog_id);
+        if (isVision){
+
+            // todo 是否提示用户切换模型会清除输入框内容
+            setFieldText("", false);
+
+            if (editingMessageObject != null) setEditingMessageObject(null, false);
+
+            if (messageEditText != null) messageEditText.setVisibility(GONE);
+            if (attachButton != null) attachButton.setVisibility(VISIBLE);
+
+        } else {
+            if (messageEditText != null) messageEditText.setVisibility(VISIBLE);
+            if (attachButton != null) attachButton.setVisibility(GONE);
         }
     }
 

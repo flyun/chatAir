@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+// 清楚缓存控制类
 public class CacheByChatsController {
 
     public static int KEEP_MEDIA_DELETE = 4;
@@ -35,7 +36,12 @@ public class CacheByChatsController {
         }
     }
 
+    // 获取默认媒体是否自动删除类型
     public static int getDefault(int type) {
+
+        // 媒体不自动删除
+        if (BuildVars.IS_CHAT_AIR) return CacheByChatsController.KEEP_MEDIA_FOREVER;
+
         if (type == KEEP_MEDIA_TYPE_USER) {
             return KEEP_MEDIA_FOREVER;
         } else if (type == KEEP_MEDIA_TYPE_GROUP) {

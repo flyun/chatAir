@@ -21,21 +21,28 @@ public class AuthenticationInterceptor implements Interceptor {
     private String url = null;
     private boolean isOpenRouter = false;
 
-    AuthenticationInterceptor(String token, String oldUrl) {
-        Objects.requireNonNull(token, "OpenAI token required");
+    private boolean isGoogle = false;
+
+    AuthenticationInterceptor(String token, String oldUrl, boolean isGoogle) {
+//        Objects.requireNonNull(token, "Token required");
         this.token = token;
         this.oldUrl = oldUrl;
+        this.isGoogle = isGoogle;
         checkOpenRouter(oldUrl);
     }
 
     public void setToken(String token) {
-        Objects.requireNonNull(token, "OpenAI token required");
+//        Objects.requireNonNull(token, "Token required");
         this.token = token;
     }
     public void setUrl(String url) {
-        Objects.requireNonNull(token, "OpenAI url required");
+//        Objects.requireNonNull(token, "Url required");
         this.url = url;
         checkOpenRouter(url);
+    }
+
+    public void setGoogle(boolean google) {
+        isGoogle = google;
     }
 
     private void checkOpenRouter(String checkUrl) {
@@ -46,16 +53,24 @@ public class AuthenticationInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request;
-        if (!isOpenRouter) {
+        if (isGoogle) {
+            // Google
+            request = chain.request()
+                    .newBuilder()
+                    .header("x-goog-api-key", token)
+                    .build();
+        } else if (!isOpenRouter) {
+            // 默认
             request = chain.request()
                     .newBuilder()
                     .header("Authorization", "Bearer " + token)
                     .build();
         } else {
+            // OpenRouter
             request = chain.request()
                     .newBuilder()
                     .header("Authorization", "Bearer " + token)
-                    .header("HTTP-Referer", "https:/www.ted.com/")
+                    .header("HTTP-Referer", "https://www.ted.com/")
                     .header("X-Title", "ChatAir")
                     .build();
         }

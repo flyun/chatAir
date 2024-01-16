@@ -170,14 +170,17 @@ public class AiParametersActivity extends BaseFragment implements NotificationCe
                         UserConfig.getInstance(currentAccount).saveConfig(false);
 
 
-                        if (isNoUpdateCustomModel()) {
-                            adapter.notifyItemChanged(position);
-                        }else {
-                            lastModel = UserConfig.getInstance(currentAccount).aiModel;
-                            updateRow(true);
-                        }
+//                        if (isNoUpdateCustomModel()) {
+//                            adapter.notifyItemChanged(position);
+//                        }else {
+//                            lastModel = UserConfig.getInstance(currentAccount).aiModel;
+//                            updateRow(true);
+//                        }
+                        lastModel = UserConfig.getInstance(currentAccount).aiModel;
+                        updateRow(true);
 
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
+                        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateModel, lastModel);
                     });
                     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
                     showDialog(builder.create());
@@ -268,6 +271,10 @@ public class AiParametersActivity extends BaseFragment implements NotificationCe
                 showDialog(builder.create());
 
             } else if (position == contextRow) {
+
+                if (UserConfig.getInstance(currentAccount).isDefaultVision()) {
+                    return;
+                }
 
                 //todo 优化：通过操作messageList插入删除contextClear来加入提示，注意删除、发送，检查列表的情况
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
@@ -381,6 +388,7 @@ public class AiParametersActivity extends BaseFragment implements NotificationCe
                         toast.show();
                     }
                     NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
+                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateModel, lastModel);
                 });
                 builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
                 AlertDialog alertDialog = builder.create();
@@ -510,7 +518,11 @@ public class AiParametersActivity extends BaseFragment implements NotificationCe
                         selectValue = Double.toString(UserConfig.getInstance(currentAccount).temperature);
                     } else if (position == contextRow){
                         selectText = LocaleController.getString("ContextTitle", R.string.ContextTitle);
-                        selectValue = Integer.toString(UserConfig.getInstance(currentAccount).contextLimit);
+                        if (!UserConfig.getInstance(currentAccount).isDefaultVision()) {
+                            selectValue = Integer.toString(UserConfig.getInstance(currentAccount).contextLimit);
+                        } else {
+                            selectValue = Integer.toString(UserConfig.defaultContextLimitGeminiProVision);
+                        }
                     } else if (position == tokenLimitRow){
                         selectText = LocaleController.getString("TokenLimitTitle", R.string.TokenLimitTitle);
                         int tokenLimit = UserConfig.getInstance(currentAccount).tokenLimit;

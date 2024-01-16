@@ -35496,7 +35496,7 @@ public class TLRPC {
         public int flags;
         public boolean has_stickers;
         public long id;
-        public long access_hash;
+        public long access_hash;// 图片的网络地址，依据这个来判断是否需要上传图片到服务器
         public byte[] file_reference;
         public int date;
         public ArrayList<PhotoSize> sizes = new ArrayList<>();

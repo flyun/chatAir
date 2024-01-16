@@ -110,6 +110,7 @@
         android:requestLegacyExternalStorage="true"
         android:preserveLegacyExternalStorage="true"
         android:allowAudioPlaybackCapture="true"
+        android:networkSecurityConfig="${NETWORK_SECURITY_CONFIG}"
         tools:replace="android:supportsRtl">
 
         <activity-alias

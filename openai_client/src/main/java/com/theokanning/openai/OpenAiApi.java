@@ -4,6 +4,8 @@ import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.completion.CompletionResult;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
+import com.theokanning.openai.completion.chat.ChatGCompletionRequest;
+import com.theokanning.openai.completion.chat.ChatGCompletionResponse;
 import com.theokanning.openai.edit.EditRequest;
 import com.theokanning.openai.edit.EditResult;
 import com.theokanning.openai.embedding.EmbeddingRequest;
@@ -127,4 +129,18 @@ public interface OpenAiApi {
     @Deprecated
     @GET("v1/engines/{engine_id}")
     Single<Engine> getEngine(@Path("engine_id") String engineId);
+
+    // -----Gemini-----
+//    @POST("v1beta/models/gemini-pro:generateContent?key={api_key}")
+    @POST("v1/models/{model}:generateContent")
+    Single<ChatGCompletionResponse> createGChatCompletion(
+            @Path("model") String model,
+//            @Query("key") String api_key,
+            @Body ChatGCompletionRequest request);
+
+    @Streaming
+    @POST("v1/models/{model}:streamGenerateContent?alt=sse")
+    Call<ResponseBody> createGChatCompletionStream(
+            @Path("model") String model,
+            @Body ChatGCompletionRequest request);
 }

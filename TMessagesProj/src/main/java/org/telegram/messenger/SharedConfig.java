@@ -132,7 +132,7 @@ public class SharedConfig {
     public static boolean customTabs = true;
     //分享显示最近分享联系人
     public static boolean directShare = BuildVars.IS_CHAT_AIR ? false: true;
-    public static boolean inappCamera = true;
+    public static boolean inappCamera = true;// 是否打开app内置的摄像
     public static boolean roundCamera16to9 = true;
     public static boolean noSoundHintShowed = false;
     public static boolean streamMedia = true;

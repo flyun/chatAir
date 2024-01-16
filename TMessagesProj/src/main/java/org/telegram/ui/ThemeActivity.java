@@ -202,6 +202,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
     private int streamResponsesRow;
     private int renderMarkdownRow;
     private int autoHideKeyboardRow;
+    private int switchSubtitleContentRow;
 
     private int rowCount;
 
@@ -559,6 +560,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         streamResponsesRow = -1;
         renderMarkdownRow = -1;
         autoHideKeyboardRow = -1;
+        switchSubtitleContentRow = -1;
 
         appIconHeaderRow = -1;
         appIconSelectorRow = -1;
@@ -691,6 +693,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 renderMarkdownRow = rowCount++;
                 //发送后自动隐藏键盘
                 autoHideKeyboardRow = rowCount++;
+                // 副标题内容切换
+                switchSubtitleContentRow = rowCount++;
             }
 
             settings2Row = rowCount++;
@@ -1217,6 +1221,16 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
 
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(getUserConfig().autoHideKeyboard);
+                }
+            } else if (position == switchSubtitleContentRow) {
+
+                boolean switchSubtitleContent = getUserConfig().switchSubtitleContent;
+
+                getUserConfig().switchSubtitleContent = !switchSubtitleContent;
+                getUserConfig().saveConfig(false);
+
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(getUserConfig().switchSubtitleContent);
                 }
             } else if (position == directShareRow) {
                 SharedConfig.toggleDirectShare();
@@ -2349,6 +2363,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                         textCheckCell.setTextAndValueAndCheck(LocaleController.getString("ChromeCustomTabs", R.string.ChromeCustomTabs), LocaleController.getString("ChromeCustomTabsInfo", R.string.ChromeCustomTabsInfo), SharedConfig.customTabs, false, true);
                     } else if (position == autoHideKeyboardRow) {
                         textCheckCell.setTextAndValueAndCheck(LocaleController.getString("AutoHideKeyboard", R.string.AutoHideKeyboard), LocaleController.getString("AutoHideKeyboardInfo", R.string.AutoHideKeyboardInfo), getUserConfig().autoHideKeyboard, false, true);
+                    } else if (position == switchSubtitleContentRow) {
+                        textCheckCell.setTextAndValueAndCheck(LocaleController.getString("SwitchSubtitleContent", R.string.SwitchSubtitleContent), LocaleController.getString("SwitchSubtitleContentTips", R.string.SwitchSubtitleContentTips), getUserConfig().switchSubtitleContent, false, false);
                     } else if (position == directShareRow) {
                         textCheckCell.setTextAndValueAndCheck(LocaleController.getString("DirectShare", R.string.DirectShare), LocaleController.getString("DirectShareInfo", R.string.DirectShareInfo), SharedConfig.directShare, false, true);
                     } else if (position == chatBlurRow) {
@@ -2470,7 +2486,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             } else if (position == scheduleLocationRow || position == enableAnimationsRow || position == sendByEnterRow ||
                     position == raiseToSpeakRow || position == pauseOnRecordRow || position == customTabsRow ||
                     position == directShareRow || position == chatBlurRow || position == streamResponsesRow ||
-                    position == renderMarkdownRow || position == autoHideKeyboardRow) {
+                    position == renderMarkdownRow || position == autoHideKeyboardRow ||
+                    position == switchSubtitleContentRow) {
                 return TYPE_TEXT_CHECK;
             } else if (position == textSizeRow) {
                 return TYPE_TEXT_SIZE;

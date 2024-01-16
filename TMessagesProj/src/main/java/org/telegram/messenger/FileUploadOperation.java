@@ -11,7 +11,6 @@ package org.telegram.messenger;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 
@@ -245,6 +244,7 @@ public class FileUploadOperation {
         forceSmallFile = true;
     }
 
+    // 发起图片上传请求
     private void startUploadRequest() {
         if (state != 1) {
             return;
@@ -262,6 +262,7 @@ public class FileUploadOperation {
 //                if (AndroidUtilities.isInternalUri(Uri.fromFile(cacheFile))) {
 //                    throw new FileLog.IgnoreSentException("trying to upload internal file");
 //                }
+                // 根据上传文件路径生成随机读写文件
                 stream = new RandomAccessFile(cacheFile, "r");
                 boolean isInternalFile = false;
                 try {
@@ -286,6 +287,7 @@ public class FileUploadOperation {
                 }
 
                 long maxUploadParts = MessagesController.getInstance(currentAccount).uploadMaxFileParts;
+                // 2GB持仓限制限制
                 if (AccountInstance.getInstance(currentAccount).getUserConfig().isPremium() && totalFileSize > FileLoader.DEFAULT_MAX_FILE_SIZE) {
                     maxUploadParts = MessagesController.getInstance(currentAccount).uploadMaxFilePartsPremium;
                 }
@@ -345,12 +347,15 @@ public class FileUploadOperation {
                                 readBytesCount = uploadedSize;
                                 currentPartNum = (int) (uploadedSize / uploadChunkSize);
                                 if (!isBigFile) {
+                                    // 如果不是大文件
+                                    // 分块写入
                                     for (int b = 0; b < readBytesCount / uploadChunkSize; b++) {
                                         int bytesRead = stream.read(readBuffer);
                                         int toAdd = 0;
                                         if (isEncrypted && bytesRead % 16 != 0) {
                                             toAdd += 16 - bytesRead % 16;
                                         }
+                                        // 需要发送的二进制文件
                                         NativeByteBuffer sendBuffer = new NativeByteBuffer(bytesRead + toAdd);
                                         if (bytesRead != uploadChunkSize || totalPartsCount == currentPartNum + 1) {
                                             isLastPart = true;
@@ -365,7 +370,9 @@ public class FileUploadOperation {
                                         sendBuffer.reuse();
                                     }
                                 } else {
+                                    // 大文件情况的处理，移动到上传能接受的小文件
                                     stream.seek(uploadedSize);
+                                    // 是否为加密数据
                                     if (isEncrypted) {
                                         String ivcString = preferences.getString(fileKey + "_ivc", null);
                                         if (ivcString != null) {
@@ -407,6 +414,7 @@ public class FileUploadOperation {
                     }
                 }
 
+                //是否为加密数据
                 if (isEncrypted) {
                     try {
                         java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
@@ -469,7 +477,9 @@ public class FileUploadOperation {
                     isLastPart = true;
                 }
             }
+            // 读取的数据写入sendBuffer中
             sendBuffer.writeBytes(readBuffer, 0, currentRequestBytes);
+            //是否为加密数据
             if (isEncrypted) {
                 for (int a = 0; a < toAdd; a++) {
                     sendBuffer.writeByte(0);
@@ -481,6 +491,7 @@ public class FileUploadOperation {
             } else {
                 currentRequestIv = null;
             }
+            // 根据大文件还是普通文件组装需要上传的数据
             if (isBigFile) {
                 TLRPC.TL_upload_saveBigFilePart req = new TLRPC.TL_upload_saveBigFilePart();
                 req.file_part = currentRequestPartNum = currentPartNum;
@@ -526,6 +537,7 @@ public class FileUploadOperation {
             connectionType = ConnectionsManager.ConnectionTypeUpload | ((requestNumFinal % 4) << 16);
         }
 
+        // 发起上传请求，不同文件类型有不同处理
         int requestToken = ConnectionsManager.getInstance(currentAccount).sendRequest(finalRequest, (response, error) -> {
             if (currentOperationGuid != operationGuid) {
                 return;
@@ -559,6 +571,7 @@ public class FileUploadOperation {
                 } else {
                     size = totalFileSize;
                 }
+                // 上次进度条回调
                 delegate.didChangedUploadProgress(FileUploadOperation.this, uploadedBytesCount, size);
                 currentUploadRequetsCount--;
                 if (isLastPart && currentUploadRequetsCount == 0 && state == 1) {
@@ -638,14 +651,17 @@ public class FileUploadOperation {
                         }
                         saveInfoTimes++;
                     }
+                    // 根据分块，不断发起上传请求，直到上传完毕
                     startUploadRequest();
                 }
             } else {
+                // 上传失败的处理
                 state = 4;
                 delegate.didFailedUploadingFile(FileUploadOperation.this);
                 cleanup();
             }
         }, null, () -> Utilities.stageQueue.postRunnable(() -> {
+            // 上传失败的情况，如果小于最大失败次数，则重新上传
             if (currentUploadRequetsCount < maxRequestsCount) {
                 startUploadRequest();
             }

@@ -3559,14 +3559,18 @@
     <string name="GlobalAiParametersHeader">Global AI Parameters</string>
     <string name="ApiServerSetting">API Server Settings</string>
     <string name="ApiKey">API Key</string>
+    <string name="ApiKeyGoogle">Gemini API Key</string>
     <string name="ApiKeyTips">Tap to change API Key</string>
     <string name="ApiServer">API Server</string>
+    <string name="ApiServerGoogle">Gemini API Server</string>
     <string name="ApiServerTips">Tap to change API Server</string>
     <string name="ChangeApiKey">API Key</string>
+    <string name="ChangeGoogleApiKey">Gemini API Key</string>
     <string name="ValidateTitle">Validate</string>
     <string name="ValidateSuccess">Validate Success</string>
     <string name="FindKey">Find API key</string>
     <string name="FindKeyUrl">https://platform.openai.com/account/api-keys</string>
+    <string name="FindGoogleKeyUrl">https://makersuite.google.com/app/apikey</string>
     <string name="ChangeApiServer">API Server</string>
     <string name="DefaultApiServe">API server reset to default</string>
     <string name="MalformedUrl">Malformed url</string>
@@ -3575,6 +3579,8 @@
     <string name="RenderMarkdown">Render Markdown</string>
     <string name="AutoHideKeyboard">Auto Hide Keyboard</string>
     <string name="AutoHideKeyboardInfo">Automatically hide keyboard after sending message</string>
+    <string name="SwitchSubtitleContent">Switch subtitle content</string>
+    <string name="SwitchSubtitleContentTips">Switch the word count content or model content of the subtitle</string>
     <string name="CustomModel">Custom Model</string>
     <string name="ChangeCustomModel">Change Custom Model</string>
     <string name="CasualTalk">Casual Talk</string>

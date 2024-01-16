@@ -22,8 +22,10 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
@@ -33,10 +35,12 @@ import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
 
+import okhttp3.internal.Util;
+
 /**
- * Created by flyun on 2023/7/15.
+ * Created by flyun on 2023/12/23.
  */
-public class ChangeApiServerActivity extends BaseFragment {
+public class ChangeGoogleApiKeyActivity extends BaseFragment {
 
     private EditTextBoldCursor firstNameField;
     private View doneButton;
@@ -51,17 +55,16 @@ public class ChangeApiServerActivity extends BaseFragment {
 
     private volatile boolean isReq;
 
-    public ChangeApiServerActivity(Theme.ResourcesProvider resourcesProvider) {
+    public ChangeGoogleApiKeyActivity(Theme.ResourcesProvider resourcesProvider) {
         this.resourcesProvider = resourcesProvider;
     }
 
     @Override
     public boolean onFragmentCreate() {
 
-        String token = UserConfig.getInstance(currentAccount).apiKey;
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
-
-        openAiService = new OpenAiService(token, 5, apiServer, false);
+        String token = UserConfig.getInstance(currentAccount).apiKeyGoogle;
+        String apiServer = UserConfig.getInstance(currentAccount).apiServerGoogle;
+        openAiService = new OpenAiService(token, 5, apiServer, true);
 
         return super.onFragmentCreate();
     }
@@ -80,7 +83,7 @@ public class ChangeApiServerActivity extends BaseFragment {
         actionBar.setItemsColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider), false);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString("ChangeApiServer", R.string.ChangeApiServer));
+        actionBar.setTitle(LocaleController.getString("ChangeGoogleApiKey", R.string.ChangeGoogleApiKey));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -88,21 +91,17 @@ public class ChangeApiServerActivity extends BaseFragment {
                     finishFragment();
                 } else if (id == done_button) {
                     if (firstNameField.getText() != null) {
-                        saveApiServer();
+                        saveApiKey();
                     }
                 } else if (id == find_key_button) {
-                    if (firstNameField != null) {
-                        firstNameField.setText(UserConfig.defaultApiServer);
-                        firstNameField.setSelection(UserConfig.defaultApiServer.length());
-//                        AlertsCreator.showSimpleToast(ChangeApiServerActivity.this,
-//                                LocaleController.getString("DefaultApiServe", R.string.DefaultApiServe));
-                    }
+                    Browser.openUrl(getParentActivity(),
+                            LocaleController.getString("FindGoogleKeyUrl", R.string.FindGoogleKeyUrl));
                 }
             }
         });
 
         ActionBarMenu menu = actionBar.createMenu();
-        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link, AndroidUtilities.dp(56), LocaleController.getString("FindKeyUrl", R.string.FindKeyUrl));
+        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link2, AndroidUtilities.dp(56), LocaleController.getString("FindKeyUrl", R.string.FindKeyUrl));
         doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_ab_done, AndroidUtilities.dp(56), LocaleController.getString("Done", R.string.Done));
 
         LinearLayout linearLayout = new LinearLayout(context);
@@ -127,18 +126,10 @@ public class ChangeApiServerActivity extends BaseFragment {
         firstNameField.setSingleLine(true);
         firstNameField.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         firstNameField.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
-        firstNameField.setHint(UserConfig.defaultApiServer);
+        firstNameField.setHint(LocaleController.formatApiKey(UserConfig.getInstance(currentAccount).apiKeyGoogle));
         firstNameField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         firstNameField.setCursorSize(AndroidUtilities.dp(20));
         firstNameField.setCursorWidth(1.5f);
-
-        if (UserConfig.defaultApiServer.equals(apiServer)) {
-            firstNameField.setText("");
-        } else {
-            firstNameField.setText(apiServer);
-            firstNameField.setSelection(apiServer.length());
-        }
         linearLayout.addView(firstNameField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36, 24, 24, 24, 0));
 
         TextView buttonTextView = new TextView(context);
@@ -152,6 +143,9 @@ public class ChangeApiServerActivity extends BaseFragment {
 
         buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
         buttonTextView.setBackgroundDrawable(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(6), Theme.getColor(Theme.key_featuredStickers_addButton), Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
+
+        // todo 修改后验证恢复
+        buttonTextView.setVisibility(View.GONE);
 
         buttonTextView.setOnClickListener(view -> {
             if (getParentActivity() == null) {
@@ -177,36 +171,41 @@ public class ChangeApiServerActivity extends BaseFragment {
         }
     }
 
-    private void saveApiServer() {
+    private void saveApiKey() {
+
         if (firstNameField.getText() == null) {
             return;
         }
 
-        String newFirst = firstNameField.getText().toString().replace("\n", "");
-        if (TextUtils.isEmpty(newFirst)) return;
-
-        String formatUrl = formatUrl(newFirst);
-        if (TextUtils.isEmpty(formatUrl)) {
-            AlertsCreator.processError(LocaleController.getString("MalformedUrl", R.string.MalformedUrl),
-                    ChangeApiServerActivity.this);
+        final String newFirst = firstNameField.getText().toString().replace("\n", "");
+        String apiKey = UserConfig.getInstance(currentAccount).apiKeyGoogle;
+        if (apiKey != null && apiKey.equals(newFirst)) {
             return;
         }
-        if (!newFirst.equals(formatUrl)) {
-            newFirst = formatUrl;
-            firstNameField.setText(formatUrl);
-            firstNameField.setSelection(formatUrl.length());
-        }
+        if (newFirst.length() == 0) {
 
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
-        if (apiServer != null && apiServer.equals(newFirst)) {
-            return;
+            AlertDialog alertDialog = AlertsCreator.createSimpleAlert(getContext(),
+                    LocaleController.getString("ChangeGoogleApiKey", R.string.ChangeGoogleApiKey),
+                    LocaleController.getString("ClearApiKey", R.string.ClearApiKey),
+                    LocaleController.getString("OK", R.string.OK),
+                    () -> {
+                        changeApiKey(newFirst);
+                    }, null).create();
+            alertDialog.show();
+        } else {
+            changeApiKey(newFirst);
         }
+    }
 
-        UserConfig.getInstance(currentAccount).apiServer = newFirst;
+    private void changeApiKey(String newFirst) {
+
+        if (!TextUtils.isEmpty(newFirst) && checkValue(newFirst)) return;
+
+        UserConfig.getInstance(currentAccount).apiKeyGoogle = newFirst;
         UserConfig.getInstance(currentAccount).saveConfig(false);
 
         NotificationCenter.getInstance(currentAccount)
-                .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_API_SERVER);
+                .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_GOOGLE_API_KEY);
 
         finishFragment();
     }
@@ -216,30 +215,17 @@ public class ChangeApiServerActivity extends BaseFragment {
         String newFirst;
         if (firstNameField.getText() == null) {
             return;
-        } else if (firstNameField.getText().length() > 0) {
+        } else if (firstNameField.getText().length() > 0){
             newFirst = firstNameField.getText().toString().replace("\n", "");
         } else {
-            newFirst = UserConfig.getInstance(currentAccount).apiServer;
-
+            newFirst = UserConfig.getInstance(currentAccount).apiKeyGoogle;
         }
+
+        if (TextUtils.isEmpty(newFirst) || checkValue(newFirst)) return;
+
+        openAiService.changeMatchTokenGoogle(newFirst, UserConfig.getInstance(currentAccount).apiServerGoogle);
+
         isReq = true;
-
-        if (TextUtils.isEmpty(newFirst)) return;
-
-        String formatUrl = formatUrl(newFirst);
-        if (formatUrl == null) {
-            isReq = false;
-            AlertsCreator.processError(LocaleController.getString("MalformedUrl", R.string.MalformedUrl),
-                    ChangeApiServerActivity.this);
-            return;
-        }
-        if (!newFirst.equals(formatUrl)) {
-            newFirst = formatUrl;
-            firstNameField.setText(formatUrl);
-            firstNameField.setSelection(formatUrl.length());
-        }
-
-        openAiService.changeMatchServer(newFirst, UserConfig.getInstance(currentAccount).apiKey);
 
         openAiService.baseCompletion(openAiService.listModels,
                 new OpenAiService.CompletionCallBack<OpenAiResponse<Model>>() {
@@ -250,7 +236,7 @@ public class ChangeApiServerActivity extends BaseFragment {
                         AndroidUtilities.runOnUIThread(() -> {
                             isReq = false;
 
-                            AlertsCreator.showSimpleAlert(ChangeApiServerActivity.this,
+                            AlertsCreator.showSimpleAlert(ChangeGoogleApiKeyActivity.this,
                                     LocaleController.getString("ValidateSuccess", R.string.ValidateSuccess));
                         });
 
@@ -267,29 +253,26 @@ public class ChangeApiServerActivity extends BaseFragment {
                                 errorTx = throwable.getMessage();
                             }
 
-                            AlertsCreator.processError(errorTx, ChangeApiServerActivity.this);
+                            AlertsCreator.processError(errorTx, ChangeGoogleApiKeyActivity.this);
                         });
                     }
                 });
     }
 
-    private String formatUrl (String url) {
+    //检查添加的token格式是否正确参照Headers.checkValue
+    private boolean checkValue(String value) {
+        for (int i = 0, length = value.length(); i < length; i++) {
+            char c = value.charAt(i);
+            if ((c <= '\u001f' && c != '\t') || c >= '\u007f') {
+                String errorTx = Util.format(
+                        "Unexpected char %#04x at %d value: %s", (int) c, i, value);
+                AlertsCreator.processError(errorTx, ChangeGoogleApiKeyActivity.this);
+                return true;
+            }
+        }
 
-        //添加、格式化https
-        String formatUrl = LocaleController.formatApiUrl(url);
-
-        if (TextUtils.isEmpty(formatUrl)) return null;
-
-        //https协议格式整理
-        //todo 因为okHttp拦截链更换host后缀问题，暂时省略host后缀。初始化则没有问题，但是后缀最后必须/结尾，否则出错
-        String httpUrl = OpenAiService.formatUrl(formatUrl);
-
-        if (TextUtils.isEmpty(httpUrl)) return null;
-
-        return httpUrl;
-
+        return false;
     }
-
 
     @Override
     public Theme.ResourcesProvider getResourceProvider() {

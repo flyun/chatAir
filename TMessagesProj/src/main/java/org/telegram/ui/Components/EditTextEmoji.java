@@ -25,13 +25,13 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
-import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
@@ -41,6 +41,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
 import org.telegram.ui.PremiumPreviewFragment;
 
+// 带表情按钮的输入框
 public class EditTextEmoji extends FrameLayout implements NotificationCenter.NotificationCenterDelegate, SizeNotifierFrameLayout.SizeNotifierFrameLayoutDelegate {
 
     private EditTextCaption editText;
@@ -170,7 +171,7 @@ public class EditTextEmoji extends FrameLayout implements NotificationCenter.Not
             editText.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
             editText.setBackground(null);
             editText.setPadding(0, AndroidUtilities.dp(11), 0, AndroidUtilities.dp(12));
-            addView(editText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 48, 0, 0, 0));
+            addView(editText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, BuildVars.IS_CHAT_AIR ? 12 : 48, 0, 0, 0));
         }
 
         emojiButton = new ImageView(context);
@@ -200,6 +201,10 @@ public class EditTextEmoji extends FrameLayout implements NotificationCenter.Not
             }
         });
         emojiButton.setContentDescription(LocaleController.getString("Emoji", R.string.Emoji));
+
+        if (BuildVars.IS_CHAT_AIR) {
+            emojiButton.setVisibility(GONE);
+        }
     }
 
     protected void onLineCountChanged(int oldLineCount, int newLineCount) {
@@ -228,9 +233,12 @@ public class EditTextEmoji extends FrameLayout implements NotificationCenter.Not
     @Override
     public void setEnabled(boolean enabled) {
         editText.setEnabled(enabled);
-        emojiButton.setVisibility(enabled ? VISIBLE : GONE);
+        if (!BuildVars.IS_CHAT_AIR)emojiButton.setVisibility(enabled ? VISIBLE : GONE);
         if (enabled) {
-            editText.setPadding(LocaleController.isRTL ? AndroidUtilities.dp(40) : 0, 0, LocaleController.isRTL ? 0 : AndroidUtilities.dp(40), AndroidUtilities.dp(8));
+
+            int value = BuildVars.IS_CHAT_AIR ? 8 : 40;
+
+            editText.setPadding(LocaleController.isRTL ? AndroidUtilities.dp(value) : 0, 0, LocaleController.isRTL ? 0 : AndroidUtilities.dp(value), AndroidUtilities.dp(8));
         } else {
             editText.setPadding(0, 0, 0, AndroidUtilities.dp(8));
         }

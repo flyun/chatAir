@@ -39,9 +39,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.core.graphics.ColorUtils;
-import androidx.core.math.MathUtils;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.ImageLocation;
@@ -59,6 +56,10 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.spoilers.SpoilerEffect;
 import org.telegram.ui.PhotoViewer;
 
+import androidx.core.graphics.ColorUtils;
+import androidx.core.math.MathUtils;
+
+// 列表显示照片显示类
 public class PhotoAttachPhotoCell extends FrameLayout {
 
     private BackupImageView imageView;

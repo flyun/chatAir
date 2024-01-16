@@ -283,6 +283,7 @@ public class NotificationCenter {
     public static final int showAlert = totalEvents++;
     public static final int cancelRequest = totalEvents++;
     public static final int updateSteam = totalEvents++;
+    public static final int updateModel = totalEvents++;
 
     public static boolean alreadyLogged;
 

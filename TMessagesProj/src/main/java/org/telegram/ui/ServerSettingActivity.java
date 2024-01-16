@@ -42,6 +42,12 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
     private int apiKeySectionRow;
     private int apiServerHeaderRow;
     private int apiServerRow;
+    private int googleSectionRow;
+    private int apiKeyGoogleHeaderRow;
+    private int apiKeyGoogleRow;
+    private int apiKeyGoogleSectionRow;
+    private int apiServerGoogleHeaderRow;
+    private int apiServerGoogleRow;
 
     private int rowCount = 0;
 
@@ -56,6 +62,15 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
 
         apiServerHeaderRow = rowCount++;
         apiServerRow = rowCount++;
+
+        googleSectionRow = rowCount++;
+
+        apiKeyGoogleHeaderRow = rowCount++;
+        apiKeyGoogleRow = rowCount++;
+        apiKeyGoogleSectionRow = rowCount++;
+
+        apiServerGoogleHeaderRow = rowCount++;
+        apiServerGoogleRow = rowCount++;
         return super.onFragmentCreate();
     }
 
@@ -106,8 +121,12 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
             if (position == apiKeyRow) {
                 presentFragment(new ChangeApiKeyActivity(getResourceProvider()));
 
-            } else {
+            } else if (position == apiServerRow){
                 presentFragment(new ChangeApiServerActivity(getResourceProvider()));
+            } else if (position == apiKeyGoogleRow) {
+                presentFragment(new ChangeGoogleApiKeyActivity(getResourceProvider()));
+            } else if (position == apiServerGoogleRow){
+                presentFragment(new ChangeGoogleApiServerActivity(getResourceProvider()));
             }
 
         });
@@ -174,6 +193,10 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
                         headerCell.setText(LocaleController.getString("ApiKey", R.string.ApiKey));
                     } else if (position == apiServerHeaderRow) {
                         headerCell.setText(LocaleController.getString("ApiServer", R.string.ApiServer));
+                    } else if (position == apiKeyGoogleHeaderRow) {
+                        headerCell.setText(LocaleController.getString("ApiKeyGoogle", R.string.ApiKeyGoogle));
+                    } else if (position == apiServerGoogleHeaderRow) {
+                        headerCell.setText(LocaleController.getString("ApiServerGoogle", R.string.ApiServerGoogle));
                     }
                     break;
                 }
@@ -193,6 +216,14 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
                         settingsCell.setTextAndValue(
                                 UserConfig.getInstance(currentAccount).apiServer,
                                 LocaleController.getString("ApiServerTips", R.string.ApiServerTips), false);
+                    } else if (position == apiKeyGoogleRow) {
+                        settingsCell.setTextAndValue(
+                                LocaleController.formatApiKey(UserConfig.getInstance(currentAccount).apiKeyGoogle),
+                                LocaleController.getString("ApiKeyTips", R.string.ApiKeyTips), false);
+                    } else if (position == apiServerGoogleRow){
+                        settingsCell.setTextAndValue(
+                                UserConfig.getInstance(currentAccount).apiServerGoogle,
+                                LocaleController.getString("ApiServerTips", R.string.ApiServerTips), false);
                     }
                 }
             }
@@ -200,11 +231,14 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
 
         @Override
         public int getItemViewType(int position) {
-            if (position == apiKeyHeaderRow || position == apiServerHeaderRow) {
+            if (position == apiKeyHeaderRow || position == apiServerHeaderRow
+                    || position == apiKeyGoogleHeaderRow || position == apiServerGoogleHeaderRow) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == apiKeyRow || position == apiServerRow){
+            } else if (position == apiKeyRow || position == apiServerRow
+                    || position == apiKeyGoogleRow || position == apiServerGoogleRow){
                 return VIEW_TYPE_TEXT_DETAIL;
-            } else if (position == apiKeySectionRow){
+            } else if (position == apiKeySectionRow || position == apiKeyGoogleSectionRow
+                    || position == googleSectionRow){
                 return VIEW_TYPE_SHADOW;
             } else {
                 return 0;

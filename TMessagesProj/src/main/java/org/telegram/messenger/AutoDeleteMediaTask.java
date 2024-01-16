@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+// 自动删除媒体任务
 public class AutoDeleteMediaTask {
 
     public static Set<String> usingFilePaths = Collections.newSetFromMap(new ConcurrentHashMap<>());

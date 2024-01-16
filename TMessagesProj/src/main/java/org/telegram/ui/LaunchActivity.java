@@ -6430,8 +6430,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private long alreadyShownFreeDiscSpaceAlertForced;
     private long lastSpaceAlert;
     private static LaunchActivity staticInstanceForAlerts;
+    // 检查空余磁盘空间
     private void checkFreeDiscSpace(final int force) {
+        if (BuildVars.IS_CHAT_AIR) return;
         staticInstanceForAlerts = this;
+        // 执行自动删除媒体
         AutoDeleteMediaTask.run();
         SharedConfig.checkLogsToDelete();
         if (Build.VERSION.SDK_INT >= 26 && force == 0 || checkFreeDiscSpaceShown) {

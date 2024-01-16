@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.flyun.base.BaseMessage;
 import com.theokanning.openai.DeleteResult;
+import com.theokanning.openai.GoogleError;
+import com.theokanning.openai.GoogleHttpException;
 import com.theokanning.openai.OpenAiApi;
 import com.theokanning.openai.OpenAiError;
 import com.theokanning.openai.OpenAiHttpException;
@@ -17,6 +19,8 @@ import com.theokanning.openai.completion.CompletionResult;
 import com.theokanning.openai.completion.chat.ChatCompletionChunk;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
+import com.theokanning.openai.completion.chat.ChatGCompletionRequest;
+import com.theokanning.openai.completion.chat.ChatGCompletionResponse;
 import com.theokanning.openai.edit.EditRequest;
 import com.theokanning.openai.edit.EditResult;
 import com.theokanning.openai.embedding.EmbeddingRequest;
@@ -71,6 +75,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 public class OpenAiService {
 
     private static final String BASE_URL = "https://api.openai.com/";
+    private static final String BASE_GOOGLE_URL = "https://generativelanguage.googleapis.com/";
     private static final long DEFAULT_TIMEOUT = 10;
     private static final ObjectMapper mapper = defaultObjectMapper();
 
@@ -83,6 +88,8 @@ public class OpenAiService {
 
     public final int listModels = 1;
 
+    private boolean isGoogleUrl = false;
+    private boolean isGoogleToken = false;
 
     /**
      * Creates a new OpenAiService that wraps OpenAiApi
@@ -90,7 +97,7 @@ public class OpenAiService {
      * @param token OpenAi token string "sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
      */
     public OpenAiService(final String token) {
-        this(token, DEFAULT_TIMEOUT, BASE_URL);
+        this(token, DEFAULT_TIMEOUT, BASE_URL, false);
     }
 
     /**
@@ -99,23 +106,95 @@ public class OpenAiService {
      * @param token  OpenAi token string "sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
      * @param second http read timeout
      */
-    public OpenAiService(final String token, final long second, final String url) {
+    public OpenAiService(final String token, final long second, final String url, boolean isGoogle) {
 
         String baseUrl = (TextUtils.isEmpty(url) || HttpUrl.parse(url) == null) ? BASE_URL : url;
 
         ObjectMapper mapper = defaultObjectMapper();
-        this.client = defaultClient(token, second, url);
+        this.client = defaultClient(token, second, url, isGoogle);
         this.executorService = client.dispatcher().executorService();
         Retrofit retrofit = defaultRetrofit(client, mapper, baseUrl, this.executorService);
 
         this.api = retrofit.create(OpenAiApi.class);
+
+        // 初始化isGoogle
+        isGoogleToken = isGoogle;
+        isGoogleUrl = isGoogle;
     }
+
+    public void switchDefault(String token, String url) {
+
+        if (isGoogleToken) {
+            changeToken(token);
+        }
+        if (isGoogleUrl) {
+            changeServer(url);
+        }
+    }
+
+    public void switchGoogle(String token, String url) {
+
+        if (!isGoogleToken) {
+            changeTokenGoogle(token);
+        }
+        if (!isGoogleUrl) {
+            changeServerGoogle(url);
+        }
+    }
+
+    public void changeMatchToken(String token, String matchUrl) {
+
+        if (!isGoogleUrl) {
+            // Url为默认，不需要改变
+            changeToken(token);
+        } else {
+            // Url为google，需要Url和token一起改变
+            changeTokenAndServer(token, matchUrl);
+        }
+    }
+
+    public void changeMatchServer(String url, String matchToken) {
+
+        if (!isGoogleToken) {
+            // token为默认，不需要改变
+            changeServer(url);
+        } else {
+            // token为google，需要token和Url一起改变
+            changeTokenAndServer(matchToken, url);
+        }
+    }
+
+
+    public void changeMatchTokenGoogle(String token, String matchUrl) {
+
+        if (isGoogleUrl) {
+            // Url为Google，不需要改变
+            changeTokenGoogle(token);
+        } else {
+            // Url为默认，需要Url和token一起改变
+            changeTokenAndServerGoogle(token, matchUrl);
+        }
+    }
+
+    public void changeMatchServerGoogle(String url, String matchToken) {
+
+        if (isGoogleToken) {
+            // token为Google，不需要改变
+            changeServerGoogle(url);
+        } else {
+            // token为默认，需要token和Url一起改变
+            changeTokenAndServerGoogle(matchToken, url);
+        }
+    }
+
 
     public void changeToken(String token) {
         if (client != null && token != null) {
             for (Interceptor interceptor : client.interceptors()) {
                 if (interceptor instanceof AuthenticationInterceptor) {
+                    isGoogleToken = false;
                     ((AuthenticationInterceptor) interceptor).setToken(token);
+                    ((AuthenticationInterceptor) interceptor).setGoogle(isGoogle());
                 }
             }
         }
@@ -125,10 +204,72 @@ public class OpenAiService {
         if (client != null && !TextUtils.isEmpty(url)) {
             for (Interceptor interceptor : client.interceptors()) {
                 if (interceptor instanceof AuthenticationInterceptor) {
+                    isGoogleUrl = false;
                     ((AuthenticationInterceptor) interceptor).setUrl(url);
+                    ((AuthenticationInterceptor) interceptor).setGoogle(isGoogle());
                 }
             }
         }
+    }
+
+    public void changeTokenAndServer(String token, String url) {
+        if (client != null && !TextUtils.isEmpty(token) && !TextUtils.isEmpty(url)) {
+            for (Interceptor interceptor : client.interceptors()) {
+                if (interceptor instanceof AuthenticationInterceptor) {
+                    isGoogleUrl = false;
+                    ((AuthenticationInterceptor) interceptor).setToken(token);
+                    ((AuthenticationInterceptor) interceptor).setUrl(url);
+                    ((AuthenticationInterceptor) interceptor).setGoogle(isGoogle());
+                }
+            }
+        }
+    }
+
+    public void changeTokenGoogle(String token) {
+        if (client != null && token != null) {
+            for (Interceptor interceptor : client.interceptors()) {
+                if (interceptor instanceof AuthenticationInterceptor) {
+                    isGoogleToken = true;
+                    ((AuthenticationInterceptor) interceptor).setToken(token);
+                    ((AuthenticationInterceptor) interceptor).setGoogle(isGoogle());
+                }
+            }
+        }
+    }
+
+    public void changeServerGoogle(String url) {
+        if (client != null && !TextUtils.isEmpty(url)) {
+            for (Interceptor interceptor : client.interceptors()) {
+                if (interceptor instanceof AuthenticationInterceptor) {
+                    isGoogleUrl = true;
+                    ((AuthenticationInterceptor) interceptor).setUrl(url);
+                    ((AuthenticationInterceptor) interceptor).setGoogle(isGoogle());
+                }
+            }
+        }
+    }
+
+    public void changeTokenAndServerGoogle(String token, String url) {
+        if (client != null && !TextUtils.isEmpty(token)  && !TextUtils.isEmpty(url)) {
+            for (Interceptor interceptor : client.interceptors()) {
+                if (interceptor instanceof AuthenticationInterceptor) {
+                    isGoogleUrl = false;
+                    ((AuthenticationInterceptor) interceptor).setToken(token);
+                    ((AuthenticationInterceptor) interceptor).setUrl(url);
+                    ((AuthenticationInterceptor) interceptor).setGoogle(isGoogle());
+                }
+            }
+        }
+    }
+
+    // url与token必须绑定
+    public boolean isGoogle() {
+        if (isGoogleUrl && isGoogleToken) return true;
+        if (!isGoogleUrl && !isGoogleToken) return false;
+
+        // Url与token不匹配，抛出异常
+        System.out.print("URL does not match token isUrl:" + isGoogleUrl  + "isToken:" + isGoogleToken);
+        return false;
     }
 
     /**
@@ -185,6 +326,12 @@ public class OpenAiService {
             , final ResultCallBack callBack) {
 
         createChatCompletion(api.createChatCompletion(request), baseMessage, callBack);
+    }
+
+    public void createChatGCompletion(ChatGCompletionRequest request, String model,
+                                      final BaseMessage baseMessage, final ResultGCallBack callBack) {
+
+        createChatGCompletion(api.createGChatCompletion(model, request), baseMessage, callBack);
     }
 
     public Flowable<ChatCompletionChunk> streamChatCompletion(ChatCompletionRequest request) {
@@ -361,6 +508,32 @@ public class OpenAiService {
                 });
     }
 
+    public void loadingG(ResultGCallBack resultCallBack) {
+        Observable.interval(0, 5, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Long>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+                        compositeDisposable.add(d);
+                    }
+
+                    @Override
+                    public void onNext(@NonNull Long aLong) {
+                        resultCallBack.onLoading(true);
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
     private Disposable streamLoadingDisposable;
 
     public void loading(StreamCallBack streamCallBack) {
@@ -378,6 +551,42 @@ public class OpenAiService {
                     public void onNext(@NonNull Long aLong) {
                         if (isStreamFirstLoading) {
                             if (streamCallBack != null) streamCallBack.onLoading(true);
+                        } else {
+                            if (streamLoadingDisposable != null) {
+                                compositeDisposable.remove(streamLoadingDisposable);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        if (streamLoadingDisposable != null) {
+                            compositeDisposable.remove(streamLoadingDisposable);
+                        }
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    public void loadingG(StreamGCallBack streamCallBack) {
+
+        Observable.interval(0, 5, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Long>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+                        streamLoadingDisposable = d;
+                        compositeDisposable.add(d);
+                    }
+
+                    @Override
+                    public void onNext(@NonNull Long aLong) {
+                        if (isStreamFirstLoading) {
+                            if (streamGCallBack != null) streamGCallBack.onLoading(true);
                         } else {
                             if (streamLoadingDisposable != null) {
                                 compositeDisposable.remove(streamLoadingDisposable);
@@ -497,6 +706,8 @@ public class OpenAiService {
                             e = (HttpException) throwable;
                         } else {
                             resultCallBack.onError(null, throwable);
+                            resultCallBack.onLoading(false);
+                            compositeDisposable.clear();
                             return;
                         }
 
@@ -508,6 +719,66 @@ public class OpenAiService {
 
                                 OpenAiError error = mapper.readValue(errorBody, OpenAiError.class);
                                 resultCallBack.onError(new OpenAiHttpException(error, e, e.code()),
+                                        throwable);
+                            }
+                        } catch (IOException ex) {
+                            // couldn't parse OpenAI error
+                            resultCallBack.onError(null, throwable);
+                        } finally {
+                            resultCallBack.onLoading(false);
+                            compositeDisposable.clear();
+                        }
+
+                    }
+                }));
+
+    }
+
+    public <T> void createChatGCompletion(Single<T> apiCall, BaseMessage baseMessage,
+                                          ResultGCallBack resultCallBack) {
+
+        compositeDisposable.clear();
+
+        apiCall
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((new SingleObserver<T>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable disposable) {
+
+                        compositeDisposable.add(disposable);
+                        loadingG(resultCallBack);
+                    }
+
+                    @Override
+                    public void onSuccess(@NonNull T t) {
+                        resultCallBack.onSuccess((ChatGCompletionResponse) t);
+                        resultCallBack.onLoading(false);
+                        compositeDisposable.clear();
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable throwable) {
+
+
+                        HttpException e;
+                        if (throwable instanceof HttpException) {
+                            e = (HttpException) throwable;
+                        } else {
+                            resultCallBack.onError(null, throwable);
+                            resultCallBack.onLoading(false);
+                            compositeDisposable.clear();
+                            return;
+                        }
+
+                        try {
+                            if (e.response() == null || e.response().errorBody() == null) {
+                                resultCallBack.onError(null, throwable);
+                            } else {
+                                String errorBody = e.response().errorBody().string();
+
+                                GoogleError error = mapper.readValue(errorBody, GoogleError.class);
+                                resultCallBack.onError(new GoogleHttpException(error,throwable),
                                         throwable);
                             }
                         } catch (IOException ex) {
@@ -559,6 +830,11 @@ public class OpenAiService {
                                 e = (HttpException) throwable;
                             } else {
                                 if (streamCallBack != null) streamCallBack.onError(null, throwable);
+
+                                if (streamCallBack != null) streamCallBack.onLoading(false);
+                                streamCallBack = null;
+                                compositeDisposable.clear();
+
                                 return;
                             }
 
@@ -595,11 +871,96 @@ public class OpenAiService {
         requestList.put("streamChatCompletion", apiCall);
     }
 
+
+    private StreamGCallBack streamGCallBack;
+    public void streamChatGCompletion(ChatGCompletionRequest request, String model,  StreamGCallBack callBack) {
+
+        isStreamFirstLoading = true;
+        loadingG(callBack);
+        //因为on在取消stream请求的问题（具体看ResponseBodyCallback），无法执行onCompletion，所以需要折中调用onCompletion
+        streamGCallBack = callBack;
+
+        Call<ResponseBody> apiCall = api.createGChatCompletionStream(model, request);
+        Disposable disposable = streamG(apiCall, ChatGCompletionResponse.class)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .forEachWhile(ChatGCompletionResponse -> {
+
+                            if (isStreamFirstLoading) {
+                                isStreamFirstLoading = false;
+                                if (streamGCallBack != null) streamGCallBack.onLoading(false);
+                            }
+
+                            if (streamGCallBack != null) streamGCallBack.onSuccess(ChatGCompletionResponse);
+
+                            //返回true代表继续回调，false代表执行完成回调
+                            return ChatGCompletionResponse.getCandidates() == null
+                                    || ChatGCompletionResponse.getCandidates().size() <= 0
+                                    || ChatGCompletionResponse.getCandidates().get(0).getContent() == null
+                                    || ChatGCompletionResponse.getCandidates().get(0).getContent().getParts() == null
+                                    || ChatGCompletionResponse.getCandidates().get(0).getContent().getParts().size() <= 0
+                                    || ChatGCompletionResponse.getCandidates().get(0).getContent().getParts().get(0) == null
+                                    || !ChatGCompletionResponse.getCandidates().get(0).getContent().getParts().get(0).getText().equals("")
+                                    ;
+                        },
+                        throwable -> {
+
+                            HttpException e;
+                            if (throwable instanceof HttpException) {
+                                e = (HttpException) throwable;
+                            } else {
+                                if (streamGCallBack != null) streamGCallBack.onError(null, throwable);
+                                return;
+                            }
+
+                            try {
+                                if (e.response() == null || e.response().errorBody() == null) {
+                                    if (streamGCallBack != null)
+                                        streamGCallBack.onError(null, throwable);
+                                } else {
+                                    String errorBody = e.response().errorBody().string();
+
+                                    GoogleError error = mapper.readValue(errorBody,
+                                            GoogleError.class);
+                                    if (streamGCallBack != null)
+                                        streamGCallBack.onError(new GoogleHttpException(error, e),
+                                                throwable);
+                                }
+                            } catch (IOException ex) {
+                                // couldn't parse OpenAI error
+                                if (streamGCallBack != null) streamGCallBack.onError(null, throwable);
+                            } finally {
+                                if (streamGCallBack != null) streamGCallBack.onLoading(false);
+                                streamGCallBack = null;
+                                compositeDisposable.clear();
+                            }
+                        },
+                        () -> {
+                            if (streamGCallBack != null) streamGCallBack.onCompletion();
+                            streamGCallBack = null;
+                            compositeDisposable.clear();
+                        });
+
+        compositeDisposable.add(disposable);
+        requestList.put("streamChatCompletion", apiCall);
+    }
+
     public interface StreamCallBack {
 
         void onSuccess(ChatCompletionChunk result);
 
         void onError(OpenAiHttpException error, Throwable Throwable);
+
+        void onCompletion();
+
+        void onLoading(boolean isLoading);
+
+    }
+    public interface StreamGCallBack {
+
+        void onSuccess(ChatGCompletionResponse result);
+
+        void onError(GoogleHttpException error, Throwable Throwable);
 
         void onCompletion();
 
@@ -624,6 +985,16 @@ public class OpenAiService {
 
     }
 
+    public interface ResultGCallBack {
+
+        void onSuccess(ChatGCompletionResponse result);
+
+        void onError(GoogleHttpException error, Throwable Throwable);
+
+        void onLoading(boolean isLoading);
+
+    }
+
 
     /**
      * Calls the Open AI api and returns a Flowable of SSE for streaming
@@ -633,6 +1004,10 @@ public class OpenAiService {
      */
     public static Flowable<SSE> stream(Call<ResponseBody> apiCall) {
         return stream(apiCall, false);
+    }
+
+    public static Flowable<SSE> streamG(Call<ResponseBody> apiCall) {
+        return streamG(apiCall, false);
     }
 
     /**
@@ -649,6 +1024,14 @@ public class OpenAiService {
                 emitDone)), BackpressureStrategy.BUFFER);
     }
 
+    public static Flowable<SSE> streamG(Call<ResponseBody> apiCall, boolean emitDone) {
+        //apiCall.enqueue为retrofit手动调用okHttp，所以默认情况下，在Android平台，因为平台判断
+        //所以默认回调在主线程，但是这里ResponseBodyCallback内部进行数据读写、网络等耗时操作，需要在子线程进行操作
+        //方法有两种，可以在retrofit传入线程池，或者ResponseBodyCallback回调中切换到子线程
+        return Flowable.create(emitter -> apiCall.enqueue(new ResponseBodyGCallback(emitter,
+                emitDone)), BackpressureStrategy.BUFFER);
+    }
+
     /**
      * Calls the Open AI api and returns a Flowable of type T for streaming
      * omitting the last message.
@@ -659,6 +1042,11 @@ public class OpenAiService {
     public static <T> Flowable<T> stream(Call<ResponseBody> apiCall, Class<T> cl) {
 
         return stream(apiCall).map(sse -> mapper.readValue(sse.getData(), cl));
+    }
+
+    public static <T> Flowable<T> streamG(Call<ResponseBody> apiCall, Class<T> cl) {
+
+        return streamG(apiCall).map(sse -> mapper.readValue(sse.getData(), cl));
     }
 
     public void clearRequest() {
@@ -685,6 +1073,12 @@ public class OpenAiService {
         }
         if (streamCallBack != null){
             streamCallBack.onCompletion();
+        }
+        if (streamGCallBack != null){
+            streamGCallBack.onLoading(false);
+        }
+        if (streamGCallBack != null){
+            streamGCallBack.onCompletion();
         }
         compositeDisposable.clear();
         if (isExecutor) shutdownExecutor();
@@ -718,7 +1112,7 @@ public class OpenAiService {
 
     public static OpenAiApi buildApi(String token, long second) {
         ObjectMapper mapper = defaultObjectMapper();
-        OkHttpClient client = defaultClient(token, second, BASE_URL);
+        OkHttpClient client = defaultClient(token, second, BASE_URL, false);
         Retrofit retrofit = defaultRetrofit(client, mapper, BASE_URL,
                 client.dispatcher().executorService());
 
@@ -733,7 +1127,7 @@ public class OpenAiService {
         return mapper;
     }
 
-    public static OkHttpClient defaultClient(String token, long second, String url) {
+    public static OkHttpClient defaultClient(String token, long second, String url, boolean isGoogle) {
 
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(s -> {
 //            Log.i("test",s);
@@ -741,7 +1135,7 @@ public class OpenAiService {
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
         return new OkHttpClient.Builder()
-                .addInterceptor(new AuthenticationInterceptor(token, url))
+                .addInterceptor(new AuthenticationInterceptor(token, url, isGoogle))
 //                .addInterceptor(loggingInterceptor)
                 .connectionPool(new ConnectionPool(5, 1, TimeUnit.SECONDS))
                 .readTimeout(second * 1000, TimeUnit.MILLISECONDS)

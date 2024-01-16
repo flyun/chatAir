@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatCompletionRequest {
+public class ChatCompletionRequest<T> {
 
     /**
      * ID of the model to use.
@@ -26,7 +26,13 @@ public class ChatCompletionRequest {
      * href="https://platform.openai.com/docs/guides/chat/introduction">chat format</a>.<br>
      * see {@link ChatMessage}
      */
-    List<ChatMessage> messages;
+//    List<ChatMultiMessage> messages;
+    List<? extends T> messages;
+
+    public ChatCompletionRequest<? extends T> setMessages(List<? extends T>  messages) {
+        this.messages = messages;
+        return this;
+    }
 
     /**
      * What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower

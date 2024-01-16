@@ -131,6 +131,10 @@ android {
             buildConfigField "boolean", "DEBUG_VERSION", "true"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "true"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
+
+            manifestPlaceholders = [
+                    NETWORK_SECURITY_CONFIG: "@xml/network_security_config"
+            ]
         }
 
         HA_private {
@@ -144,6 +148,10 @@ android {
             buildConfigField "boolean", "DEBUG_VERSION", "true"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "true"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
+
+            manifestPlaceholders = [
+                    NETWORK_SECURITY_CONFIG: ""
+            ]
         }
 
         HA_public {
@@ -157,6 +165,10 @@ android {
             buildConfigField "boolean", "DEBUG_VERSION", "true"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "false"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
+
+            manifestPlaceholders = [
+                    NETWORK_SECURITY_CONFIG: ""
+            ]
         }
 
         standalone {
@@ -170,6 +182,10 @@ android {
             buildConfigField "boolean", "DEBUG_VERSION", "false"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "false"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
+
+            manifestPlaceholders = [
+                    NETWORK_SECURITY_CONFIG: ""
+            ]
         }
 
         release {
@@ -184,6 +200,10 @@ android {
             buildConfigField "boolean", "DEBUG_VERSION", "false"
             buildConfigField "boolean", "DEBUG_PRIVATE_VERSION", "false"
             buildConfigField "boolean", "BUILD_HOST_IS_WINDOWS", isWindows
+
+            manifestPlaceholders = [
+                    NETWORK_SECURITY_CONFIG: ""
+            ]
         }
     }
 }

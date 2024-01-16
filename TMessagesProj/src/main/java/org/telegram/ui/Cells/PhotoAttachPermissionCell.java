@@ -23,6 +23,7 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
 
+// 无拍摄、照片权限显示的列表item
 public class PhotoAttachPermissionCell extends FrameLayout {
 
     private final Theme.ResourcesProvider resourcesProvider;

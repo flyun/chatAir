@@ -3,6 +3,8 @@ package org.telegram.messenger.utils;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.text.TextUtils;
+import android.util.Base64;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildVars;
@@ -13,6 +15,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.Components.RLottieDrawable;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -650,5 +653,37 @@ public class BitmapsCache {
             }
         }
 
+    }
+
+
+    // 编码发送的图片
+    public static String encodeBitmapToBase64Png(String imagePath) {
+
+        if (TextUtils.isEmpty(imagePath)) return "";
+
+        Bitmap bitmap = null;
+        try {
+            bitmap = BitmapFactory.decodeFile(imagePath);
+        } catch (Exception e) {
+        }
+        String base64 = "";
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+        if (bitmap == null) return "";
+
+        try {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+            base64 = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
+        } catch (Exception e) {
+        } finally {
+            try {
+                stream.close();
+            } catch (IOException ioException) {
+            }
+        }
+
+
+        return base64;
     }
 }

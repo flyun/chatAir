@@ -48,6 +48,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+// 拍照控制类
 public class CameraController implements MediaRecorder.OnInfoListener {
 
     private static final int CORE_POOL_SIZE = 1;
@@ -387,6 +388,7 @@ public class CameraController implements MediaRecorder.OnInfoListener {
         return value;
     }
 
+    // 拍照
     public boolean takePicture(final File path, final CameraSession session, final Runnable callback) {
         if (session == null) {
             return false;
@@ -400,7 +402,7 @@ public class CameraController implements MediaRecorder.OnInfoListener {
                 int size = (int) (AndroidUtilities.getPhotoSize() / AndroidUtilities.density);
                 String key = String.format(Locale.US, "%s@%d_%d", Utilities.MD5(path.getAbsolutePath()), size, size);
                 try {
-                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    BitmapFactory.Options options = new BitmapFactory.Options();// 相片质量
                     options.inJustDecodeBounds = true;
                     BitmapFactory.decodeByteArray(data, 0, data.length, options);
 //                    float scaleFactor = Math.max((float) options.outWidth / AndroidUtilities.getPhotoSize(), (float) options.outHeight / AndroidUtilities.getPhotoSize());

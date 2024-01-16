@@ -3382,6 +3382,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                     //todo 通过listModels接口检测是否具有模型能力
 
+                    int lastModel = UserConfig.getUserAiModel(currentAccount, userId);
+
                     builder.setItems(charSequences, (dialog, which) -> {
                         TLRPC.User user = getMessagesController().getUser(userId);
                         user.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL;
@@ -3393,14 +3395,17 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                         getMessagesStorage().updateUsers(userArrayList, false, true, true, true);
 
-                        if (isNoUpdateCustomModel()) {
-                            listAdapter.notifyItemChanged(position);
-                        } else {
-                            lastCustomModel = user.aiModel;
-                            updateRowsIds();
-                        }
+//                        if (isNoUpdateCustomModel()) {
+//                            listAdapter.notifyItemChanged(position);
+//                        } else {
+//                            lastCustomModel = user.aiModel;
+//                            updateRowsIds();
+//                        }
+                        lastCustomModel = user.aiModel;
+                        updateRowsIds();
 
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
+                        NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateModel, lastModel);
                     });
                     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
                     showDialog(builder.create());
@@ -3509,6 +3514,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             } else if (position == contextRow) {
 
+                if (UserConfig.isUserVision(currentAccount, userId)) {
+                    return;
+                }
+
                 //todo 优化：通过操作messageList插入删除contextClear来加入提示，注意删除、发送，检查列表的情况
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                 builder.setTitle(LocaleController.getString("ContextTitle", R.string.ContextTitle));
@@ -3607,6 +3616,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             } else if (position == defaultRow) {
 
+                int lastModel = UserConfig.getUserAiModel(currentAccount, userId);
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                 builder.setTitle(LocaleController.getString("ResetAiParameters", R.string.ResetAiParameters));
                 builder.setMessage(LocaleController.getString("ResetAiParametersTips", R.string.ResetAiParametersTips));
@@ -3645,6 +3656,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         toast.show();
                     }
                     NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
+                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateModel, lastModel);
                 });
                 builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
                 AlertDialog alertDialog = builder.create();
@@ -7928,7 +7940,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 isOnline[0] = false;
                 if (BuildVars.IS_CHAT_AIR) {
                     int contextLimit;
-                    if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0) {
+                    if (UserConfig.isUserVision(currentAccount, user)) {
+                        contextLimit = UserConfig.defaultContextLimitGeminiProVision;
+                    } else if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0) {
                         contextLimit = user.contextLimit;
                     } else {
                         contextLimit = UserConfig.getInstance(currentAccount).contextLimit;
@@ -9704,10 +9718,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         } else {
                             selectValue = Double.toString(UserConfig.getInstance(currentAccount).temperature);
                         }
-                    } else if (position == contextRow){
+                    } else if (position == contextRow) {
                         selectText = LocaleController.getString("ContextTitle", R.string.ContextTitle);
                         TLRPC.User user = getMessagesController().getUser(userId);
-                        if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0) {
+
+                        if (UserConfig.isUserVision(currentAccount, user)) {
+                            selectValue = Integer.toString(UserConfig.defaultContextLimitGeminiProVision);
+                        } else if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CONTEXT_LIMIT) != 0) {
                             selectValue = Integer.toString(user.contextLimit);
                         } else {
                             selectValue = Integer.toString(UserConfig.getInstance(currentAccount).contextLimit);
