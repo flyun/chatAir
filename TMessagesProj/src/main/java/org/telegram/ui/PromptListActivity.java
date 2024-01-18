@@ -274,6 +274,14 @@ class PromptListActivity extends BaseFragment {
     }
 
     private void initData() {
+
+        boolean isZh = "zh".equals(LocaleController.getInstance().getCurrentLocaleInfo().shortName);
+
+        if (isZh) internalPromptList.add(new PromptBean(
+                LocaleController.getString(R.string.ModelTranslationTitle),
+                LocaleController.getString(R.string.ModelTranslationDesc),
+                LocaleController.getString(R.string.ModelTranslationContent)));
+
         internalPromptList.add(new PromptBean(
                 LocaleController.getString(R.string.WritingAssistantTitle),
                 LocaleController.getString(R.string.WritingAssistantDesc),

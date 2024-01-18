@@ -105,7 +105,7 @@ public class LocaleController {
 
         public String name;
         public String nameEnglish;
-        public String shortName;
+        public String shortName;// 自定义配置
         public String pathToFile;
         public String baseLangCode;
         public String pluralLangCode;

@@ -254,6 +254,10 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
                 if (adapter != null) adapter.notifyItemChanged(apiKeyRow);
             } else if ((mask & MessagesController.UPDATE_MASK_API_SERVER) != 0) {
                 if (adapter != null) adapter.notifyItemChanged(apiServerRow);
+            } else if ((mask & MessagesController.UPDATE_MASK_GOOGLE_API_KEY) != 0) {
+                if (adapter != null) adapter.notifyItemChanged(apiKeyGoogleRow);
+            } else if ((mask & MessagesController.UPDATE_MASK_GOOGLE_API_SERVER) != 0) {
+                if (adapter != null) adapter.notifyItemChanged(apiServerGoogleRow);
             }
         }
     }

@@ -3918,8 +3918,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     dialogUser.flags = 33555539;
                     dialogUser.id = id;
                     dialogUser.phone = String.valueOf(id);
-                    dialogUser.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT;
-                    dialogUser.prompt = UserConfig.defaultPrompt;
+                    // 新开聊天不配置默认prompt
+//                    dialogUser.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT;
+//                    dialogUser.prompt = UserConfig.defaultPrompt;
 
                     //写入内存
                     MessagesController.getInstance(currentAccount).putUser(dialogUser, false);

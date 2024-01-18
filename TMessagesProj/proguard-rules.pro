@@ -105,3 +105,11 @@
 # Use -keep to explicitly keep any other classes shrinking would remove
 -dontoptimize
 -dontobfuscate
+
+# Openai Gemini
+-dontwarn com.theokanning.**
+-keep class com.theokanning.** { *; }
+
+# Markdown
+-dontwarn io.noties.**
+-keep class io.noties.** { *; }
