@@ -5822,7 +5822,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     chatCompletionRequest = ChatCompletionRequest.builder()
                             .model(aiModelReal)
                             .temperature(temperature != -100 ? temperature : null)
-                            .maxTokens(tokenLimit != -100 ? tokenLimit : null)
+                            // todo gpt-4-vision-preview如果不配置maxTokens，则会按照最短的maxTokens配置。
+                            //  导致输出文字过短，而图片模型无法进行多轮会话导致无法发送继续，输出更多内容。
+                            .maxTokens(tokenLimit != -100 ? tokenLimit : 4096)
                             .build().setMessages(chatMessageList);
 
                 } else {
@@ -6835,9 +6837,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                     String errorTx;
                     if (error != null) {
-                        errorTx = error.getMessage();
+                        // 增加Gemini 一问一答的错误提示
+                        errorTx = getGeminiError(error.getMessage());
                     } else {
-                        errorTx = throwable.getMessage();
+                        // 增加Gemini 一问一答的错误提示
+                        errorTx = getGeminiError(throwable.getMessage());
                     }
 
                     if (!TextUtils.isEmpty(errorTx)) {
@@ -6944,20 +6948,13 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                             String errorTx;
                             if (error != null) {
-
-//                        Log.e("test","err:"
-//                                + " ,statusCode:"+ error.statusCode
-//                                + " ,code:"+ error.code
-//                                + " ,param:"+ error.param
-//                                + " ,type:"+ error.type);
-
                                 errorTx = "code:" + error.code
                                         + "\n" + "status:" + error.status
-                                        + "\n" + "message:" + error.getMessage();
+                                        // 增加Gemini 一问一答的错误提示
+                                        + "\n" + "message:" + getGeminiError(error.getMessage());
                             } else {
-
-//                        Log.e("test","err:" + throwable);
-                                errorTx = throwable.getMessage();
+                                // 增加Gemini 一问一答的错误提示
+                                errorTx = getGeminiError(throwable.getMessage());
                             }
 
                             if (!TextUtils.isEmpty(errorTx)) {
@@ -6997,6 +6994,17 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
     }
 
+    private String getGeminiError(String errorMessage) {
+        String errorTx;
+        if (!TextUtils.isEmpty(errorMessage)
+                && errorMessage.contains("Please ensure that multiturn requests")) {
+
+            errorTx = errorMessage + "\n\nPlease click Clear context or clear history and try again.";
+        } else {
+            errorTx = errorMessage;
+        }
+        return errorTx;
+    }
 
     private void updateMediaPaths(MessageObject newMsgObj, TLRPC.Message sentMessage, int newMsgId, String originalPath, boolean post) {
         TLRPC.Message newMsg = newMsgObj.messageOwner;

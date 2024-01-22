@@ -158,7 +158,7 @@ public class AiParametersActivity extends BaseFragment implements NotificationCe
                     for (Map.Entry<Integer, AiModelBean> entry : aiModelList.entrySet()){
                         if (entry.getValue().isShow) {
                             list.add(entry.getKey());
-                            charSequences[i] = entry.getValue().getName();
+                            charSequences[i] = entry.getValue().getTips();
                             i++;
                         }
                     }
@@ -506,7 +506,7 @@ public class AiParametersActivity extends BaseFragment implements NotificationCe
                                 = UserConfig.getInstance(currentAccount).aiModelList;
                         if (aiModelList != null && aiModelList.containsKey(aiModel)) {
                             AiModelBean aiModelBean = aiModelList.get(aiModel);
-                            selectValue = aiModelBean != null? aiModelBean.getName() : "";
+                            selectValue = aiModelBean != null? aiModelBean.getTips() : "";
                         } else {
                             selectValue = "";
                         }

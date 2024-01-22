@@ -3375,7 +3375,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     for (Map.Entry<Integer, AiModelBean> entry : aiModelList.entrySet()){
                         if (entry.getValue().isShow) {
                             list.add(entry.getKey());
-                            charSequences[i] = entry.getValue().getName();
+                            charSequences[i] = entry.getValue().getTips();
                             i++;
                         }
                     }
@@ -9695,7 +9695,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 selectValue = LocaleController.getString("CustomModel", R.string.CustomModel);
                             } else {
                                 AiModelBean bean = aiModelList.get(aiModel);
-                                selectValue = bean != null ? bean.getName() : "";
+                                selectValue = bean != null ? bean.getTips() : "";
                             }
                         } else {
                             selectValue = "";

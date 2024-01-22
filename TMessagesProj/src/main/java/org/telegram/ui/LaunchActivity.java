@@ -20,6 +20,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -182,6 +183,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -621,6 +623,24 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     drawerLayoutContainer.closeDrawer(false);
                 } else if (id == 15) {
                     showSelectStatusDialog();
+                } else if (id == 16) {
+                    // 给我发邮件
+                    try {
+                        PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager()
+                                .getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
+                        String version = String.format(Locale.US, "%s (%d)", pInfo.versionName,
+                                pInfo.versionCode);
+
+                        Intent mailer = new Intent(Intent.ACTION_SENDTO);
+                        mailer.setData(Uri.parse("mailto:"));
+                        mailer.putExtra(Intent.EXTRA_EMAIL, new String[]{"flyun50@gmail.com"});
+                        mailer.putExtra(Intent.EXTRA_SUBJECT, "Android ChatAir issue " + version);
+                        mailer.putExtra(Intent.EXTRA_TEXT, "App version: " + version + "\nOS version: SDK " + Build.VERSION.SDK_INT + "\nDevice Name: " + Build.MANUFACTURER + Build.MODEL + "\nLocale: " + Locale.getDefault());
+
+                        startActivity(Intent.createChooser(mailer, "Send email..."));
+                    } catch (Exception e) {
+                        AlertsCreator.showSimpleAlert(getLastFragment(), LocaleController.getString("NoMailInstalled", R.string.NoMailInstalled));
+                    }
                 } else if (id == 30) {
                     //点击进入聊天主题
                     presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_BASIC));

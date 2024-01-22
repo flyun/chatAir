@@ -469,7 +469,8 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
 
             for (int a = 0, N = sortedLanguages.size(); a < N; a++) {
                 LocaleController.LocaleInfo c = sortedLanguages.get(a);
-                if (c.name.toLowerCase().startsWith(query) || c.nameEnglish.toLowerCase().startsWith(query)) {
+                if (c.name.toLowerCase().startsWith(query) || c.nameEnglish.toLowerCase().contains(query)
+                || BuildVars.IS_CHAT_AIR && c.nameChinese.toLowerCase().contains(query)) {
                     resultArray.add(c);
                 }
             }

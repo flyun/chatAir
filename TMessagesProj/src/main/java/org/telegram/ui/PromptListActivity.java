@@ -277,65 +277,96 @@ class PromptListActivity extends BaseFragment {
 
         boolean isZh = "zh".equals(LocaleController.getInstance().getCurrentLocaleInfo().shortName);
 
-        if (isZh) internalPromptList.add(new PromptBean(
-                LocaleController.getString(R.string.ModelTranslationTitle),
-                LocaleController.getString(R.string.ModelTranslationDesc),
-                LocaleController.getString(R.string.ModelTranslationContent)));
+        if (isZh) {
+            internalPromptList.add(new PromptBean(
+                    1,
+                    LocaleController.getString(R.string.ModelTranslationTitle),
+                    LocaleController.getString(R.string.ModelTranslationDesc),
+                    LocaleController.getString(R.string.ModelTranslationContent)));
+            internalPromptList.add(new PromptBean(
+                    2,
+                    LocaleController.getString(R.string.PictureModelTranslationTitle),
+                    LocaleController.getString(R.string.PictureModelTranslationDesc),
+                    LocaleController.getString(R.string.PictureModelTranslationContent)));
+        }
 
         internalPromptList.add(new PromptBean(
+                101,
                 LocaleController.getString(R.string.WritingAssistantTitle),
                 LocaleController.getString(R.string.WritingAssistantDesc),
                 LocaleController.getString(R.string.WritingAssistantContent)
         ));
         internalPromptList.add(new PromptBean(
+                102,
                 LocaleController.getString(R.string.EmojiWritingTitle),
                 LocaleController.getString(R.string.EmojiWritingDesc),
                 LocaleController.getString(R.string.EmojiWritingContent)
         ));
         internalPromptList.add(new PromptBean(
+                103,
                 LocaleController.getString(R.string.ScademicianTitle),
                 LocaleController.getString(R.string.ScademicianDesc),
                 LocaleController.getString(R.string.ScademicianContent)
         ));
         internalPromptList.add(new PromptBean(
+                104,
                 LocaleController.getString(R.string.ThesisReplyTitle),
                 LocaleController.getString(R.string.ThesisReplyDesc),
                 LocaleController.getString(R.string.ThesisReplyContent)
         ));
         internalPromptList.add(new PromptBean(
+                105,
                 LocaleController.getString(R.string.EnglishTranslatorTitle),
                 LocaleController.getString(R.string.EnglishTranslatorDesc),
                 LocaleController.getString(R.string.EnglishTranslatorContent)
         ));
         internalPromptList.add(new PromptBean(
+                106,
                 LocaleController.getString(R.string.StackoverflowAnswerTitle),
                 LocaleController.getString(R.string.StackoverflowAnswerDesc),
                 LocaleController.getString(R.string.StackoverflowAnswerContent)
         ));
         internalPromptList.add(new PromptBean(
+                107,
                 LocaleController.getString(R.string.CodeAnythingNowTitle),
                 LocaleController.getString(R.string.CodeAnythingNowDesc),
                 LocaleController.getString(R.string.CodeAnythingNowContent)
         ));
         internalPromptList.add(new PromptBean(
+                108,
                 LocaleController.getString(R.string.CodeInterpreterTitle),
                 LocaleController.getString(R.string.CodeInterpreterDesc),
                 LocaleController.getString(R.string.CodeInterpreterContent)
         ));
         internalPromptList.add(new PromptBean(
+                109,
                 LocaleController.getString(R.string.SummaryTitle),
                 LocaleController.getString(R.string.SummaryDesc),
                 LocaleController.getString(R.string.SummaryContent)
         ));
         internalPromptList.add(new PromptBean(
+                110,
                 LocaleController.getString(R.string.AIAssistedDoctorTitle),
                 LocaleController.getString(R.string.AIAssistedDoctorDesc),
                 LocaleController.getString(R.string.AIAssistedDoctorContent)
         ));
         internalPromptList.add(new PromptBean(
+                111,
                 LocaleController.getString(R.string.AIPsychotherapyExperienceTitle),
                 LocaleController.getString(R.string.AIPsychotherapyExperienceDesc),
                 LocaleController.getString(R.string.AIPsychotherapyExperienceContent)
+        ));
+        internalPromptList.add(new PromptBean(
+                112,
+                LocaleController.getString(R.string.AILegalAdvisorTitle),
+                LocaleController.getString(R.string.AILegalAdvisorDesc),
+                LocaleController.getString(R.string.AILegalAdvisorContent)
+        ));
+        internalPromptList.add(new PromptBean(
+                113,
+                LocaleController.getString(R.string.DraftingContractsTitle),
+                LocaleController.getString(R.string.DraftingContractsDesc),
+                LocaleController.getString(R.string.DraftingContractsContent)
         ));
 
     }
@@ -352,6 +383,10 @@ class PromptListActivity extends BaseFragment {
         dialogUser.id = id;
         dialogUser.phone = String.valueOf(id);
         dialogUser.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT;
+        if (promptBean.getNum() == 2) {
+            dialogUser.flags2 |= MessagesController.UPDATE_MASK_CHAT_AIR_AI_MODEL;
+            dialogUser.aiModel = 10;
+        }
         dialogUser.prompt = promptBean.content;
 
         //写入内存

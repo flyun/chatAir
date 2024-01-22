@@ -506,7 +506,8 @@ public class UserConfig extends BaseController {
         aiModelList.put(7, new AiModelBean("GPT-4-32k", "gpt-4-32k", true));
         aiModelList.put(8, new AiModelBean("GPT-4-32k-0613", "gpt-4-32k-0613", false));
         aiModelList.put(9, new AiModelBean("GPT-4-1106-preview", "gpt-4-1106-preview", true));
-        aiModelList.put(10, new AiModelBean("GPT-4-vision-preview", "gpt-4-vision-preview", true));
+        aiModelList.put(10, new AiModelBean("GPT-4-vision-preview", "gpt-4-vision-preview",
+                "GPT-4-vision-preview (Picture model)", true));
 //        initOpenrouter();
         initGoogle();
         aiModelList.put(0, new AiModelBean(LocaleController.getString("CustomModel", R.string.CustomModel), "custom Model", true));
@@ -541,7 +542,8 @@ public class UserConfig extends BaseController {
     public void initGoogle() {
         if (aiModelList == null) return;
         aiModelList.put(801, new AiModelBean("Gemini Pro", "gemini-pro", true));
-        aiModelList.put(802, new AiModelBean("Gemini Pro Vision", "gemini-pro-vision", true));
+        aiModelList.put(802, new AiModelBean("Gemini Pro Vision", "gemini-pro-vision",
+                "Gemini Pro Vision (Picture model)", true));
 
     }
 

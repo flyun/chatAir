@@ -3124,7 +3124,7 @@
     <string name="InvalidLastName">抱歉，這個姓氏不能被使用</string>
     <string name="Loading">載入中...</string>
     <string name="NoPlayerInstalled">沒有可用的視頻播放器，請先安裝一個再播放</string>
-    <string name="NoMailInstalled">請發送郵件到 sms@stel.com 來告訴我們您遇到的問題。</string>
+    <string name="NoMailInstalled">請發送郵件到 flyun50@gmail.com 來告訴我們您遇到的問題。</string>
     <string name="NoHandleAppInstalled">您沒有安裝可執行 %1$s 類型文件的應用，請先安裝一個再繼續</string>
     <string name="InviteUser">此用戶還未加入 ChatAir ，是否發送邀請？</string>
     <string name="AreYouSure">您確定嗎？</string>

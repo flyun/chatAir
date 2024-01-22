@@ -103,8 +103,9 @@ public class LocaleController {
 
     public static class LocaleInfo {
 
-        public String name;
-        public String nameEnglish;
+        public String name;// 本土语言名称
+        public String nameEnglish;// 英语语言名称
+        public String nameChinese;// 中文语言名称
         public String shortName;// 自定义配置
         public String pathToFile;
         public String baseLangCode;
@@ -264,6 +265,7 @@ public class LocaleController {
         LocaleInfo localeInfo = new LocaleInfo();
         localeInfo.name = "English";
         localeInfo.nameEnglish = "English";
+        localeInfo.nameChinese = "英语";
         localeInfo.shortName = localeInfo.pluralLangCode = "en";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
@@ -273,6 +275,7 @@ public class LocaleController {
         localeInfo = new LocaleInfo();
         localeInfo.name = "Italiano";
         localeInfo.nameEnglish = "Italian";
+        localeInfo.nameChinese = "意大利语";
         localeInfo.shortName = localeInfo.pluralLangCode = "it";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
@@ -282,6 +285,7 @@ public class LocaleController {
         localeInfo = new LocaleInfo();
         localeInfo.name = "Español";
         localeInfo.nameEnglish = "Spanish";
+        localeInfo.nameChinese = "西班牙语";
         localeInfo.shortName = localeInfo.pluralLangCode = "es";
         localeInfo.builtIn = true;
         languages.add(localeInfo);
@@ -290,6 +294,7 @@ public class LocaleController {
         localeInfo = new LocaleInfo();
         localeInfo.name = "Deutsch";
         localeInfo.nameEnglish = "German";
+        localeInfo.nameChinese = "德语";
         localeInfo.shortName = localeInfo.pluralLangCode = "de";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
@@ -299,6 +304,7 @@ public class LocaleController {
         localeInfo = new LocaleInfo();
         localeInfo.name = "Nederlands";
         localeInfo.nameEnglish = "Dutch";
+        localeInfo.nameChinese = "荷兰语";
         localeInfo.shortName = localeInfo.pluralLangCode = "nl";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
@@ -308,6 +314,7 @@ public class LocaleController {
         localeInfo = new LocaleInfo();
         localeInfo.name = "العربية";
         localeInfo.nameEnglish = "Arabic";
+        localeInfo.nameChinese = "阿拉伯语";
         localeInfo.shortName = localeInfo.pluralLangCode = "ar";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
@@ -318,6 +325,7 @@ public class LocaleController {
         localeInfo = new LocaleInfo();
         localeInfo.name = "Português (Brasil)";
         localeInfo.nameEnglish = "Portuguese (Brazil)";
+        localeInfo.nameChinese = "葡萄牙语（巴西）";
         localeInfo.shortName = localeInfo.pluralLangCode = "pt_br";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
@@ -327,6 +335,7 @@ public class LocaleController {
         localeInfo = new LocaleInfo();
         localeInfo.name = "한국어";
         localeInfo.nameEnglish = "Korean";
+        localeInfo.nameChinese = "韩语";
         localeInfo.shortName = localeInfo.pluralLangCode = "ko";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
@@ -335,7 +344,8 @@ public class LocaleController {
 
         localeInfo = new LocaleInfo();
         localeInfo.name = "简体中文";
-        localeInfo.nameEnglish = "简体中文";
+        localeInfo.nameEnglish = "Simplified Chinese";
+        localeInfo.nameChinese = "简体中文";
         localeInfo.shortName = localeInfo.pluralLangCode = "zh";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
@@ -343,18 +353,19 @@ public class LocaleController {
         languagesDict.put(localeInfo.shortName, localeInfo);
 
         localeInfo = new LocaleInfo();
-        localeInfo.name = "台灣正體";
-        localeInfo.nameEnglish = "台灣正體";
+        localeInfo.name = "繁体中文(台灣)";
+        localeInfo.nameEnglish = "Traditional Chinese (Taiwan)";
+        localeInfo.nameChinese = "繁体中文（台湾）";
         localeInfo.shortName = localeInfo.pluralLangCode = "zh_tw";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
         languages.add(localeInfo);
         languagesDict.put(localeInfo.shortName, localeInfo);
 
-
         localeInfo = new LocaleInfo();
-        localeInfo.name = "繁体中文";
-        localeInfo.nameEnglish = "繁体(香港/澳门)";
+        localeInfo.name = "繁体中文(香港/澳门)";
+        localeInfo.nameEnglish = "Traditional Chinese (Hong Kong/Macau)";
+        localeInfo.nameChinese = "繁体中文（香港/澳门）";
         localeInfo.shortName = localeInfo.pluralLangCode = "zh_hk";
         localeInfo.pathToFile = null;
         localeInfo.builtIn = true;
