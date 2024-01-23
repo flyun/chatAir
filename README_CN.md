@@ -11,12 +11,12 @@
 ChatAir 是 OpenAI 和 Gemini 的原生客户端，提供比 ChatGPT 更流畅、更快速的聊天体验。
 
 <div align="left">
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/01.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/02.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/03.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/04.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/05.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/06.png" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/01.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/02.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/03.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/04.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/05.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/06.png" width ="260" />
 </div>
 
 ## 安装

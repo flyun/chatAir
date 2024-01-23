@@ -570,7 +570,7 @@ public class UserConfig extends BaseController {
 
     }
 
-    public String getAiModelReal(int aiModel) {
+    public String getAiModelReal(int aiModel, long userId) {
 
         String aiModelReal = "";
         LinkedHashMap<Integer, AiModelBean> aiModelList
@@ -579,7 +579,16 @@ public class UserConfig extends BaseController {
             if (aiModelList.containsKey(aiModel)) {
                 if (aiModel == 0) {
                     // 自定义model
-                    aiModelReal = UserConfig.getInstance(currentAccount).customModel;
+                    TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(userId);
+                    if (user != null && (user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_CUSTOM_MODEL) != 0) {
+                        // 聊天配置
+                        aiModelReal = user.customModel;
+                    } else {
+                        // 系统默认
+                        aiModelReal = UserConfig.getInstance(currentAccount).customModel;
+                    }
+
+
                 } else {
                     AiModelBean bean = aiModelList.get(aiModel);
                     if (bean != null) {
@@ -660,7 +669,7 @@ public class UserConfig extends BaseController {
 
         int aiModel = getUserAiModel(currentAccount, userId);
 
-        String aiModelReal = UserConfig.getInstance(currentAccount).getAiModelReal(aiModel);
+        String aiModelReal = UserConfig.getInstance(currentAccount).getAiModelReal(aiModel, userId);
 
         if (aiModelReal == null) return "";
 

@@ -35,6 +35,7 @@ public class MainGrammarLocator {
             case "h++":
                 return "cpp";
 
+            case "c#":
             case "cs":
             case "csx":
                 return "csharp";
@@ -66,6 +67,11 @@ public class MainGrammarLocator {
             case "svg":
                 return "markup";
 
+            case "objective-c":
+                return "objectiveC";
+            case "swift":
+                return "swift";
+
             case "py":
             case "pyi":
             case "pyc":
@@ -78,6 +84,12 @@ public class MainGrammarLocator {
             case "scala":
             case "sc":
                 return "scala";
+
+            case "sql":
+                return "sql";
+
+            case "json":
+                return "json";
 
             case "el":
             case "lisp":

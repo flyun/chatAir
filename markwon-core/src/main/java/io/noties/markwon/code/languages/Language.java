@@ -30,6 +30,10 @@ public abstract class Language {
                             new JsonLanguage(),
                             new CppLanguage(),
                             new CLanguage(),
+                            new CSharpLanguage(),
+                            new ObjectiveCLanguage(),
+                            new SwiftLanguage(),
+                            new SQLLanguage(),
                             new LispLanguage()
                     };
             for (Language l : languagesArray) {

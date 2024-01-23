@@ -5783,7 +5783,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 aiModel = UserConfig.getInstance(currentAccount).aiModel;
             }
 
-            aiModelReal = UserConfig.getInstance(currentAccount).getAiModelReal(aiModel);
+            aiModelReal = UserConfig.getInstance(currentAccount).getAiModelReal(aiModel, user.id);
 
             isGemini = UserConfig.getInstance(currentAccount).isJudgeByModelGemini(aiModel);
             isGeminiProVision = UserConfig.getInstance(currentAccount).isJudgeByModelGeminiProVision(aiModel);
@@ -5845,11 +5845,22 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                     streamMessages.clear();
 
+                    // 兼容one-api
+                    String OtherId =  "Other_" + SystemClock.elapsedRealtime();
+
                     openAiService.streamChatCompletion(chatCompletionRequest, new OpenAiService.StreamCallBack() {
                         @Override
                         public void onSuccess(ChatCompletionChunk result) {
 
-                            final String streamId = result.getId();
+                            final String streamId;
+
+
+                            if (TextUtils.isEmpty(result.getId())) {
+                                // 兼容one-api
+                                streamId =  OtherId;
+                            } else {
+                                streamId = result.getId();
+                            }
 
                             if (TextUtils.isEmpty(streamId) || result.getChoices().size() == 0)
                                 return;

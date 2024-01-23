@@ -501,6 +501,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     private boolean smoothKeyboard;
 
     private boolean isPaused = true;
+
+    // 是否显示流式响应暂停按钮
+    private boolean isHideStopStream = true;
     private boolean recordIsCanceled;
     private boolean showKeyboardOnResume;
 
@@ -5149,6 +5152,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     }
 
     private void sendMessage() {
+
+        if (BuildVars.IS_CHAT_AIR && !isHideStopStream && sendByEnter) return;
+
         if (isInScheduleMode()) {
             AlertsCreator.createScheduleDatePickerDialog(parentActivity, parentFragment.getDialogId(), this::sendMessageInternal, resourcesProvider);
         } else {
@@ -9427,9 +9433,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         } else if (id == NotificationCenter.didUpdatePremiumGiftFieldIcon) {
             updateGiftButton(true);
         } else if (id == NotificationCenter.updateSteam) {
-            boolean isShow = (boolean) args[0];
-            cancelStreamButton.setVisibility(isShow ? VISIBLE : GONE);
-            sendButtonContainer.setVisibility(!isShow ? VISIBLE : GONE);
+            boolean isShowStopStream = (boolean) args[0];
+            isHideStopStream = !isShowStopStream;
+            cancelStreamButton.setVisibility(isShowStopStream ? VISIBLE : GONE);
+            sendButtonContainer.setVisibility(!isShowStopStream ? VISIBLE : GONE);
         } else if (id == NotificationCenter.updateModel) {
             updateAttachInterface();
         }

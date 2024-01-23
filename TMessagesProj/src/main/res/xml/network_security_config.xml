@@ -3,6 +3,7 @@
 
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
+            <base-config cleartextTrafficPermitted="true" />
             <certificates
                 overridePins="true"
                 src="system" />

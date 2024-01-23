@@ -11,12 +11,12 @@
 ChatAir is a native client for OpenAI and Gemini, providing a smoother and faster chat experience than ChatGPT.
 
 <div align="left">
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/01.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/02.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/03.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/04.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/05.png" width ="160" />
-<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/06.png" width ="160" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/01.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/02.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/03.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/04.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/05.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/06.png" width ="260" />
 </div>
 
 ## Installation
