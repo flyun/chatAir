@@ -373,6 +373,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private RadialProgressView progressBar;
     private ActionBarMenuItem.Item addContactItem;
     private ActionBarMenuItem.Item clearHistoryItem;
+    private ActionBarMenuItem.Item changeUserAiParameters;
     private ActionBarMenuItem.Item viewAsTopics;
     private ActionBarMenuItem.Item closeTopicItem;
     private ActionBarMenuItem.Item openForumItem;
@@ -1298,6 +1299,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int share = 81;
     private final static int context_clear = 82;
     private final static int undo_context_clear = 83;
+    private final static int change_user_ai_parameters = 84;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -3058,8 +3060,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 .deleteMessages(arr, null, null, dialog_id, false, false, true, 0, null);
                         }
                     }
-                }
-                else if (id == text_bold) {
+                } else if (id == change_user_ai_parameters) {
+                    if (avatarContainer != null) {
+                        avatarContainer.openProfile(true);
+                    }
+                } else if (id == text_bold) {
                     if (chatActivityEnterView != null && chatActivityEnterView.getEditField() != null) {
                         chatActivityEnterView.getEditField().setSelectionOverride(editTextStart, editTextEnd);
                         chatActivityEnterView.getEditField().makeSelectedBold();
@@ -3413,6 +3418,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (currentChat != null && !isTopic) {
                 viewAsTopics = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString("TopicViewAsTopics", R.string.TopicViewAsTopics));
             }
+
+            if (BuildVars.IS_CHAT_AIR) {
+                changeUserAiParameters = headerItem.lazilyAddSubItem(change_user_ai_parameters, R.drawable.list_reorder, LocaleController.getString("ModifyPrompts", R.string.ModifyPrompts));
+            }
+
             if (!isTopic) {
                 clearHistoryItem = headerItem.lazilyAddSubItem(clear_history, !BuildVars.IS_CHAT_AIR ? R.drawable.msg_clear : R.drawable.msg_clear_input, LocaleController.getString("ClearHistory", R.string.ClearHistory));
             }

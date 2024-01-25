@@ -4191,6 +4191,7 @@
     <string name="CasualTalk">闲聊</string>
     <string name="promptListHeaderRow">提示</string>
     <string name="Prompts">提示</string>
+    <string name="ModifyPrompts">修改提示词</string>
     <string name="AddPrompt">添加提示</string>
     <string name="EmailMe">给我发邮件</string>
     <string name="FaqUrl">https://github.com/flyun/chatAir/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98</string>

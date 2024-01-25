@@ -3586,6 +3586,7 @@
     <string name="CasualTalk">Casual Talk</string>
     <string name="promptListHeaderRow">Prompts</string>
     <string name="Prompts">Prompts</string>
+    <string name="ModifyPrompts">Modify prompts</string>
     <string name="AddPrompt">Add Prompt</string>
     <string name="EmailMe">Email me</string>
     <string name="AskAQuestionUrl">https://github.com/flyun/chatAir/discussions</string>
