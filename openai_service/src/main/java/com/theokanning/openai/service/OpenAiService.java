@@ -419,6 +419,7 @@ public class OpenAiService {
                 .setType(MediaType.get("multipart/form-data"))
                 .addFormDataPart("prompt", request.getPrompt())
                 .addFormDataPart("size", request.getSize())
+                .addFormDataPart("model", request.getModel())
                 .addFormDataPart("response_format", request.getResponseFormat())
                 .addFormDataPart("image", "image", imageBody);
 
@@ -446,6 +447,7 @@ public class OpenAiService {
         MultipartBody.Builder builder = new MultipartBody.Builder()
                 .setType(MediaType.get("multipart/form-data"))
                 .addFormDataPart("size", request.getSize())
+                .addFormDataPart("model", request.getModel())
                 .addFormDataPart("response_format", request.getResponseFormat())
                 .addFormDataPart("image", "image", imageBody);
 

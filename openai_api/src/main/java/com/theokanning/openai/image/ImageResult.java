@@ -1,9 +1,8 @@
 package com.theokanning.openai.image;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
 import java.util.List;
+
+import lombok.Data;
 
 /**
  * An object with a list of image results.
