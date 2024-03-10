@@ -107,6 +107,7 @@ import com.android.internal.telephony.ITelephony;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
 import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.browser.Browser;
@@ -5018,6 +5019,31 @@ public class AndroidUtilities {
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         for (StackTraceElement element : stackTraceElements) {
             System.out.println(element);
+        }
+    }
+
+    // firebase 埋点
+    public static void logEvent(String name, String type) {
+        if (BuildVars.IS_EVENT) {
+
+            if (TextUtils.isEmpty(name)) return;
+
+            try {
+                Context app = ApplicationLoader.applicationContext;
+                if (app != null) {
+                    FirebaseAnalytics firebaseAnalytics = FirebaseAnalytics.getInstance(app);
+
+                    String str = name;
+                    if (!TextUtils.isEmpty(type)) str = str + "_" + type;
+                    Bundle params = new Bundle();
+                    params.putString("custom_name", name);
+                    if (!TextUtils.isEmpty(type)) params.putString("custom_type", type);
+                    firebaseAnalytics.logEvent(str, params);
+                }
+            } catch (Exception e) {
+
+            }
+
         }
     }
 }

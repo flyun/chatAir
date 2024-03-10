@@ -421,6 +421,8 @@ class PromptListActivity extends BaseFragment {
         args.putLong("user_id", dialogUser.id);
         isJump = true;
         presentFragment(new ChatActivity(args), true);
+
+        AndroidUtilities.logEvent("promptChat", String.valueOf(promptBean.num));
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

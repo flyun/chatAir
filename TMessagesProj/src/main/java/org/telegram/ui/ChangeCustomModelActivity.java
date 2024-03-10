@@ -200,6 +200,8 @@ class ChangeCustomModelActivity extends BaseFragment {
 
         }
 
+        AndroidUtilities.logEvent("saveCustomModel", "");
+
         finishFragment();
     }
 

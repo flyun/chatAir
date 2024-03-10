@@ -1079,5 +1079,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
             RestrictedLanguagesSelectActivity.checkRestrictedLanguages(true);
         }
+
+        AndroidUtilities.logEvent("register", "ChatGPT");
     }
 }

@@ -225,7 +225,7 @@ public class ApplicationLoader extends Application {
 
         //初始化推送
         ApplicationLoader app = (ApplicationLoader) ApplicationLoader.applicationContext;
-        app.initPushServices();
+        if(!BuildVars.IS_CHAT_AIR) app.initPushServices();
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("app initied");
         }

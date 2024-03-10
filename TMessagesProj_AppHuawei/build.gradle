@@ -12,7 +12,7 @@ configurations {
 }
 
 configurations.all {
-    exclude group: 'com.google.firebase', module: 'firebase-core'
+//    exclude group: 'com.google.firebase', module: 'firebase-core'
     exclude group: 'androidx.recyclerview', module: 'recyclerview'
 }
 
@@ -22,7 +22,7 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
     implementation files('../TMessagesProj/libs/libgsaverification-client.aar')
 
-    implementation 'com.google.firebase:firebase-messaging:22.0.0'
+//    implementation 'com.google.firebase:firebase-messaging:22.0.0'
     implementation 'com.huawei.hms:push:6.5.0.300'
     implementation 'com.huawei.hms:maps:6.6.0.300'
     implementation 'com.huawei.hms:location:6.4.0.300'
@@ -163,3 +163,4 @@ android {
 }
 
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'

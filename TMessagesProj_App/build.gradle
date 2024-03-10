@@ -10,7 +10,7 @@ configurations {
 }
 
 configurations.all {
-    exclude group: 'com.google.firebase', module: 'firebase-core'
+//    exclude group: 'com.google.firebase', module: 'firebase-core'
     exclude group: 'androidx.recyclerview', module: 'recyclerview'
 }
 
@@ -19,6 +19,7 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
     implementation files('../TMessagesProj/libs/libgsaverification-client.aar')
+
 }
 
 android {
@@ -202,3 +203,4 @@ android {
 }
 
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'

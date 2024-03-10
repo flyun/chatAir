@@ -27,6 +27,8 @@ public class BuildVars {
     public static boolean USE_CLOUD_STRINGS = !IS_CHAT_AIR;
     public static boolean CHECK_UPDATES = !IS_CHAT_AIR;
     public static boolean NO_SCOPED_STORAGE = Build.VERSION.SDK_INT <= 29;
+
+    public static boolean IS_EVENT = IS_CHAT_AIR && true;
     public static int BUILD_VERSION = 3213;
     public static String BUILD_VERSION_STRING = "9.5.3";
     public static int APP_ID = 4;

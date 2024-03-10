@@ -72,9 +72,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
-import com.google.firebase.appindexing.Action;
-import com.google.firebase.appindexing.FirebaseUserActions;
-import com.google.firebase.appindexing.builders.AssistActionBuilder;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
@@ -663,6 +660,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     drawerLayoutContainer.closeDrawer(false);
 
                 }
+                AndroidUtilities.logEvent("drawerLayout", String.valueOf(id));
             }
         });
         final ItemTouchHelper sideMenuTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
@@ -2622,15 +2620,15 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                 }
                             }
                         }
-                        if (intent.hasExtra(EXTRA_ACTION_TOKEN)) {
-                            final boolean success = UserConfig.getInstance(currentAccount).isClientActivated() && "tg".equals(scheme) && unsupportedUrl == null;
-                            final Action assistAction = new AssistActionBuilder()
-                                    .setActionToken(intent.getStringExtra(EXTRA_ACTION_TOKEN))
-                                    .setActionStatus(success ? Action.Builder.STATUS_TYPE_COMPLETED : Action.Builder.STATUS_TYPE_FAILED)
-                                    .build();
-                            FirebaseUserActions.getInstance(this).end(assistAction);
-                            intent.removeExtra(EXTRA_ACTION_TOKEN);
-                        }
+//                        if (intent.hasExtra(EXTRA_ACTION_TOKEN)) {
+//                            final boolean success = UserConfig.getInstance(currentAccount).isClientActivated() && "tg".equals(scheme) && unsupportedUrl == null;
+//                            final Action assistAction = new AssistActionBuilder()
+//                                    .setActionToken(intent.getStringExtra(EXTRA_ACTION_TOKEN))
+//                                    .setActionStatus(success ? Action.Builder.STATUS_TYPE_COMPLETED : Action.Builder.STATUS_TYPE_FAILED)
+//                                    .build();
+//                            FirebaseUserActions.getInstance(this).end(assistAction);
+//                            intent.removeExtra(EXTRA_ACTION_TOKEN);
+//                        }
                         if (code != null || UserConfig.getInstance(currentAccount).isClientActivated()) {
                             if (phone != null || phoneHash != null) {
                                 AlertDialog cancelDeleteProgressDialog = new AlertDialog(LaunchActivity.this, AlertDialog.ALERT_TYPE_SPINNER);

@@ -3954,6 +3954,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     args.putLong("user_id", dialogUser.id);
                     presentFragment(new ChatActivity(args));
 
+                    AndroidUtilities.logEvent("floatingButton", "casual_talk");
+
                 } else {
                     Bundle args = new Bundle();
                     args.putBoolean("destroyAfterSelect", true);
@@ -6729,6 +6731,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         }
                         //核心，打开聊天界面，通过目标顶栏启动目标
                         presentFragment(chatActivity);
+                        AndroidUtilities.logEvent("openChat", "default");
                     }
                 }
             }

@@ -3063,6 +3063,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 } else if (id == change_user_ai_parameters) {
                     if (avatarContainer != null) {
                         avatarContainer.openProfile(true);
+                        AndroidUtilities.logEvent("openProfile", "actionBar");
                     }
                 } else if (id == text_bold) {
                     if (chatActivityEnterView != null && chatActivityEnterView.getEditField() != null) {
@@ -3117,6 +3118,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 //                    bundle.putLong("chat_id", -dialog_id);
 //                    presentFragment(new TopicsFragment(bundle));
                 }
+                AndroidUtilities.logEvent("chatActivityActionBarItem", String.valueOf(id));
             }
         });
         View backButton = actionBar.getBackButton();
@@ -10487,6 +10489,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             String prompt = UserConfig.getUserAiPrompt(currentAccount, dialog_id);
             chatAttachAlert.getCommentTextView().setText(prompt);
+
+            AndroidUtilities.logEvent("openAttachMenu", "photoPicker");
         } else {
             chatAttachAlert.getCommentTextView().setText(chatActivityEnterView.getFieldText());
         }
@@ -27559,6 +27563,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (ChatObject.hasPublicLink(currentChat, username) || UserObject.hasPublicUsername(currentUser, username)) {
                     if (avatarContainer != null) {
                         avatarContainer.openProfile(false);
+                        AndroidUtilities.logEvent("openProfile", "avatar");
                     } else {
                         shakeContent();
                     }

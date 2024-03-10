@@ -8,6 +8,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
@@ -79,7 +80,7 @@ public class AiParametersActivity extends BaseFragment implements NotificationCe
         if (UserConfig.getInstance(currentAccount).aiModel == 0) {
             customModelRow = rowCount++;
         } else {
-            customModelRow = 0;
+            customModelRow = -1;
         }
         aiModelTipsRow = rowCount++;
         temperatureRow = rowCount++;
@@ -181,6 +182,8 @@ public class AiParametersActivity extends BaseFragment implements NotificationCe
 
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateModel, lastModel);
+
+                        AndroidUtilities.logEvent("changeAiModelUser", String.valueOf(lastModel));
                     });
                     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
                     showDialog(builder.create());
@@ -399,6 +402,7 @@ public class AiParametersActivity extends BaseFragment implements NotificationCe
                 }
             }
 
+            AndroidUtilities.logEvent("aiParamItemClick", String.valueOf(position));
         });
 
         return fragmentView;

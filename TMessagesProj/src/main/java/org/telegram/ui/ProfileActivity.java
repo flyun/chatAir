@@ -3406,6 +3406,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_USER_PRINT);
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateModel, lastModel);
+
+                        AndroidUtilities.logEvent("changeAiModelUser", String.valueOf(lastCustomModel));
                     });
                     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
                     showDialog(builder.create());
@@ -3668,6 +3670,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             } else {
                 processOnClickOrPress(position, view, x, y);
             }
+
+            AndroidUtilities.logEvent("profileItemClick", String.valueOf(position));
         });
 
         listView.setOnItemLongClickListener(new RecyclerListView.OnItemLongClickListener() {
