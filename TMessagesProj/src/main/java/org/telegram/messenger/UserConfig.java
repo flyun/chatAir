@@ -90,7 +90,7 @@ public class UserConfig extends BaseController {
 
     public LinkedHashMap<Integer, AiModelBean> aiModelList = new LinkedHashMap<>();
     public final static String defaultPrompt = "You are a helpful AI assistant.";
-    public final static int defaultAiModel = 1;
+    public final static int defaultAiModel = 15;
     public final static double defaultTemperature = 0.7;
     public final static int defaultContextLimit = 30;
     public final static int defaultTokenLimit = -100;
@@ -506,6 +506,7 @@ public class UserConfig extends BaseController {
         } else {
             aiModelList = new LinkedHashMap<>();
         }
+        aiModelList.put(15, new AiModelBean("GPT-4o mini", "gpt-4o-mini", true));
         aiModelList.put(1, new AiModelBean("GPT-3.5", "gpt-3.5-turbo", true));
         aiModelList.put(2, new AiModelBean("GPT-3.5-0613", "gpt-3.5-turbo-0613", false));
         aiModelList.put(3, new AiModelBean("GPT-3.5-16k", "gpt-3.5-turbo-16k", true));
