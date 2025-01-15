@@ -4536,6 +4536,7 @@
     <string name="promptListHeaderRow">프롬프트</string>
     <string name="Prompts">프롬프트</string>
     <string name="AddPrompt">프롬프트 추가</string>
+    <string name="RenderAdvancedMarkdown">고급 Markdown 렌더링</string>
     <!--chatAir End-->
 
 </resources>

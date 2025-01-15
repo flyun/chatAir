@@ -3594,6 +3594,7 @@
     <string name="EmailMe">Envoyez-moi un e-mail</string>
     <string name="AskAQuestionUrl">https://github.com/flyun/chatAir/discussions</string>
     <string name="FaqUrl">https://github.com/flyun/chatAir/wiki/Problème-courant</string>
+    <string name="RenderAdvancedMarkdown">Afficher le Markdown Avancé</string>
 
     <!--chatAir End-->
 

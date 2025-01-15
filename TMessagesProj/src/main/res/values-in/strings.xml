@@ -3601,6 +3601,7 @@
 <string name="EmailMe">Kirimkan email ke saya</string>
 <string name="AskAQuestionUrl">https://github.com/flyun/chatAir/diskusi</string>
 <string name="FaqUrl">https://github.com/flyun/chatAir/wiki/Masalah-umum</string>
+<string name="RenderAdvancedMarkdown">उन्नत मार्कडाउन रेंडर करें</string>
 
     <!--chatAir End-->
 

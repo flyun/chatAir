@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Renderer</title>
+
+    <!-- 引入 marked -->
+<!--    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>-->
+    <script src="marked.min.js"></script>
+    <!-- 引入 highlight.js -->
+<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai.css">-->
+    <link rel="stylesheet" href="monokai.css">
+<!--     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"> -->
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>-->
+    <script src="highlight.min.js"></script>
+
+    <!-- 代码块复制按钮 -->
+    <script src="highlightjs_copy.js"></script>
+    <link rel="stylesheet" href="highlightjs_copy.css" />
+    <!-- 添加语言支持 -->
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>-->
+    <script src="go.min.js"></script>
+    <!-- 引入 MathJax -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            },
+            options: {
+                skipHtmlTags: [
+                    'script', 'noscript', 'style', 'textarea', 'pre',
+                    'code', 'annotation', 'annotation-xml'
+                ],
+            }
+        };
+    </script>
+<!--    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>-->
+    <script src="tex-mml-chtml.js"></script>
+    <!-- 引入 Mermaid -->
+<!--    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>-->
+    <script src="mermaid.min.js"></script>
+    <style>
+        :root {
+            /* 定义一个 CSS 变量来存储基准字体大小，初始值设置为 16px */
+            --base-font-size: 16px;
+        }
+
+        body {
+            /* 使用 CSS 变量设置 body 的字体大小 */
+            font-size: var(--base-font-size);
+        }
+
+        table {
+            border-collapse: collapse;
+            /* 合并边框 */
+            width: 100%;
+            /* 设置宽度为100% */
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            /* 设置边框为1像素的黑色 */
+            padding: 8px;
+            /* 添加内边距 */
+            text-align: left;
+            /* 文本左对齐 */
+        }
+
+        th {
+            background-color: #f2f2f2;
+            /* 表头背景颜色 */
+        }
+
+        /* 代码块 */
+        code {
+            font-family: Consolas, Monaco, 'Courier New', monospace; /* 设置代码字体 */
+            font-size: 0.8em;
+        }
+
+        /* 夜间模式的 CSS 样式 */
+        body.night-mode {
+            /* 深色背景 */
+            background-color: #1e1e1e;
+            /* 浅色文字 */
+            color: #f0f0f0;
+        }
+
+        body.night-mode th {
+            background-color: #333;
+             color: #f0f0f0;
+        }
+
+        body.night-mode  td,
+        body.night-mode th{
+             border-color: #444;
+        }
+
+    </style>
+    <script>
+
+        // 获取 Android 传入的夜间模式状态
+        const isNightMode = AndroidInterface.getNightMode() === "true";
+
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: isNightMode === true ? 'dark' : 'default',
+        });
+
+        // 等待页面加载完成
+        window.onload = function () {
+
+            // 获取 Android 传入的字体大小，默认为 16
+            let androidFontSize = parseInt(AndroidInterface.getAndroidFontSize() || "16");
+
+            // 设置 CSS 变量，根据 Android 传入的字体大小来动态设置
+            document.documentElement.style.setProperty('--base-font-size', `${androidFontSize}px`);
+
+            // 从 Android 接口获取 Markdown 内容
+            const markdownContent = AndroidInterface.getMarkdownContent();
+            // 使用 marked 解析 Markdown
+            const parsedContent = marked.parse(markdownContent);
+            // 渲染解析后的 HTML 内容到页面
+            const contentElement = document.getElementById('content');
+            contentElement.innerHTML = parsedContent;
+
+            const bodyElement = document.querySelector('body');
+            // 根据夜间模式状态添加或移除 CSS 类
+            if (isNightMode) {
+                bodyElement.classList.add('night-mode');
+            } else {
+                bodyElement.classList.remove('night-mode');
+            }
+
+            // 使用 MathJax 渲染数学公式
+            MathJax.typeset();
+            // 初始化 Mermaid
+            mermaid.init(undefined, document.querySelectorAll('.language-mermaid'));
+
+            const copyButtonPlugin = new CopyButtonPlugin({
+                autohide: false, // 是否自动隐藏按钮
+                callback: (text, el) => {
+                    try {
+                        AndroidInterface.copy(text);
+                    } catch (error) {
+                        console.error("Error calling AndroidInterface.copy:", error);
+                    }
+                },
+                lang: "en",  // 按钮语言，默认为英文
+            });
+
+            hljs.addPlugin(copyButtonPlugin);
+
+            hljs.highlightAll();
+
+        };
+    </script>
+</head>
+
+<body>
+<div id="content"></div>
+</body>
+
+</html>

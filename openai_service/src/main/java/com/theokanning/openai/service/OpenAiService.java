@@ -1372,15 +1372,15 @@ public class OpenAiService {
         clearRequest();
         if (streamCallBack != null) {
             streamCallBack.onLoading(false);
-            streamCallBack.onCompletion();
+            if (streamCallBack != null) streamCallBack.onCompletion();
         }
         if (streamGCallBack != null) {
             streamGCallBack.onLoading(false);
-            streamGCallBack.onCompletion();
+            if (streamGCallBack != null) streamGCallBack.onCompletion();
         }
         if (streamACallBack != null) {
             streamACallBack.onLoading(false);
-            streamACallBack.onCompletion();
+            if (streamACallBack != null) streamACallBack.onCompletion();
         }
 
         if (resultCall != null) {

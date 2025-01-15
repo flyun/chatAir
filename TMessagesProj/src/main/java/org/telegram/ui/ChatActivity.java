@@ -969,6 +969,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int OPTION_HIDE_SPONSORED_MESSAGE = 31;
     private final static int OPTION_VIEW_IN_TOPIC = 32;
     private final static int OPTION_SHARE_CHAT = 51;
+
+    private final static int OPTION_RENDER_CHAT = 52;
     private final static int OPTION_SEND_NOW = 100;
     private final static int OPTION_EDIT_SCHEDULE_TIME = 102;
     private final static int OPTION_SPEED_PROMO = 103;
@@ -23891,6 +23893,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             }
 
                         }
+                        if (BuildVars.IS_CHAT_AIR && (message != null && !message.isOut())) {
+                            items.add(LocaleController.getString("RenderAdvancedMarkdown",
+                                    R.string.RenderAdvancedMarkdown));
+                            options.add(OPTION_RENDER_CHAT);
+                            icons.add(R.drawable.msg_photo_text);
+                        }
                         if (!isThreadChat() && chatMode != MODE_SCHEDULED && currentChat != null && (currentChat.has_link || message.hasReplies()) && currentChat.megagroup && message.canViewThread()) {
                             if (message.hasReplies()) {
                                 items.add(LocaleController.formatPluralString("ViewReplies", message.getRepliesCount()));
@@ -25827,6 +25835,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 //显示复制成功提示
                 undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                break;
+            }
+            case OPTION_RENDER_CHAT: {
+                Bundle args = new Bundle();
+                args.putString("message", selectedObject.messageOwner.message);
+                presentFragment(new RenderMarkdownActivity(args));
                 break;
             }
             case context_clear: {

@@ -1,0 +1,77 @@
+.hljs-copy-wrapper {
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+  }
+  .hljs-copy-container {
+    --hljs-theme-padding: 16px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transition: transform 200ms ease-out;
+  }
+
+  /* 代码块顶部 */
+  pre.hljs-copy-wrapper {
+    background-color: #262722;
+    padding-top: 1.2rem;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    overflow-wrap: break-all;
+  }
+
+  .hljs-copy-button {
+    position: relative;
+    margin: calc(var(--hljs-theme-padding) / 2);
+    width: auto;
+    height: calc(16px + var(--hljs-theme-padding));
+    font-size: 0.8125rem;
+    color: var(--hljs-theme-color);
+    /* 去掉边框 */
+    border: none;
+    /* 去掉背景色 */
+    background-color: transparent;
+    transition: background-color 200ms ease;
+    overflow: hidden;
+    padding: 0 0.5rem;
+    white-space: nowrap;
+  }
+
+  .hljs-copy-button:active {
+    /* 可以保留点击时的效果，但可以修改颜色 */
+    background-color: color-mix(in srgb, var(--hljs-theme-color), transparent 90%);
+  }
+  .hljs-copy-button[data-copied="true"] {
+    /* 使用透明背景 */
+    background-color: transparent;
+    width: auto;
+  }
+  
+  .hljs-copy-container[data-autohide="true"] {
+    transform: translateX(calc(100% + 1.125em));
+  }
+  
+  .hljs-copy-wrapper:focus-within .hljs-copy-container {
+    transition: none;
+    transform: translateX(0);
+  }
+  .hljs-copy-wrapper:hover .hljs-copy-container {
+    transform: translateX(0);
+  }
+  
+  @media (prefers-reduced-motion) {
+    .hljs-copy-button {
+      transition: none;
+    }
+  }
+  
+  /* visually-hidden */
+  .hljs-copy-alert {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }

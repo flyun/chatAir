@@ -4536,6 +4536,7 @@
     <string name="promptListHeaderRow">Aufforderungen</string>
     <string name="Prompts">Aufforderungen</string>
     <string name="AddPrompt">Aufforderung hinzufügen</string>
+    <string name="RenderAdvancedMarkdown">Erweitertes Markdown rendern</string>
 
     <!--chatAir End-->
 

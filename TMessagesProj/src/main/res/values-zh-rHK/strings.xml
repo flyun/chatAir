@@ -4479,5 +4479,6 @@
     <string name="promptListHeaderRow">提示</string>
     <string name="Prompts">提示</string>
     <string name="AddPrompt">添加提示</string>
+    <string name="RenderAdvancedMarkdown">渲染進階 Markdown</string>
     <!--chatAir End-->
 </resources>

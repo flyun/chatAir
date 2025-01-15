@@ -4536,5 +4536,6 @@
     <string name="promptListHeaderRow">Indicaciones</string>
     <string name="Prompts">Indicaciones</string>
     <string name="AddPrompt">Agregar indicación</string>
+    <string name="RenderAdvancedMarkdown">Renderizar Markdown Avanzado</string>
     <!--chatAir End-->
 </resources>

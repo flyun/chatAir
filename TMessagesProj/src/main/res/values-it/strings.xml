@@ -4536,6 +4536,7 @@
     <string name="promptListHeaderRow">Prompts</string>
     <string name="Prompts">Prompts</string>
     <string name="AddPrompt">Aggiungi prompt</string>
+    <string name="RenderAdvancedMarkdown">Renderizza Markdown avanzato</string>
     <!--chatAir End-->
 
 </resources>

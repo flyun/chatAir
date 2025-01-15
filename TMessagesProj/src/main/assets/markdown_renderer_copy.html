@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Renderer</title>
+    <script src="marked.min.js"></script>
+<!--     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>-->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                // 其他配置选项
+            },
+            options: {
+                skipHtmlTags: [
+                    'script', 'noscript', 'style', 'textarea', 'pre',
+                    'code', 'annotation', 'annotation-xml'
+                ],
+            }
+        };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+    <!-- 引入 highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- and it's easy to individually load additional languages -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+    <script>
+
+        mermaid.initialize({
+            startOnLoad: false,
+            "theme": 'dark',//default, forest, dark or neutral
+        });
+
+        // 初始化 marked 与 marked-highlight
+<!--        const renderer = new marked.Renderer();-->
+<!--        marked.use({-->
+<!--            renderer,-->
+<!--            highlight: function (code, lang) {-->
+<!--                // 使用 highlight.js 进行代码高亮-->
+<!--                if (lang && hljs.getLanguage(lang)) {-->
+<!--                    return hljs.highlight(code, { language: lang }).value;-->
+<!--                }-->
+<!--                return hljs.highlightAuto(code).value; // 自动检测语言-->
+<!--            }-->
+<!--        });-->
+
+        // 等待页面加载完成
+        window.onload = function () {
+            // 从 Android 接口获取 Markdown 内容
+            const markdownContent = AndroidInterface.getMarkdownContent();
+
+            // 使用 marked 解析 Markdown
+            const parsedContent = marked.parse(markdownContent);
+            // 渲染解析后的 HTML 内容到页面
+            const contentElement = document.getElementById('content');
+            contentElement.innerHTML = parsedContent;
+            // 使用 MathJax 渲染数学公式
+            MathJax.typeset();
+            // 初始化 Mermaid
+            mermaid.run({
+                querySelector: '.language-mermaid',
+            });
+            // 手动渲染代码块（只渲染 <pre><code> 的内容）
+            const codeBlocks = document.querySelectorAll('pre code'); // 选择所有代码块
+            codeBlocks.forEach((block) => {
+                hljs.highlightElement(block); // 使用 highlight.js 渲染
+            });
+        };
+    </script>
+</head>
+<body>
+<div id="content"></div>
+</body>
+</html>

@@ -4208,6 +4208,7 @@
     <string name="ChangeMoreModel">显示模型列表</string>
     <string name="DisableTabletMode">禁用平板模式</string>
     <string name="TapOnThePencil">点击铅笔开始新的聊天</string>
+    <string name="RenderAdvancedMarkdown">渲染高级Markdown</string>
     <!--chatAir End-->
 
     <!--Prompt Start-->

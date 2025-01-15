@@ -3587,6 +3587,7 @@
     <string name="EmailMe">メールを送信する</string>
     <string name="AskAQuestionUrl">https://github.com/flyun/chatAir/discussions</string>
     <string name="FaqUrl">https://github.com/flyun/chatAir/wiki/Common-problem</string>
+    <string name="RenderAdvancedMarkdown">高度なMarkdownをレンダリング</string>
 
     <!--chatAir End-->
 

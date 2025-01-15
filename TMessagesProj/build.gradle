@@ -79,7 +79,7 @@ dependencies {
 def isWindows = String.valueOf(DefaultNativePlatform.currentOperatingSystem.toFamilyName() == OperatingSystemFamily.WINDOWS)
 android {
     compileSdkVersion 34
-    buildToolsVersion '33.0.0'
+    buildToolsVersion '34.0.0'
     ndkVersion "21.4.7075529"
 
     sourceSets.main.jniLibs.srcDirs = ['./jni/']

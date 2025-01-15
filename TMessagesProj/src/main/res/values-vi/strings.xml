@@ -6494,4 +6494,5 @@
     <string name="AccDescrLiteBatteryLevelAnnounce">%s%%</string>
     <string name="AccDescrRateTranscriptionUp">Tăng tốc độ</string>
     <string name="AccDescrRateTranscriptionDown">Giảm giá</string>
+    <string name="RenderAdvancedMarkdown">Kết xuất Markdown Nâng cao</string>
 </resources>
