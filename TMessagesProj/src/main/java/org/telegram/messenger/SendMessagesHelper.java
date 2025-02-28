@@ -9159,9 +9159,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
     // 处理上下文
     public ArrayList<TLRPC.Message> handleContextMessage(ArrayList<MessageObject> messages,
-                                                         long dialog_id) {
+                                                         long dialogId, boolean isIncludeGroup) {
         ArrayList<TLRPC.Message> messageOwners = new ArrayList<>();
-        TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(dialog_id);
+        TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(dialogId);
 
         if (user == null || messages == null) return messageOwners;
 
@@ -9200,11 +9200,22 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     i++;
                 }
                 if (i > contextLimit) break;
-                messageOwners.add(messageObject.messageOwner);
+                if (isIncludeGroup) {
+                    messageOwners.add(messageObject.messageOwner);
+                } else {
+                    if (isChunkImgFianl) {
+                        messageOwners.add(messageObject.messageOwner);
+                    }
+                }
             }
         }
 
         return messageOwners;
+    }
+
+    public ArrayList<TLRPC.Message> handleContextMessage(ArrayList<MessageObject> messages,
+                                                         long dialogId) {
+        return handleContextMessage(messages, dialogId, true);
     }
 
     // 处理组图片，将组图片移除，只保留已经处理过的组图片

@@ -905,7 +905,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 
                     ArrayList<TLRPC.Message> messageOwners
                             = SendMessagesHelper.getInstance(currentAccount)
-                            .handleContextMessage(messages, parentFragment.getDialogId());
+                            .handleContextMessage(messages, parentFragment.getDialogId(), false);
 
                     for (TLRPC.Message messageOwner : messageOwners) {
                         if (messageOwner != null) {
