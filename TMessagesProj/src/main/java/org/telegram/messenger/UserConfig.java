@@ -35,6 +35,8 @@ public class UserConfig extends BaseController {
 
     public final static String IMAGE_TRANSCODE = "base64";
 
+    public final static String IMAGE_TRANSCODE_list = "base64List";
+
     private final Object sync = new Object();
     private volatile boolean configLoaded;
     private TLRPC.User currentUser;

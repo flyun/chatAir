@@ -40,6 +40,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.ConnectionsManager;
@@ -902,50 +903,22 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 
                 if (messages != null && !messages.isEmpty()) {
 
-                    for (MessageObject message : messages) {
+                    ArrayList<TLRPC.Message> messageOwners
+                            = SendMessagesHelper.getInstance(currentAccount)
+                            .handleContextMessage(messages, parentFragment.getDialogId());
 
-                        if (message != null) {
+                    for (TLRPC.Message messageOwner : messageOwners) {
+                        if (messageOwner != null) {
+                            tempContextNum++;
 
-                            if (message.type == 10 && message.messageOwner.action
-                                    instanceof TLRPC.TL_messageActionClearContext) {
-                                break;
+                            //todo 如果删掉聊天中间的一部分，会造成token不准
+                            if (tempTokens == 0) {
+                                tempTokens = messageOwner.promptTokens + messageOwner.completionTokens;
                             }
 
-                            if (message.type == 0){
-                                if (tempContextNum >= contextLimit) break;
-                                tempContextNum++;
-
-                                //todo 如果删掉聊天中间的一部分，会造成token不准
-                                if (tempTokens == 0) {
-                                    tempTokens = message.messageOwner.promptTokens + message.messageOwner.completionTokens;
-                                }
-
-                                tempWords = tempWords
-                                        + message.messageText.length();
-                            }
+                            tempWords = tempWords + messageOwner.message.length();
                         }
                     }
-
-                    //数据变动则更新
-//                    if (contextNum != tempContextNum || tokens != tempTokens || words != tempWords) {
-//                        ArrayList<TLRPC.Update> arrayList = new ArrayList<>();
-//
-//                        TLRPC.TL_updateUserStatus userStatus = new TLRPC.TL_updateUserStatus();
-//
-//                        userStatus.user_id = user.id;
-//                        userStatus.disableFree = user.disableFree;
-//                        userStatus.networkType = user.networkType;
-//                        userStatus.status =new TLRPC.TL_userStatusChatAir();
-//                        userStatus.status.expires = user.status.expires;
-//                        userStatus.status.contextNum = contextNum;
-//                        userStatus.status.tokens = tokens;
-//                        userStatus.status.words = words;
-//
-//                        arrayList.add(userStatus);
-//
-//                        parentFragment.getMessagesController().processUpdateArray(arrayList, null, null, false, 0);
-//
-//                    }
                 }
 
                 boolean switchSubtitleContent = UserConfig.getInstance(currentAccount).switchSubtitleContent;

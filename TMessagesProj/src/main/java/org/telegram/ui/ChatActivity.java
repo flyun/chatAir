@@ -10467,7 +10467,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else {
 
             if (BuildVars.IS_CHAT_AIR) {
-                chatAttachAlert.setMaxSelectedPhotos(1, true);
+                chatAttachAlert.setMaxSelectedPhotos(6, true);
 
             } else {
                 chatAttachAlert.setMaxSelectedPhotos(-1, true);
