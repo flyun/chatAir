@@ -55,6 +55,12 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
     private int apiKeyClaudeSectionRow;
     private int apiServerClaudeHeaderRow;
     private int apiServerClaudeRow;
+    private int deepseekSectionRow;
+    private int apiKeyDeepseekHeaderRow;
+    private int apiKeyDeepseekRow;
+    private int apiKeyDeepseekSectionRow;
+    private int apiServerDeepseekHeaderRow;
+    private int apiServerDeepseekRow;
 
     private int rowCount = 0;
 
@@ -62,6 +68,8 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
     public boolean onFragmentCreate() {
 
         getNotificationCenter().addObserver(this, NotificationCenter.updateInterfaces);
+        getNotificationCenter().addObserver(this, NotificationCenter.updateDeepseekApiKey);
+        getNotificationCenter().addObserver(this, NotificationCenter.updateDeepseekApiServer);
 
         apiKeyHeaderRow = rowCount++;
         apiKeyRow = rowCount++;
@@ -87,6 +95,15 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
 
         apiServerClaudeHeaderRow = rowCount++;
         apiServerClaudeRow = rowCount++;
+
+        deepseekSectionRow = rowCount++;
+
+        apiKeyDeepseekHeaderRow = rowCount++;
+        apiKeyDeepseekRow = rowCount++;
+        apiKeyDeepseekSectionRow = rowCount++;
+
+        apiServerDeepseekHeaderRow = rowCount++;
+        apiServerDeepseekRow = rowCount++;
         return super.onFragmentCreate();
     }
 
@@ -153,6 +170,12 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
             } else if (position == apiServerClaudeRow){
                 presentFragment(new ChangeClaudeApiServerActivity(getResourceProvider()));
                 AndroidUtilities.logEvent("ChangeClaudeApiServer", "");
+            } else if (position == apiKeyDeepseekRow) {
+                presentFragment(new ChangeDeepseekApiKeyActivity(getResourceProvider()));
+                AndroidUtilities.logEvent("ChangeDeepseekApiKey", "");
+            } else if (position == apiServerDeepseekRow){
+                presentFragment(new ChangeDeepseekApiServerActivity(getResourceProvider()));
+                AndroidUtilities.logEvent("ChangeDeepseekApiServer", "");
             }
 
         });
@@ -227,6 +250,10 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
                         headerCell.setText(LocaleController.getString("ApiKeyClaude", R.string.ApiKeyClaude));
                     } else if (position == apiServerClaudeHeaderRow) {
                         headerCell.setText(LocaleController.getString("ApiServerClaude", R.string.ApiServerClaude));
+                    } else if (position == apiKeyDeepseekHeaderRow) {
+                        headerCell.setText(LocaleController.getString("ApiKeyDeepseek", R.string.ApiKeyDeepseek));
+                    } else if (position == apiServerDeepseekHeaderRow) {
+                        headerCell.setText(LocaleController.getString("ApiServerDeepseek", R.string.ApiServerDeepseek));
                     }
                     break;
                 }
@@ -262,6 +289,14 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
                         settingsCell.setTextAndValue(
                                 UserConfig.getInstance(currentAccount).apiServerClaude,
                                 LocaleController.getString("ApiServerTips", R.string.ApiServerTips), false);
+                    } else if (position == apiKeyDeepseekRow) {
+                        settingsCell.setTextAndValue(
+                                LocaleController.formatApiKey(UserConfig.getInstance(currentAccount).apiKeyDeepseek),
+                                LocaleController.getString("ApiKeyTips", R.string.ApiKeyTips), false);
+                    } else if (position == apiServerDeepseekRow){
+                        settingsCell.setTextAndValue(
+                                UserConfig.getInstance(currentAccount).apiServerDeepseek,
+                                LocaleController.getString("ApiServerTips", R.string.ApiServerTips), false);
                     }
                 }
             }
@@ -272,11 +307,13 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
             if (position == apiKeyHeaderRow || position == apiServerHeaderRow
                     || position == apiKeyGoogleHeaderRow || position == apiServerGoogleHeaderRow
                     || position == apiKeyClaudeHeaderRow || position == apiServerClaudeHeaderRow
+                    || position == apiKeyDeepseekHeaderRow || position == apiServerDeepseekHeaderRow
             ) {
                 return VIEW_TYPE_HEADER;
             } else if (position == apiKeyRow || position == apiServerRow
                     || position == apiKeyGoogleRow || position == apiServerGoogleRow
                     || position == apiKeyClaudeRow || position == apiServerClaudeRow
+                    || position == apiKeyDeepseekRow || position == apiServerDeepseekRow
             ){
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == apiKeySectionRow || position == apiKeyGoogleSectionRow
@@ -284,6 +321,9 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
                 return VIEW_TYPE_SHADOW;
             } else if (position == apiKeySectionRow || position == apiKeyClaudeSectionRow
                     || position == claudeSectionRow){
+                return VIEW_TYPE_SHADOW;
+            } else if (position == apiKeySectionRow || position == apiKeyDeepseekSectionRow
+                    || position == deepseekSectionRow){
                 return VIEW_TYPE_SHADOW;
             } else {
                 return 0;
@@ -308,6 +348,10 @@ public class ServerSettingActivity extends BaseFragment implements NotificationC
             } else if ((mask & MessagesController.UPDATE_MASK_CLAUDE_API_SERVER) != 0) {
                 if (adapter != null) adapter.notifyItemChanged(apiServerClaudeRow);
             }
+        } else if ((id == NotificationCenter.updateDeepseekApiKey)) {
+            if (adapter != null) adapter.notifyItemChanged(apiKeyDeepseekRow);
+        } else if ((id == NotificationCenter.updateDeepseekApiServer)) {
+            if (adapter != null) adapter.notifyItemChanged(apiServerDeepseekRow);
         }
     }
 

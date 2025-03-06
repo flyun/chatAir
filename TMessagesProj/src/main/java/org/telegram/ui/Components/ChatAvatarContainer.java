@@ -916,7 +916,10 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                                 tempTokens = messageOwner.promptTokens + messageOwner.completionTokens;
                             }
 
-                            tempWords = tempWords + messageOwner.message.length();
+                            if (messageOwner.message != null) {
+                                // todo 是否deepseek计算思考的字数
+                                tempWords = tempWords + messageOwner.message.length();
+                            }
                         }
                     }
                 }

@@ -48093,6 +48093,7 @@ public class TLRPC {
         public boolean chat_air;
         public long promptTokens;
         public long completionTokens;
+        public String reasoningMessage;
 
         public static Updates TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             Updates result = null;
@@ -59996,6 +59997,7 @@ public class TLRPC {
         public boolean chat_air;
         public long promptTokens;
         public long completionTokens;
+        public String reasoningMessage;
 
         public static Message TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             Message result = null;
@@ -60887,6 +60889,7 @@ public class TLRPC {
             if (BuildVars.IS_CHAT_AIR && ((flags & 268435456) != 0)) {
                 promptTokens = stream.readInt64(exception);
                 completionTokens = stream.readInt64(exception);
+                reasoningMessage = stream.readString(exception);
             }
         }
 
@@ -60972,6 +60975,7 @@ public class TLRPC {
 
                 stream.writeInt64(promptTokens);
                 stream.writeInt64(completionTokens);
+                stream.writeString(reasoningMessage);
             }
 
             writeAttachPath(stream);

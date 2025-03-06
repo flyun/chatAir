@@ -128,6 +128,7 @@ import java.util.concurrent.TimeUnit;
 import androidx.annotation.UiThread;
 import androidx.collection.LongSparseArray;
 import androidx.core.view.inputmethod.InputContentInfoCompat;
+import retrofit2.HttpException;
 
 //服务器发送类
 public class SendMessagesHelper extends BaseController implements NotificationCenter.NotificationCenterDelegate {
@@ -154,6 +155,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     private OpenAiService openAiService;
     private final ConcurrentHashMap<String, TLRPC.Message> streamMessages = new ConcurrentHashMap<>();
     private volatile boolean isRequesting = false;
+    private static volatile boolean isMessageGenerateStatus = false;
 
     public static boolean checkUpdateStickersOrder(CharSequence text) {
         if (text instanceof Spannable) {
@@ -859,6 +861,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.fileLoadFailed);
             getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.updateInterfaces);
             getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.cancelRequest);
+            getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.updateDeepseekApiKey);
+            getNotificationCenter().addObserver(SendMessagesHelper.this, NotificationCenter.updateDeepseekApiServer);
 
             if (BuildVars.IS_CHAT_AIR) {
                 //初始化openAi
@@ -866,6 +870,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         = UserConfig.getInstance(currentAccount).isDefaultGeminiProVision();
                 boolean isClaude
                         = UserConfig.getInstance(currentAccount).isDefaultClaude();
+                boolean isDeepseek
+                        = UserConfig.getInstance(currentAccount).isDefaultDeepseek();
 
                 String token;
                 String apiServer;
@@ -880,6 +886,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     token = UserConfig.getInstance(currentAccount).apiKeyClaude;
                     apiServer = UserConfig.getInstance(currentAccount).apiServerClaude;
                     llmType = LLMType.anthropic;
+                } else if(isDeepseek) {
+                    token = UserConfig.getInstance(currentAccount).apiKeyDeepseek;
+                    apiServer = UserConfig.getInstance(currentAccount).apiServerDeepseek;
+                    llmType = LLMType.deepseek;
                 } else {
                     token = UserConfig.getInstance(currentAccount).apiKey;
                     apiServer = UserConfig.getInstance(currentAccount).apiServer;
@@ -1338,7 +1348,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             UserConfig.getInstance(currentAccount).apiKeyGoogle);
                 }
             } else if ((mask & MessagesController.UPDATE_MASK_CLAUDE_API_KEY) != 0) {
-                // 更新Google apiKey
+                // 更新 Claude apiKey
                 if (openAiService != null) {
                     openAiService.resetTokenLLMType();
                     openAiService.changeMatchTokenClaude(UserConfig.getInstance(currentAccount).apiKeyClaude,
@@ -1346,12 +1356,26 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 }
 
             } else if ((mask & MessagesController.UPDATE_MASK_CLAUDE_API_SERVER) != 0) {
-                // 更新普通Google aiService
+                // 更新 Claude aiService
                 if (openAiService != null) {
                     openAiService.resetUrlLLMType();
                     openAiService.changeMatchServerClaude(UserConfig.getInstance(currentAccount).apiServerClaude,
                             UserConfig.getInstance(currentAccount).apiKeyClaude);
                 }
+            }
+        } else if (id == NotificationCenter.updateDeepseekApiKey) {
+            // 更新 Deeepseek apiKey
+            if (openAiService != null) {
+                openAiService.resetTokenLLMType();
+                openAiService.changeMatchTokenDeepseek(UserConfig.getInstance(currentAccount).apiKeyDeepseek,
+                        UserConfig.getInstance(currentAccount).apiServerDeepseek);
+            }
+        } else if (id == NotificationCenter.updateDeepseekApiServer) {
+            // 更新 Deeepseek aiService
+            if (openAiService != null) {
+                openAiService.resetUrlLLMType();
+                openAiService.changeMatchServerDeepseek(UserConfig.getInstance(currentAccount).apiServerDeepseek,
+                        UserConfig.getInstance(currentAccount).apiKeyDeepseek);
             }
         } else if (id == NotificationCenter.cancelRequest) {
 
@@ -5919,6 +5943,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             boolean isClaude;
             boolean isOpenAIVision;
 
+            boolean isDeepseek;
+
             if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_PROMPT) != 0
                     && !TextUtils.isEmpty(user.prompt)) {
                 prompt = user.prompt;
@@ -5943,6 +5969,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             isClaude = UserConfig.getInstance(currentAccount).isJudgeByModelClaude(aiModel);
             isOpenAIVision = UserConfig.getInstance(currentAccount).isJudgeByModelOpenAIVision(aiModel);
 
+            isDeepseek = UserConfig.getInstance(currentAccount).isJudgeByModelDeepseek(aiModel);
+
             if ((user.flags2 & MessagesController.UPDATE_MASK_CHAT_AIR_AI_TEMPERATURE) != 0
                     && user.flags2 != -1) {
                 temperature = user.temperature;
@@ -5965,6 +5993,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             } else if (isClaude) {
                 sendMessageClaude(aiModelReal, prompt, temperature, tokenLimit, originalPath,
                         false, msgObj, newMsgObj);
+            } else if (isDeepseek) {
+                sendMessageDeepseek(aiModelReal, prompt, temperature, tokenLimit, aiModel, user,
+                        msgObj, newMsgObj);
             } else {
                 sendMessageOpenAI(aiModelReal, prompt, temperature, tokenLimit, aiModel, user,
                         msgObj, newMsgObj);
@@ -6671,8 +6702,32 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     private void sendMessageOpenAI(String aiModelReal, final String prompt, Double temperature,
                                    int tokenLimit, int aiModel, TLRPC.User user,
                                    final MessageObject msgObj, TLRPC.Message newMsgObj) {
-        openAiService.switchDefault(UserConfig.getInstance(currentAccount).apiKey,
-                UserConfig.getInstance(currentAccount).apiServer);
+        statisticsModel("sendMessageOpenAI", aiModelReal);
+        sendMessageCommon(aiModelReal, prompt, temperature, tokenLimit, aiModel, user,
+                msgObj, newMsgObj, LLMType.openAi);
+    }
+
+    private void sendMessageDeepseek(String aiModelReal, final String prompt, Double temperature,
+                                   int tokenLimit, int aiModel, TLRPC.User user,
+                                   final MessageObject msgObj, TLRPC.Message newMsgObj) {
+        statisticsModel("sendMessageDeepseek", aiModelReal);
+        sendMessageCommon(aiModelReal, prompt, temperature, tokenLimit, aiModel, user,
+                msgObj, newMsgObj, LLMType.deepseek);
+    }
+
+    private void sendMessageCommon(String aiModelReal, final String prompt, Double temperature,
+                                   int tokenLimit, int aiModel, TLRPC.User user,
+                                   final MessageObject msgObj, TLRPC.Message newMsgObj, LLMType type) {
+        switch (type) {
+            case openAi:
+                openAiService.switchDefault(UserConfig.getInstance(currentAccount).apiKey,
+                        UserConfig.getInstance(currentAccount).apiServer);
+                break;
+            case deepseek:
+                openAiService.switchDeepseek(UserConfig.getInstance(currentAccount).apiKeyDeepseek,
+                        UserConfig.getInstance(currentAccount).apiServerDeepseek);
+                break;
+        }
 
         ChatCompletionRequest chatCompletionRequest;
 
@@ -6747,7 +6802,6 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         return;
                     }
 
-
                     if (!streamMessages.containsKey(streamId)) {
                         //未找到，创建新消息
                         TLRPC.TL_updateShortMessage message = new TLRPC.TL_updateShortMessage();
@@ -6756,10 +6810,24 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 //                                        : (int) (System.currentTimeMillis() / 1000);
                         message.date = (int) (System.currentTimeMillis() / 1000);
 
-                        if (completionChoice.getMessage() == null
-                                || completionChoice.getMessage().getContent() == null) return;
                         message.id = getUserConfig().getNewMessageId();
-                        message.message = completionChoice.getMessage().getContent();
+
+                        if (completionChoice.getMessage() == null) return;
+
+                        String reasoningContent = completionChoice.getMessage().getReasoningContent();
+                        String content = completionChoice.getMessage().getContent();
+
+                        if (reasoningContent != null) {
+                            message.reasoningMessage = reasoningContent;
+                            message.message = generateRandomMessage();
+                        } else if (content != null){
+                            message.message = content;
+                        }
+
+                        if (message.message == null) {
+                            message.message = "";
+                        }
+
                         message.out = false;
                         message.pts = getMessagesStorage().getLastPtsValue() + 1;
                         message.pts_count = 1;
@@ -6768,6 +6836,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                         TLRPC.Message temp = new TLRPC.Message();
                         temp.id = message.id;
+                        if (reasoningContent != null) {
+                            temp.reasoningMessage = reasoningContent;
+                        }
                         temp.message = message.message;
                         temp.out = message.out;
                         temp.date = message.date;
@@ -6790,15 +6861,37 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         TLRPC.Message tempMessage = streamMessages.get(streamId);
                         if (tempMessage == null) return;
 
+                        if (completionChoice.getMessage() == null) return;
+
+                        String reasoningContent = completionChoice.getMessage().getReasoningContent();
+                        String content = completionChoice.getMessage().getContent();
+
                         TLRPC.Message message = new TLRPC.TL_message();
 
+                        if (reasoningContent != null && tempMessage.reasoningMessage != null) {
+                            message.reasoningMessage = tempMessage.reasoningMessage + reasoningContent;
+                        } else if (content != null && tempMessage.message != null){
+                            message.message = tempMessage.message + content;
+                        }
+
+                        if (message.message == null) {
+                            if (message.reasoningMessage != null) {
+                                message.message = generateRandomMessage();
+                            } else {
+                                message.message = "";
+                            }
+                        }
+
                         message.id = tempMessage.id;
-                        message.message = tempMessage.message + completionChoice.getMessage().getContent();
                         message.out = tempMessage.out;
                         message.silent = tempMessage.silent;
                         message.dialog_id = tempMessage.dialog_id;
+                        message.chat_air = true;
 
                         tempMessage.message = message.message;
+                        if (message.reasoningMessage != null && !message.reasoningMessage.isEmpty()) {
+                            tempMessage.reasoningMessage = message.reasoningMessage;
+                        }
                         streamMessages.put(streamId, tempMessage);
 
                         MessageObject messageObject
@@ -6904,7 +6997,22 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                                     message.id = getUserConfig().getNewMessageId();
                                     if (completionChoice.getMessage() == null) return;
-                                    message.message = completionChoice.getMessage().getContent();
+
+                                    String reasoningContent = completionChoice.getMessage()
+                                            .getReasoningContent();
+                                    String content = completionChoice.getMessage().getContent();
+
+                                    if (reasoningContent != null) {
+                                        message.reasoningMessage = reasoningContent;
+                                    }
+                                    if (content != null){
+                                        message.message = content;
+                                    }
+
+                                    if (message.message == null) {
+                                        message.message = "";
+                                    }
+
                                     message.out = false;
                                     message.pts = getMessagesStorage().getLastPtsValue() + 1;
                                     message.pts_count = 1;
@@ -6981,10 +7089,60 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
     }
 
+    // 解决消息内容更新
+    public static String generateRandomMessage() {
+
+        StringBuilder sb = new StringBuilder();
+
+        if (isMessageGenerateStatus) {
+            isMessageGenerateStatus = false;
+            sb.append(" ");
+        } else {
+            isMessageGenerateStatus = true;
+            sb.append(" ");
+            sb.append(" ");
+        }
+
+        return sb.toString();
+    }
+
+    public static String getReasoningMessageContent(String reasoningContent, String message,
+                                                    boolean renderMarkdown) {
+        String content = message;
+
+        if (content == null) {
+            content = "";
+        }
+
+        if (reasoningContent != null && !reasoningContent.isEmpty()) {
+
+            String head = "\n\n\n> ";
+            String foot = "\n\n\n";
+            if (renderMarkdown) {
+                // 处理思考消息换行
+                if (reasoningContent.contains("\n\n")) {
+                    reasoningContent = reasoningContent.replaceAll("\n+", "\n> \n> ");
+                }
+                content = head + reasoningContent + foot + content;
+            } else {
+                if (content.isEmpty() || content.isBlank()) {
+                    content = reasoningContent;
+                } else {
+                    content = reasoningContent + foot + content;
+                }
+            }
+
+        }
+
+        return content;
+
+    }
+
     private void sendMessageGoogle(String aiModelReal, final String prompt, Double temperature,
                                    int tokenLimit, String originalPath, boolean isGeminiProVision,
                                    final MessageObject msgObj, TLRPC.Message newMsgObj) {
 
+        statisticsModel("sendMessageGoogle", aiModelReal);
         openAiService.switchGoogle(UserConfig.getInstance(currentAccount).apiKeyGoogle,
                 UserConfig.getInstance(currentAccount).apiServerGoogle);
 
@@ -7343,6 +7501,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     private void sendMessageClaude(String aiModelReal, final String prompt, Double temperature,
                                    int tokenLimit, String originalPath, boolean isClaudeProVision,
                                    final MessageObject msgObj, TLRPC.Message newMsgObj) {
+
+        statisticsModel("sendMessageClaude", aiModelReal);
         openAiService.switchClaude(UserConfig.getInstance(currentAccount).apiKeyClaude,
                 UserConfig.getInstance(currentAccount).apiServerClaude);
 
@@ -7618,6 +7778,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         }
                     });
         }
+    }
+
+
+    private void statisticsModel(String method, String model) {
+        AndroidUtilities.logEvent(method, model);
     }
 
     private String getGeminiError(String errorMessage) {
@@ -10542,9 +10707,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         } catch (Exception e) {
         }
 
-        if(throwable instanceof retrofit2.HttpException
-                && ((retrofit2.HttpException) throwable).response() != null) {
-            response = ((retrofit2.HttpException) throwable).response().toString();
+        if(throwable instanceof HttpException
+                && ((HttpException) throwable).response() != null) {
+            response = ((HttpException) throwable).response().toString();
         }
 
         return throwable.getMessage() + "\n\n" + response + "\n\n" + version;

@@ -85,6 +85,8 @@ public class ResponseBodyCallback implements Callback<ResponseBody> {
                     sse = null;
                 } else if (line.equals(": OPENROUTER PROCESSING") || line.equals("")) {
                     //OpenRouter 正在处理请求
+                } else if (line.equals(": keep-alive")) {
+                    //Deepseek 正在处理请求
                 } else  {
                     throw new SSEFormatException("Invalid sse format! " + line);
                 }

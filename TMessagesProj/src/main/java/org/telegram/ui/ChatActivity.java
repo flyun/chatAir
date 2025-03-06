@@ -20250,6 +20250,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (messageObject.messageOwner.id == message.id) {
 
                     messageObject.messageOwner.message = message.message;
+                    if(message.reasoningMessage != null) {
+                        messageObject.messageOwner.reasoningMessage = message.reasoningMessage;
+                    }
                     messageObject.forceUpdate = true;
 
                     //更新内存
@@ -25691,7 +25694,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         } else if (messageObject.caption != null) {
             str.append(messageObject.caption);
         } else {
-            str.append(messageObject.messageText);
+            if(messageObject.messageOwner != null
+                    && MessageObject.isReasoningMessage(messageObject.messageOwner.reasoningMessage)) {
+                // todo 考虑渲染markdown后，重新使用markdown渲染，保持与下方格式一致
+                str.append(messageObject.messageOwner.message);
+            } else {
+                str.append(messageObject.messageText);
+            }
         }
         return str;
     }

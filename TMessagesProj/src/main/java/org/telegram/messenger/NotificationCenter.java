@@ -285,6 +285,9 @@ public class NotificationCenter {
     public static final int updateSteam = totalEvents++;
     public static final int updateModel = totalEvents++;
 
+    public static final int updateDeepseekApiKey = totalEvents++;
+    public static final int updateDeepseekApiServer = totalEvents++;
+
     public static boolean alreadyLogged;
 
     private SparseArray<ArrayList<NotificationCenterDelegate>> observers = new SparseArray<>();

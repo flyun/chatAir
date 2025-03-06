@@ -158,6 +158,12 @@ public class OpenAiService {
         checkLLMServer(url, LLMType.anthropic);
     }
 
+    public void switchDeepseek(String token, String url) {
+
+        checkLLMToken(token, LLMType.deepseek);
+        checkLLMServer(url, LLMType.deepseek);
+    }
+
     public void changeMatchToken(String token, String url) {
 
         checkMatchToken(token, url, LLMType.openAi);
@@ -188,6 +194,16 @@ public class OpenAiService {
     public void changeMatchServerClaude(String url, String token) {
 
         checkMatchToken(token, url, LLMType.anthropic);
+    }
+
+    public void changeMatchTokenDeepseek(String token, String url) {
+
+        checkMatchToken(token, url, LLMType.deepseek);
+    }
+
+    public void changeMatchServerDeepseek(String url, String token) {
+
+        checkMatchToken(token, url, LLMType.deepseek);
     }
 
     public void checkLLMToken(String token, LLMType llmType) {
@@ -1447,6 +1463,7 @@ public class OpenAiService {
 
         switch (llmType) {
             case openAi:
+            case deepseek:
                 tempHashMap = processOpenAIPrefixUrl(url);
                 break;
             case google:

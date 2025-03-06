@@ -5444,12 +5444,14 @@ public class MessageObject {
         //替换markdown样式
         if (BuildVars.IS_CHAT_AIR && UserConfig.getInstance(currentAccount).renderMarkdown) {
             //处理旋转导致messageText.toString()获取的为markdown已经处理文本格式
-            if (TextUtils.isEmpty(tempMessage)
-                    || (messageOwner.message != null && messageOwner.message.length() != messageLength)) {
-                tempMessage = messageText.toString();
-                messageLength = messageOwner.message.length();
-            }
+
+            processMessage(true);
+
             messageText = replaceMarkdown(tempMessage, this.messageOwner);
+        } else if (messageOwner.reasoningMessage != null && !(messageOwner.reasoningMessage.isEmpty())) {
+            // 处理思考
+            processMessage(false);
+            messageText = tempMessage;
         }
 
         StaticLayout textLayout;
@@ -5698,6 +5700,57 @@ public class MessageObject {
 
             linesOffset += currentBlockLinesCount;
         }
+    }
+
+    private void processMessage(boolean renderMarkdown) {
+
+        if (isReasoningMessage(messageOwner.reasoningMessage)
+                && !isAutoHideReasoningMessage(messageOwner)) {
+            // 渲染思考以及正文
+
+            int count = 0;
+
+            if (messageOwner.message != null) {
+                count += messageOwner.message.length();
+            }
+            count += messageOwner.reasoningMessage.length();
+
+            if (TextUtils.isEmpty(tempMessage) || count != messageLength) {
+
+                tempMessage = SendMessagesHelper.getReasoningMessageContent(
+                        messageOwner.reasoningMessage, messageOwner.message, renderMarkdown);
+                messageLength = count;
+            }
+
+        } else {
+            // 渲染正文
+            if (TextUtils.isEmpty(tempMessage) || messageOwner.message != null && messageOwner.message.length() != messageLength) {
+                tempMessage = messageText.toString();
+                messageLength = messageOwner.message.length();
+            }
+        }
+    }
+
+    public static Boolean isReasoningMessage(String reasoningMessage) {
+        return reasoningMessage != null
+                && !reasoningMessage.isEmpty()
+                && !reasoningMessage.isBlank();
+    }
+
+    private Boolean isAutoHideReasoningMessage(TLRPC.Message messageOwner) {
+        boolean isHideReasoning = UserConfig.getInstance(currentAccount).isHideReasoning;
+
+        if (isHideReasoning) {
+            if (messageOwner == null) return false;
+            if (isReasoningMessage(messageOwner.reasoningMessage)) {
+                String message = messageOwner.message;
+                if (!message.isEmpty() && !message.isBlank()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private Markwon getMarkdwon() {

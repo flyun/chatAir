@@ -1,5 +1,7 @@
 package com.theokanning.openai.completion.chat;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,5 +27,7 @@ public class ChatMessage {
 	 */
 	String role;
 	String content;
+	@JsonProperty("reasoning_content")
+	String reasoningContent;
 
 }

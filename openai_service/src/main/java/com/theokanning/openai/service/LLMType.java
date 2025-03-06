@@ -8,5 +8,6 @@ public enum LLMType {
  openAi,
  google,
  anthropic,
+ deepseek,
  unKnow,
 }

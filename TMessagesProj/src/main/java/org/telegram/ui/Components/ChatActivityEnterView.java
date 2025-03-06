@@ -9408,7 +9408,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             isHideStopStream = !isShowStopStream;
             cancelStreamButton.setVisibility(isShowStopStream ? VISIBLE : GONE);
             sendButtonContainer.setVisibility(!isShowStopStream ? VISIBLE : GONE);
-            if (!UserConfig.getInstance(currentAccount).isOldAgreement) {
+            if (UserConfig.isSupportImageModel(currentAccount, dialog_id)) {
                 attachButton.setVisibility(!isShowStopStream ? VISIBLE : GONE);
             }
         } else if (id == NotificationCenter.updateModel) {

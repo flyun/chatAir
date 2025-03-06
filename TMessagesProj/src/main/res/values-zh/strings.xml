@@ -4192,6 +4192,7 @@
     <string name="SwitchSubtitleContent">切换副标题内容</string>
     <string name="SwitchSubtitleContentTips">切换副标题的字数内容或者模型内容</string>
     <string name="HideToolbar">隐藏聊天标题栏</string>
+    <string name="HideReasoning">自动隐藏DeepSeek推理</string>
     <string name="CustomModel">自定义模型</string>
     <string name="ChangeCustomModel">更改自定义模型</string>
     <string name="CasualTalk">闲聊</string>
@@ -4205,6 +4206,7 @@
     <string name="ChangeApiServerTips">符合OpenAI协议，可配置自定义Server。输入聊天请求接口网址，会自动匹配自定义Server。\n\nOpenAI可配置 https://api.openai.com/v1/chat/completions/ 或者 https://api.openai.com/</string>
     <string name="ChangeApiServerMoreInfoUrl">https://github.com/flyun/chatAir/wiki/%E9%85%8D%E7%BD%AE%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%99%E7%A8%8B</string>
     <string name="ChangeClaudeApiServerTips">符合Claude协议，可配置自定义Server。输入聊天请求接口网址，会自动匹配自定义Server。\n\nClaude可配置 https://api.anthropic.com/v1/ 或者 https://api.anthropic.com/</string>
+    <string name="ChangeDeepseekApiServerTips">符合DeepSeek协议，可配置自定义Server。输入聊天请求接口网址，会自动匹配自定义Server。\n\nDeepSeek可配置 https://api.deepseek.com/v1/chat/completions/ 或者 https://api.deepseek.com/</string>
     <string name="ChangeMoreModel">显示模型列表</string>
     <string name="DisableTabletMode">禁用平板模式</string>
     <string name="TapOnThePencil">点击铅笔开始新的聊天</string>

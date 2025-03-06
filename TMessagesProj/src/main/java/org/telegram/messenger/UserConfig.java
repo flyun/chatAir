@@ -110,11 +110,14 @@ public class UserConfig extends BaseController {
 
     public final static boolean defaultHideToolbar = false;
 
+    public final static boolean defaultHideReasoning = false;
+
     public final static int defaultUserId = 2000;
 
     public final static String defaultApiServer = "https://api.openai.com/";
     public final static String defaultApiServerGoogle = "https://generativelanguage.googleapis.com/";
     public final static String defaultApiServerClaude = "https://api.claude.ai/";
+    public final static String defaultApiServerDeepseek = "https://api.deepseek.com/";
 
     public int aiModel = defaultAiModel;
     public double temperature = defaultTemperature;
@@ -125,6 +128,7 @@ public class UserConfig extends BaseController {
     public boolean isGeminiSafe = defaultGeminiSafe;
 
     public boolean isHideToolbar = defaultHideToolbar;
+    public boolean isHideReasoning = defaultHideReasoning;
 
     public String apiKey;
     public String apiServer = defaultApiServer;
@@ -134,6 +138,9 @@ public class UserConfig extends BaseController {
 
     public String apiKeyClaude;
     public String apiServerClaude = defaultApiServerClaude;
+
+    public String apiKeyDeepseek;
+    public String apiServerDeepseek = defaultApiServerDeepseek;
 
     public boolean streamResponses = defaultStreamResponses;
     public boolean renderMarkdown = defaultRenderMarkdown;
@@ -282,6 +289,8 @@ public class UserConfig extends BaseController {
                         editor.putString("apiServerGoogle", apiServerGoogle);
                         editor.putString("apiKeyClaude", apiKeyClaude);
                         editor.putString("apiServerClaude", apiServerClaude);
+                        editor.putString("apiKeyDeepseek", apiKeyDeepseek);
+                        editor.putString("apiServerDeepseek", apiServerDeepseek);
                         editor.putBoolean("streamResponses", streamResponses);
                         editor.putBoolean("renderMarkdown", renderMarkdown);
                         editor.putBoolean("autoHideKeyboard", autoHideKeyboard);
@@ -289,6 +298,7 @@ public class UserConfig extends BaseController {
                         editor.putBoolean("oldAgreement", isOldAgreement);
                         editor.putBoolean("geminiSafe", isGeminiSafe);
                         editor.putBoolean("hideToolbar", isHideToolbar);
+                        editor.putBoolean("hideReasoning", isHideReasoning);
                     }
 
                     if (unacceptedTermsOfService != null) {
@@ -503,12 +513,16 @@ public class UserConfig extends BaseController {
                 autoHideKeyboard = preferences.getBoolean("autoHideKeyboard", defaultAutoHideKeyboard);
                 switchSubtitleContent = preferences.getBoolean("switchSubtitleContent", defaultSwitchSubtitleContent);
                 isHideToolbar = preferences.getBoolean("hideToolbar", defaultHideToolbar);
+                isHideReasoning = preferences.getBoolean("hideRreasoning", defaultHideReasoning);
 
                 apiKeyGoogle = preferences.getString("apiKeyGoogle", "");
                 apiServerGoogle = preferences.getString("apiServerGoogle", defaultApiServerGoogle);
 
                 apiKeyClaude = preferences.getString("apiKeyClaude", "");
                 apiServerClaude = preferences.getString("apiServerClaude", defaultApiServerClaude);
+
+                apiKeyDeepseek = preferences.getString("apiKeyDeepseek", "");
+                apiServerClaude = preferences.getString("apiServerClaude", defaultApiServerDeepseek);
             }
 
             configLoaded = true;
@@ -524,24 +538,27 @@ public class UserConfig extends BaseController {
         }
         aiModelList.put(15, new AiModelBean("GPT-4o mini", "gpt-4o-mini", true));
         aiModelList.put(13, new AiModelBean("GPT-4o", "gpt-4o", true));
-        aiModelList.put(17, new AiModelBean("GPT-4o-0806", "gpt-4o-2024-08-06", true));
-        aiModelList.put(18, new AiModelBean("GPT-4o-0513", "gpt-4o-2024-05-13", true));
+        aiModelList.put(17, new AiModelBean("GPT-4o-0806", "gpt-4o-2024-08-06", false));
+        aiModelList.put(18, new AiModelBean("GPT-4o-0513", "gpt-4o-2024-05-13", false));
+        aiModelList.put(25, new AiModelBean("GPT-4.5 preview", "gpt-4.5-preview-2025-02-27", true));
+        aiModelList.put(24, new AiModelBean("o3-mini", "o3-mini-2025-01-31", true));
+        aiModelList.put(23, new AiModelBean("o1", "o1", true));
         aiModelList.put(19, new AiModelBean("o1 mini", "o1-mini", true));
         aiModelList.put(20, new AiModelBean("o1 preview", "o1-preview", true));
         aiModelList.put(21, new AiModelBean("o1 mini-2024-09-12", "o1-mini-2024-09-12", true));
         aiModelList.put(22, new AiModelBean("o1 preview-2024-09-12", "o1-preview-2024-09-12", true));
         aiModelList.put(1, new AiModelBean("GPT-3.5", "gpt-3.5-turbo", true));
         aiModelList.put(2, new AiModelBean("GPT-3.5-0613", "gpt-3.5-turbo-0613", false));
-        aiModelList.put(3, new AiModelBean("GPT-3.5-16k", "gpt-3.5-turbo-16k", true));
+        aiModelList.put(3, new AiModelBean("GPT-3.5-16k", "gpt-3.5-turbo-16k", false));
         aiModelList.put(4, new AiModelBean("GPT-3.5-16k-0613", "gpt-3.5-turbo-16k-0613", false));
-        aiModelList.put(12, new AiModelBean("GPT-3.5-0125", "gpt-3.5-turbo-0125", true));
+        aiModelList.put(12, new AiModelBean("GPT-3.5-0125", "gpt-3.5-turbo-0125", false));
         aiModelList.put(5, new AiModelBean("GPT-4", "gpt-4", true));
         aiModelList.put(16, new AiModelBean("GPT-4 Trubo", "gpt-4-turbo", true));
         aiModelList.put(6, new AiModelBean("GPT-4-0613", "gpt-4-0613", false));
         aiModelList.put(7, new AiModelBean("GPT-4-32k", "gpt-4-32k", true));
         aiModelList.put(8, new AiModelBean("GPT-4-32k-0613", "gpt-4-32k-0613", false));
         aiModelList.put(9, new AiModelBean("GPT-4-1106-preview", "gpt-4-1106-preview", false));
-        aiModelList.put(11, new AiModelBean("GPT-4-0125-preview", "gpt-4-0125-preview", true));
+        aiModelList.put(11, new AiModelBean("GPT-4-0125-preview", "gpt-4-0125-preview", false));
         aiModelList.put(10, new AiModelBean("GPT-4-vision-preview", "gpt-4-vision-preview",
                 "GPT-4-vision-preview (Picture model)", false));
         aiModelList.put(14, new AiModelBean("GPT-4o-Picture", "gpt-4o",
@@ -549,6 +566,7 @@ public class UserConfig extends BaseController {
 //        initOpenrouter();
         initGoogle();
         initClaude();
+        initDeepseek();
         aiModelList.put(0, new AiModelBean(LocaleController.getString("CustomModel", R.string.CustomModel), "custom Model", true));
 
     }
@@ -580,17 +598,20 @@ public class UserConfig extends BaseController {
     // https://ai.google.dev/models/gemini
     public void initGoogle() {
         if (aiModelList == null) return;
+        aiModelList.put(815, new AiModelBean("Gemini 2.0 Flash", "gemini-2.0-flash-001", true));
+        aiModelList.put(816, new AiModelBean("Gemini 2.0 Flash lite", "gemini-2.0-flash-lite-001", true));
+        aiModelList.put(814, new AiModelBean("Gemini 2.0 Flash exp", "gemini-2.0-flash-exp", true));
+        aiModelList.put(817, new AiModelBean("Gemini 2.0 Pro exp-0205", "gemini-2.0-pro-exp-02-05", true));
         aiModelList.put(803, new AiModelBean("Gemini Pro 1.5", "gemini-1.5-pro-latest", true));
         aiModelList.put(811, new AiModelBean("Gemini Pro 1.5 002", "gemini-1.5-pro-002", true));
-        aiModelList.put(814, new AiModelBean("Gemini 2.0 Flash exp", "gemini-2.0-flash-exp", true));
+        aiModelList.put(807, new AiModelBean("Gemini Pro 1.5 exp-0827", "gemini-1.5-pro-exp-0827", false));
+        aiModelList.put(808, new AiModelBean("Gemini Pro 1.5 exp-0801", "gemini-1.5-pro-exp-0801", false));
         aiModelList.put(804, new AiModelBean("Gemini 1.5 Flash", "gemini-1.5-flash-latest", true));
         aiModelList.put(812, new AiModelBean("Gemini 1.5 Flash 002", "gemini-1.5-flash-002", true));
-        aiModelList.put(801, new AiModelBean("Gemini Pro 1.0", "gemini-pro", true));
-        aiModelList.put(807, new AiModelBean("Gemini Pro 1.5 exp-0827", "gemini-1.5-pro-exp-0827", true));
-        aiModelList.put(808, new AiModelBean("Gemini Pro 1.5 exp-0801", "gemini-1.5-pro-exp-0801", true));
-        aiModelList.put(809, new AiModelBean("Gemini 1.5 Flash exp-0827", "gemini-1.5-flash-exp-0827", true));
-        aiModelList.put(813, new AiModelBean("Gemini 1.5 Flash 8b exp-0924", "gemini-1.5-flash-8b-exp-0924", true));
-        aiModelList.put(810, new AiModelBean("Gemini 1.5 Flash 8b exp-0827", "gemini-1.5-flash-8b-exp-0827", true));
+        aiModelList.put(801, new AiModelBean("Gemini Pro 1.0", "gemini-pro", false));
+        aiModelList.put(809, new AiModelBean("Gemini 1.5 Flash exp-0827", "gemini-1.5-flash-exp-0827", false));
+        aiModelList.put(813, new AiModelBean("Gemini 1.5 Flash 8b exp-0924", "gemini-1.5-flash-8b-exp-0924", false));
+        aiModelList.put(810, new AiModelBean("Gemini 1.5 Flash 8b exp-0827", "gemini-1.5-flash-8b-exp-0827", false));
         aiModelList.put(802, new AiModelBean("Gemini Pro false", "gemini-pro-vision",
                 "Gemini Pro Vision (Picture model)", false));
         aiModelList.put(805, new AiModelBean("Gemini Pro 1.5 Picture", "gemini-1.5-pro-latest",
@@ -609,6 +630,17 @@ public class UserConfig extends BaseController {
         aiModelList.put(903, new AiModelBean("Claude 3 sonnet", "claude-3-sonnet-20240229",
                 true));
         aiModelList.put(904, new AiModelBean("Claude 3.5 sonnet", "claude-3-5-sonnet-20240620",
+                true));
+        aiModelList.put(905, new AiModelBean("Claude 3.7 sonnet", "claude-3-7-sonnet-20250219",
+                true));
+
+    }
+
+    public void initDeepseek() {
+        if (aiModelList == null) return;
+        aiModelList.put(501, new AiModelBean("DeepSeek V3", "deepseek-chat",
+                true));
+        aiModelList.put(502, new AiModelBean("DeepSeek reasoner", "deepseek-reasoner",
                 true));
 
     }
@@ -632,6 +664,9 @@ public class UserConfig extends BaseController {
                 || model.equals("gemini-1.5-flash-002")
                 || model.equals("gemini-1.5-flash-8b-exp-0924")
                 || model.equals("gemini-2.0-flash-exp")
+                || model.equals("gemini-2.0-flash-001")
+                || model.equals("gemini-2.0-flash-lite-001")
+                || model.equals("gemini-2.0-pro-exp-02-05")
         )) {
             return "v1beta";
         }
@@ -710,6 +745,14 @@ public class UserConfig extends BaseController {
         return isClaudeProVision;
 
     }
+    public boolean isDefaultDeepseek() {
+
+        int aiModel = UserConfig.getInstance(currentAccount).aiModel;
+        boolean isDeepseekProVision = UserConfig.getInstance(currentAccount).isJudgeByModelDeepseek(aiModel);
+
+        return isDeepseekProVision;
+
+    }
 
     public boolean isDefaultVision() {
 
@@ -783,6 +826,15 @@ public class UserConfig extends BaseController {
         if (aiModel == 902) return true;
         if (aiModel == 903) return true;
         if (aiModel == 904) return true;
+        if (aiModel == 905) return true;
+
+        return false;
+    }
+
+    public static boolean isJudgeByModelDeepseek(int aiModel) {
+
+        if (aiModel == 501) return true;
+        if (aiModel == 502) return true;
 
         return false;
     }
@@ -810,6 +862,9 @@ public class UserConfig extends BaseController {
         if (aiModel == 812) return true;
         if (aiModel == 813) return true;
         if (aiModel == 814) return true;
+        if (aiModel == 815) return true;
+        if (aiModel == 816) return true;
+        if (aiModel == 817) return true;
 
         return false;
     }
@@ -832,6 +887,8 @@ public class UserConfig extends BaseController {
         if (aiModel == 20) return true;
         if (aiModel == 21) return true;
         if (aiModel == 22) return true;
+        if (aiModel == 23) return true;
+        if (aiModel == 24) return true;
 
         return false;
     }
@@ -856,7 +913,8 @@ public class UserConfig extends BaseController {
     public static boolean isSupportImageModel(int currentAccount, long userId) {
 
         int aiModel = getUserAiModel(currentAccount, userId);
-        return isMultiCompletionRequest(currentAccount, userId) && !isJudgeByModelO(aiModel);
+        return isMultiCompletionRequest(currentAccount, userId)
+                && !isJudgeByModelO(aiModel) && !isJudgeByModelDeepseek(aiModel);
     }
 
     public static boolean isMultiCompletionRequest(int currentAccount, long userId) {
@@ -871,6 +929,7 @@ public class UserConfig extends BaseController {
             || aiModel == 16
             || aiModel == 17
             || aiModel == 18
+            || aiModel == 25
         ) {
             if(UserConfig.getInstance(currentAccount).isOldAgreement) return false;
             return true;
@@ -890,6 +949,9 @@ public class UserConfig extends BaseController {
                 || aiModel == 812
                 || aiModel == 813
                 || aiModel == 814
+                || aiModel == 815
+                || aiModel == 816
+                || aiModel == 817
         ) return true;
 
         // Claude
@@ -897,7 +959,13 @@ public class UserConfig extends BaseController {
                 || aiModel == 902
                 || aiModel == 903
                 || aiModel == 904
+                || aiModel == 905
         ) return true;
+
+        // Deepseek
+        if (aiModel == 501
+                || aiModel == 502
+        ) return false;
 
         // Custom model
         if (aiModel == 0) {
@@ -1087,12 +1155,15 @@ public class UserConfig extends BaseController {
             isOldAgreement = defaultOldAgreement;
             isGeminiSafe = defaultGeminiSafe;
             isHideToolbar = defaultHideToolbar;
+            isHideReasoning = defaultHideReasoning;
             apiKey = "";
             apiServer = defaultApiServer;
             apiKeyGoogle = "";
             apiServerGoogle = defaultApiServerGoogle;
             apiKeyClaude = "";
             apiServerClaude = defaultApiServerClaude;
+            apiKeyDeepseek = "";
+            apiServerDeepseek = defaultApiServerDeepseek;
         }
 
         if (!hasActivated) {

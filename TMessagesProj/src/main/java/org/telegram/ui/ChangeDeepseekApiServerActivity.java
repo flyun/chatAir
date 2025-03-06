@@ -27,7 +27,6 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -41,9 +40,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by flyun on 2023/7/15.
+ * Created by flyun on 2025/3/3.
  */
-public class ChangeApiServerActivity extends BaseFragment {
+class ChangeDeepseekApiServerActivity extends BaseFragment {
 
     private EditTextBoldCursor firstNameField;
     private View doneButton;
@@ -58,17 +57,17 @@ public class ChangeApiServerActivity extends BaseFragment {
 
     private volatile boolean isReq;
 
-    public ChangeApiServerActivity(Theme.ResourcesProvider resourcesProvider) {
+    public ChangeDeepseekApiServerActivity(Theme.ResourcesProvider resourcesProvider) {
         this.resourcesProvider = resourcesProvider;
     }
 
     @Override
     public boolean onFragmentCreate() {
 
-        String token = UserConfig.getInstance(currentAccount).apiKey;
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
+        String token = UserConfig.getInstance(currentAccount).apiKeyDeepseek;
+        String apiServer = UserConfig.getInstance(currentAccount).apiServerDeepseek;
 
-        openAiService = new OpenAiService(token, 5, apiServer, LLMType.openAi);
+        openAiService = new OpenAiService(token, 15, apiServer, LLMType.deepseek);
 
         return super.onFragmentCreate();
     }
@@ -83,8 +82,10 @@ public class ChangeApiServerActivity extends BaseFragment {
 
     @Override
     public View createView(Context context) {
-        actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_avatar_actionBarSelectorBlue, resourcesProvider), false);
-        actionBar.setItemsColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider), false);
+        actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_avatar_actionBarSelectorBlue,
+                resourcesProvider), false);
+        actionBar.setItemsColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider),
+                false);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString("ChangeApiServer", R.string.ChangeApiServer));
@@ -99,22 +100,24 @@ public class ChangeApiServerActivity extends BaseFragment {
                     }
                 } else if (id == find_key_button) {
                     if (firstNameField != null) {
-                        firstNameField.setText(UserConfig.defaultApiServer);
-                        firstNameField.setSelection(UserConfig.defaultApiServer.length());
-//                        AlertsCreator.showSimpleToast(ChangeApiServerActivity.this,
-//                                LocaleController.getString("DefaultApiServe", R.string.DefaultApiServe));
+                        firstNameField.setText(UserConfig.defaultApiServerDeepseek);
+                        firstNameField.setSelection(UserConfig.defaultApiServerDeepseek.length());
                     }
                 }
             }
         });
 
         ActionBarMenu menu = actionBar.createMenu();
-        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link, AndroidUtilities.dp(56), LocaleController.getString("FindKeyUrl", R.string.FindKeyUrl));
-        doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_ab_done, AndroidUtilities.dp(56), LocaleController.getString("Done", R.string.Done));
+        findKeyButton = menu.addItemWithWidth(find_key_button, R.drawable.msg_link,
+                AndroidUtilities.dp(56), LocaleController.getString("FindDeepseekKeyUrl",
+                        R.string.FindDeepseekKeyUrl));
+        doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_ab_done,
+                AndroidUtilities.dp(56), LocaleController.getString("Done", R.string.Done));
 
         LinearLayout linearLayout = new LinearLayout(context);
         fragmentView = linearLayout;
-        fragmentView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        fragmentView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
         ((LinearLayout) fragmentView).setOrientation(LinearLayout.VERTICAL);
         fragmentView.setOnTouchListener((v, event) -> true);
 
@@ -125,28 +128,35 @@ public class ChangeApiServerActivity extends BaseFragment {
             }
         };
         firstNameField.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-        firstNameField.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText, resourcesProvider));
-        firstNameField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+        firstNameField.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText,
+                resourcesProvider));
+        firstNameField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText,
+                resourcesProvider));
         firstNameField.setBackgroundDrawable(null);
-        firstNameField.setLineColors(getThemedColor(Theme.key_windowBackgroundWhiteInputField), getThemedColor(Theme.key_windowBackgroundWhiteInputFieldActivated), getThemedColor(Theme.key_windowBackgroundWhiteRedText3));
+        firstNameField.setLineColors(getThemedColor(Theme.key_windowBackgroundWhiteInputField),
+                getThemedColor(Theme.key_windowBackgroundWhiteInputFieldActivated),
+                getThemedColor(Theme.key_windowBackgroundWhiteRedText3));
         firstNameField.setMaxLines(1);
         firstNameField.setLines(1);
         firstNameField.setSingleLine(true);
         firstNameField.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
-        firstNameField.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
-        firstNameField.setHint(UserConfig.defaultApiServer);
-        firstNameField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+        firstNameField.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+                | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
+        String apiServer = UserConfig.getInstance(currentAccount).apiServerDeepseek;
+        firstNameField.setHint(UserConfig.defaultApiServerDeepseek);
+        firstNameField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText,
+                resourcesProvider));
         firstNameField.setCursorSize(AndroidUtilities.dp(20));
         firstNameField.setCursorWidth(1.5f);
 
-        if (UserConfig.defaultApiServer.equals(apiServer)) {
+        if (UserConfig.defaultApiServerDeepseek.equals(apiServer)) {
             firstNameField.setText("");
         } else {
             firstNameField.setText(apiServer);
             firstNameField.setSelection(apiServer.length());
         }
-        linearLayout.addView(firstNameField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36, 24, 24, 24, 0));
+        linearLayout.addView(firstNameField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
+                36, 24, 24, 24, 0));
 
         TextView helpTextView = new TextView(context);
         helpTextView.setFocusable(true);
@@ -154,40 +164,12 @@ public class ChangeApiServerActivity extends BaseFragment {
         helpTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText8));
         helpTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         helpTextView.setText(AndroidUtilities.replaceTags(LocaleController
-                .getString("ChangeApiServerMoreInfo", R.string.ChangeApiServerTips)));
+                .getString("ChangeDeepseekApiServerTips", R.string.ChangeDeepseekApiServerTips)));
         linearLayout.addView(helpTextView,LayoutHelper.createLinear(
-                        LayoutHelper.WRAP_CONTENT,
-                        LayoutHelper.WRAP_CONTENT,
-                        LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT,
-                        24, 10, 24, 0));
-
-
-        // 更多自定义链接教程
-        TextView moreInfoTextView = new TextView(context);
-
-        moreInfoTextView.setPadding(AndroidUtilities.dp(34), 0,
-                AndroidUtilities.dp(34), 0);
-        moreInfoTextView.setGravity(Gravity.CENTER);
-        moreInfoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-        moreInfoTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
-
-        moreInfoTextView.setText(LocaleController.getString("ChangeApiServerMoreInfo",
-                R.string.ChangeApiServerMoreInfo));
-
-        moreInfoTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
-        moreInfoTextView.setBackgroundDrawable(Theme.createSimpleSelectorRoundRectDrawable(
-                AndroidUtilities.dp(6), Theme.getColor(Theme.key_featuredStickers_addButton),
-                Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
-
-        moreInfoTextView.setOnClickListener(view -> {
-            Browser.openUrl(context,LocaleController.getString("ChangeApiServerMoreInfoUrl",
-                    R.string.ChangeApiServerMoreInfoUrl), true, false);
-            AndroidUtilities.logEvent("ChangeApiServerMoreInfo", "OpenAI");
-        });
-
-        linearLayout.addView(moreInfoTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
-                48, Gravity.BOTTOM, 16, 15, 16, 16));
-
+                LayoutHelper.WRAP_CONTENT,
+                LayoutHelper.WRAP_CONTENT,
+                LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT,
+                24, 10, 24, 0));
 
         TextView buttonTextView = new TextView(context);
 
@@ -202,7 +184,9 @@ public class ChangeApiServerActivity extends BaseFragment {
         buttonTextView.setText(LocaleController.getString("ValidateTitle", R.string.ValidateTitle));
 
         buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
-        buttonTextView.setBackgroundDrawable(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(6), Theme.getColor(Theme.key_featuredStickers_addButton), Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
+        buttonTextView.setBackgroundDrawable(Theme.createSimpleSelectorRoundRectDrawable(
+                AndroidUtilities.dp(6), Theme.getColor(Theme.key_featuredStickers_addButton),
+                Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
 
         buttonTextView.setOnClickListener(view -> {
             if (getParentActivity() == null) {
@@ -211,7 +195,8 @@ public class ChangeApiServerActivity extends BaseFragment {
             verifyKey();
         });
 
-        linearLayout.addView(buttonTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM, 16, 15, 16, 16));
+        linearLayout.addView(buttonTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
+                48, Gravity.BOTTOM, 16, 15, 16, 16));
 
 
         return fragmentView;
@@ -234,14 +219,12 @@ public class ChangeApiServerActivity extends BaseFragment {
         }
 
         String newFirst = firstNameField.getText().toString().replace("\n", "");
-        if (TextUtils.isEmpty(newFirst)) {
-            newFirst = UserConfig.defaultApiServer;
-        }
+        if (TextUtils.isEmpty(newFirst)) return;
 
         String formatUrl = formatUrl(newFirst);
         if (TextUtils.isEmpty(formatUrl)) {
             AlertsCreator.processError(LocaleController.getString("MalformedUrl", R.string.MalformedUrl),
-                    ChangeApiServerActivity.this);
+                    ChangeDeepseekApiServerActivity.this);
             return;
         }
         if (!newFirst.equals(formatUrl)) {
@@ -250,16 +233,16 @@ public class ChangeApiServerActivity extends BaseFragment {
             firstNameField.setSelection(formatUrl.length());
         }
 
-        String apiServer = UserConfig.getInstance(currentAccount).apiServer;
+        String apiServer = UserConfig.getInstance(currentAccount).apiServerDeepseek;
         if (apiServer != null && apiServer.equals(newFirst)) {
             return;
         }
 
-        UserConfig.getInstance(currentAccount).apiServer = newFirst;
+        UserConfig.getInstance(currentAccount).apiServerDeepseek = newFirst;
         UserConfig.getInstance(currentAccount).saveConfig(false);
 
         NotificationCenter.getInstance(currentAccount)
-                .postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_API_SERVER);
+                .postNotificationName(NotificationCenter.updateDeepseekApiServer);
 
         finishFragment();
     }
@@ -272,7 +255,7 @@ public class ChangeApiServerActivity extends BaseFragment {
         } else if (firstNameField.getText().length() > 0) {
             newFirst = firstNameField.getText().toString().replace("\n", "");
         } else {
-            newFirst = UserConfig.getInstance(currentAccount).apiServer;
+            newFirst = UserConfig.getInstance(currentAccount).apiServerDeepseek;
 
         }
         if (TextUtils.isEmpty(newFirst)) return;
@@ -281,7 +264,7 @@ public class ChangeApiServerActivity extends BaseFragment {
         if (formatUrl == null) {
             isReq = false;
             AlertsCreator.processError(LocaleController.getString("MalformedUrl", R.string.MalformedUrl),
-                    ChangeApiServerActivity.this);
+                    ChangeDeepseekApiServerActivity.this);
             return;
         }
         if (!newFirst.equals(formatUrl)) {
@@ -292,7 +275,7 @@ public class ChangeApiServerActivity extends BaseFragment {
 
         isReq = true;
 
-        openAiService.changeLLMServer(newFirst, LLMType.openAi);
+        openAiService.changeLLMServer(newFirst, LLMType.deepseek);
 
         List<ChatMessage> chatMessageList = new ArrayList<>();
         ChatMessage sendChatMessage = new ChatMessage();
@@ -302,7 +285,7 @@ public class ChangeApiServerActivity extends BaseFragment {
         chatMessageList.add(sendChatMessage);
 
         ChatCompletionRequest chatCompletionRequest  = ChatCompletionRequest.builder()
-                .model("gpt-4o-mini")
+                .model("deepseek-chat")
                 .temperature(0.1)
                 .maxTokens(256)
                 .build().setMessages(chatMessageList);
@@ -314,7 +297,7 @@ public class ChangeApiServerActivity extends BaseFragment {
                         AndroidUtilities.runOnUIThread(() -> {
                             isReq = false;
 
-                            AlertsCreator.showSimpleAlert(ChangeApiServerActivity.this,
+                            AlertsCreator.showSimpleAlert(ChangeDeepseekApiServerActivity.this,
                                     LocaleController.getString("ValidateSuccess", R.string.ValidateSuccess));
                         });
                     }
@@ -330,7 +313,7 @@ public class ChangeApiServerActivity extends BaseFragment {
                                 errorTx = SendMessagesHelper.formatError(throwable);
                             }
 
-                            AlertsCreator.processError(errorTx, ChangeApiServerActivity.this);
+                            AlertsCreator.processError(errorTx, ChangeDeepseekApiServerActivity.this);
                         });
                     }
 

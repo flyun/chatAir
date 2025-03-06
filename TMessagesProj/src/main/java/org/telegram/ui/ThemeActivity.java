@@ -206,6 +206,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
 
     private int switchHideToolbarRow;
 
+    private int switchHideReasoning;
+
     private int disableTabletModeRow;
 
     private int rowCount;
@@ -566,6 +568,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         autoHideKeyboardRow = -1;
         switchSubtitleContentRow = -1;
         switchHideToolbarRow = -1;
+        switchHideReasoning = -1;
         disableTabletModeRow = -1;
 
         appIconHeaderRow = -1;
@@ -703,6 +706,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 switchSubtitleContentRow = rowCount++;
                 // 隐藏标题栏
                 switchHideToolbarRow = rowCount++;
+                // 隐藏deepseek思考
+                switchHideReasoning = rowCount++;
                 // 禁用平板模式
                 if (AndroidUtilities.isTabletInternal()) {
                     disableTabletModeRow = rowCount++;
@@ -1262,6 +1267,15 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
 
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(getUserConfig().isHideToolbar);
+                }
+            } else if (position == switchHideReasoning) {
+                boolean isHideReasoning = getUserConfig().isHideReasoning;
+
+                getUserConfig().isHideReasoning = !isHideReasoning;
+                getUserConfig().saveConfig(false);
+
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(getUserConfig().isHideReasoning);
                 }
             } else if (position == directShareRow) {
                 SharedConfig.toggleDirectShare();
@@ -2400,6 +2414,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                         textCheckCell.setTextAndValueAndCheck(LocaleController.getString("SwitchSubtitleContent", R.string.SwitchSubtitleContent), LocaleController.getString("SwitchSubtitleContentTips", R.string.SwitchSubtitleContentTips), getUserConfig().switchSubtitleContent, false, false);
                     } else if (position == switchHideToolbarRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString("HideToolbar", R.string.HideToolbar), getUserConfig().isHideToolbar, false);
+                    } else if (position == switchHideReasoning) {
+                        textCheckCell.setTextAndCheck(LocaleController.getString("HideReasoning", R.string.HideReasoning), getUserConfig().isHideReasoning, false);
                     } else if (position == directShareRow) {
                         textCheckCell.setTextAndValueAndCheck(LocaleController.getString("DirectShare", R.string.DirectShare), LocaleController.getString("DirectShareInfo", R.string.DirectShareInfo), SharedConfig.directShare, false, true);
                     } else if (position == chatBlurRow) {
@@ -2523,7 +2539,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                     position == directShareRow || position == chatBlurRow || position == streamResponsesRow ||
                     position == renderMarkdownRow || position == autoHideKeyboardRow ||
                     position == switchSubtitleContentRow || position == switchHideToolbarRow ||
-                    position == disableTabletModeRow) {
+                    position == disableTabletModeRow || position == switchHideReasoning) {
                 return TYPE_TEXT_CHECK;
             } else if (position == textSizeRow) {
                 return TYPE_TEXT_SIZE;

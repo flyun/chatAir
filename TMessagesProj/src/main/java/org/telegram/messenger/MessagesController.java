@@ -13374,6 +13374,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         message.chat_air = updates.chat_air;
                         message.promptTokens = updates.promptTokens;
                         message.completionTokens = updates.completionTokens;
+                        message.reasoningMessage = updates.reasoningMessage;
                     }
 
                     ConcurrentHashMap<Long, Integer> read_max = message.out ? dialogs_read_outbox_max : dialogs_read_inbox_max;
