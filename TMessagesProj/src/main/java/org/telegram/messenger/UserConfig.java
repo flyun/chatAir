@@ -522,7 +522,7 @@ public class UserConfig extends BaseController {
                 apiServerClaude = preferences.getString("apiServerClaude", defaultApiServerClaude);
 
                 apiKeyDeepseek = preferences.getString("apiKeyDeepseek", "");
-                apiServerClaude = preferences.getString("apiServerClaude", defaultApiServerDeepseek);
+                apiServerDeepseek = preferences.getString("apiServerDeepseek", defaultApiServerDeepseek);
             }
 
             configLoaded = true;

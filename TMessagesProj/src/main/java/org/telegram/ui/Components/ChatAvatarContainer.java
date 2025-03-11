@@ -917,8 +917,18 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                             }
 
                             if (messageOwner.message != null) {
-                                // todo 是否deepseek计算思考的字数
-                                tempWords = tempWords + messageOwner.message.length();
+
+                                int count = 0;
+                                if (MessageObject.isReasoningMessage(messageOwner.reasoningMessage)) {
+                                    // 解决空白更新，导致字符变动
+                                    if (!messageOwner.message.isBlank()) {
+                                        count = messageOwner.message.length();
+                                    }
+                                } else {
+                                    count = messageOwner.message.length();
+                                }
+
+                                tempWords = tempWords + count;
                             }
                         }
                     }
