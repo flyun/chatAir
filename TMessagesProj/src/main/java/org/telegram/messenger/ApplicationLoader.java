@@ -112,11 +112,25 @@ public class ApplicationLoader extends Application {
     }
 
     public static String getApplicationId() {
-//        return applicationLoaderInstance.onGetApplicationId();
-        return BuildVars.APPLICATION_ID;
+        return applicationLoaderInstance.onGetApplicationId();
     }
 
     protected String onGetApplicationId() {
+        return null;
+    }
+
+    public static String getFlavor() {
+
+        String flavor = "unknown";
+
+        if (applicationLoaderInstance.onGetFlavor() != null) {
+            flavor = applicationLoaderInstance.onGetFlavor();
+        }
+
+        return flavor;
+    }
+
+    protected String onGetFlavor() {
         return null;
     }
 

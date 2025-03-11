@@ -25770,6 +25770,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (selectedObject == null || getParentActivity() == null) {
             return;
         }
+        AndroidUtilities.logEvent("processSelectedOption", String.valueOf(option));
         boolean preserveDim = false;
         switch (option) {
             case OPTION_RETRY: {

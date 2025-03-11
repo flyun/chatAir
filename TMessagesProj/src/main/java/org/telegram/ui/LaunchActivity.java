@@ -959,6 +959,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         BackupAgent.requestBackup(this);
 
         RestrictedLanguagesSelectActivity.checkRestrictedLanguages(false);
+
+        AndroidUtilities.logEvent("launch", ApplicationLoader.getFlavor());
     }
 
     @Override

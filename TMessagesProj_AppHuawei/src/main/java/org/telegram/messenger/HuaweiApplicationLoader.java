@@ -1,6 +1,5 @@
 package org.telegram.messenger;
 
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.huawei.hms.push.HmsMessaging;
 
 import org.telegram.messenger.huawei.BuildConfig;
@@ -15,11 +14,11 @@ public class HuaweiApplicationLoader extends ApplicationLoader {
     protected PushListenerController.IPushListenerServiceProvider onCreatePushProvider() {
         if (PushListenerController.GooglePushListenerServiceProvider.INSTANCE.hasServices()) {
             HmsMessaging.getInstance(this).setAutoInitEnabled(false);
-            FirebaseMessaging.getInstance().setAutoInitEnabled(true);
+//            FirebaseMessaging.getInstance().setAutoInitEnabled(true);
             return PushListenerController.GooglePushListenerServiceProvider.INSTANCE;
         }
         HmsMessaging.getInstance(this).setAutoInitEnabled(true);
-        FirebaseMessaging.getInstance().setAutoInitEnabled(false);
+//        FirebaseMessaging.getInstance().setAutoInitEnabled(false);
         return HuaweiPushListenerProvider.INSTANCE;
     }
 

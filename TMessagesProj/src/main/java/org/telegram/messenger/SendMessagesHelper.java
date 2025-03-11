@@ -5988,10 +5988,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
             // 执行不同的模型
             if (isGemini) {
-                sendMessageGoogle(aiModelReal, prompt, temperature, tokenLimit, originalPath,
+                sendMessageGoogle(aiModelReal, prompt, temperature, tokenLimit, aiModel, originalPath,
                         isGeminiProVision, msgObj, newMsgObj);
             } else if (isClaude) {
-                sendMessageClaude(aiModelReal, prompt, temperature, tokenLimit, originalPath,
+                sendMessageClaude(aiModelReal, prompt, temperature, tokenLimit, aiModel, originalPath,
                         false, msgObj, newMsgObj);
             } else if (isDeepseek) {
                 sendMessageDeepseek(aiModelReal, prompt, temperature, tokenLimit, aiModel, user,
@@ -6702,7 +6702,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     private void sendMessageOpenAI(String aiModelReal, final String prompt, Double temperature,
                                    int tokenLimit, int aiModel, TLRPC.User user,
                                    final MessageObject msgObj, TLRPC.Message newMsgObj) {
-        statisticsModel("sendMessageOpenAI", aiModelReal);
+        statisticsModel("sendMessageOpenAI", aiModelReal, aiModel);
         sendMessageCommon(aiModelReal, prompt, temperature, tokenLimit, aiModel, user,
                 msgObj, newMsgObj, LLMType.openAi);
     }
@@ -6710,7 +6710,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     private void sendMessageDeepseek(String aiModelReal, final String prompt, Double temperature,
                                    int tokenLimit, int aiModel, TLRPC.User user,
                                    final MessageObject msgObj, TLRPC.Message newMsgObj) {
-        statisticsModel("sendMessageDeepseek", aiModelReal);
+        statisticsModel("sendMessageDeepseek", aiModelReal, aiModel);
         sendMessageCommon(aiModelReal, prompt, temperature, tokenLimit, aiModel, user,
                 msgObj, newMsgObj, LLMType.deepseek);
     }
@@ -7139,10 +7139,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     private void sendMessageGoogle(String aiModelReal, final String prompt, Double temperature,
-                                   int tokenLimit, String originalPath, boolean isGeminiProVision,
-                                   final MessageObject msgObj, TLRPC.Message newMsgObj) {
+                                   int tokenLimit, int aiModel, String originalPath,
+                                   boolean isGeminiProVision,final MessageObject msgObj,
+                                   TLRPC.Message newMsgObj) {
 
-        statisticsModel("sendMessageGoogle", aiModelReal);
+        statisticsModel("sendMessageGoogle", aiModelReal, aiModel);
         openAiService.switchGoogle(UserConfig.getInstance(currentAccount).apiKeyGoogle,
                 UserConfig.getInstance(currentAccount).apiServerGoogle);
 
@@ -7499,10 +7500,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     private void sendMessageClaude(String aiModelReal, final String prompt, Double temperature,
-                                   int tokenLimit, String originalPath, boolean isClaudeProVision,
-                                   final MessageObject msgObj, TLRPC.Message newMsgObj) {
+                                   int tokenLimit, int aiModel, String originalPath,
+                                   boolean isClaudeProVision, final MessageObject msgObj,
+                                   TLRPC.Message newMsgObj) {
 
-        statisticsModel("sendMessageClaude", aiModelReal);
+        statisticsModel("sendMessageClaude", aiModelReal, aiModel);
         openAiService.switchClaude(UserConfig.getInstance(currentAccount).apiKeyClaude,
                 UserConfig.getInstance(currentAccount).apiServerClaude);
 
@@ -7781,8 +7783,16 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
 
-    private void statisticsModel(String method, String model) {
-        AndroidUtilities.logEvent(method, model);
+    private void statisticsModel(String method, String model, int aiModel) {
+
+        HashMap<String, String> hashMap = new HashMap<>();
+        hashMap.put("method", method);
+        hashMap.put("model", model);
+        hashMap.put("aiModel", String.valueOf(aiModel));
+
+        AndroidUtilities.logParamEvent(method + "_" + aiModel, hashMap);
+
+        AndroidUtilities.logParamEvent(method, hashMap);
     }
 
     private String getGeminiError(String errorMessage) {

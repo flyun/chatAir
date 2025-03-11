@@ -5022,6 +5022,8 @@ public class AndroidUtilities {
         }
     }
 
+    private static final String CUSTOM_NAME_KEY = "custom_name";
+
     // firebase 埋点
     public static void logEvent(String name, String type) {
         if (BuildVars.IS_EVENT) {
@@ -5037,13 +5039,50 @@ public class AndroidUtilities {
                     if (!TextUtils.isEmpty(type)) str = str + "_" + type;
                     Bundle params = new Bundle();
                     params.putString("custom_name", name);
-                    if (!TextUtils.isEmpty(type)) params.putString("custom_type", type);
+                    params.putString("source", ApplicationLoader.getFlavor());
+                    if (!TextUtils.isEmpty(type)) params.putString(CUSTOM_NAME_KEY, type);
                     firebaseAnalytics.logEvent(str, params);
                 }
             } catch (Exception e) {
 
             }
 
+        }
+    }
+
+    public static void logParamEvent(String eventName, HashMap<String, String> params) {
+        if (!BuildVars.IS_EVENT) {
+            return;
+        }
+
+        if (TextUtils.isEmpty(eventName)) {
+            return;
+        }
+
+        try {
+            Context app = ApplicationLoader.applicationContext;
+            if (app != null) {
+                FirebaseAnalytics firebaseAnalytics = FirebaseAnalytics.getInstance(app);
+                Bundle bundle = new Bundle();
+
+                if (params != null) {
+                    for (Map.Entry<String, String> entry : params.entrySet()) {
+                        String key = entry.getKey();
+                        String value = entry.getValue();
+
+                        if (!TextUtils.isEmpty(key) && !TextUtils.isEmpty(value)) {
+                            bundle.putString(key, value);
+                        }
+
+                        bundle.putString("source", ApplicationLoader.getFlavor());
+
+                    }
+                }
+
+                bundle.putString(CUSTOM_NAME_KEY, eventName);
+                firebaseAnalytics.logEvent(eventName, bundle);
+            }
+        } catch (Exception e) {
         }
     }
 }

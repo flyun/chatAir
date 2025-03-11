@@ -157,6 +157,14 @@
             hljs.highlightAll();
 
         };
+
+        function getShareContent() {
+            //  从 Android 接口获取 Markdown 内容
+            const markdownContent = AndroidInterface.getMarkdownContent();
+            //  使用 marked 解析 Markdown
+            const parsedContent = marked.parse(markdownContent);
+            return String(parsedContent);
+        }
     </script>
 </head>
 

@@ -73,6 +73,8 @@ dependencies {
 //    implementation 'io.noties.markwon:syntax-highlight:4.6.2'
 //    implementation 'io.noties.markwon:simple-ext:4.6.2'
 
+    implementation 'org.apache.commons:commons-text:1.13.0'
+
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 }
 

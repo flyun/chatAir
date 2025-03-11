@@ -8,4 +8,8 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
     protected String onGetApplicationId() {
         return BuildConfig.APPLICATION_ID;
     }
+    @Override
+    protected String onGetFlavor() {
+        return BuildConfig.FLAVOR;
+    }
 }
