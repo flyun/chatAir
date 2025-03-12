@@ -1,14 +1,14 @@
 <h4 align="right"><strong><a href="https://github.com/flyun/chatAir">English</a></strong> | <strong><a href="https://github.com/flyun/chatAir/blob/chatair/README_CN.md">中文</a></strong></h4>
 <p align="left">
-  <a align="center" href="https://miaoyan.app/" target="_blank"><img src=https://github.com/flyun/chatAir/blob/chatair/TMessagesProj/src/main/ic_launcher-playstore.png width=138 /></a>
+  <a align="center" href="https://github.com/flyun/chatAir" target="_blank"><img src=https://github.com/flyun/chatAir/blob/chatair/TMessagesProj/src/main/ic_launcher-playstore.png width=138 /></a>
   <h1 align="left">ChatAir</h1>
-  <div align="left">ChatAir is a native Android app for ChatGPT, Gemini, and Claude</div>
+  <div align="left">ChatAir is a native Android app for ChatGPT, Gemini, Claude, and DeepSeek.</div>
 </p>
 
 
 ## ChatAir for Android
 
-ChatAir is a native Android app for ChatGPT, Gemini, and Claude, providing a smoother and faster chat experience than ChatGPT.
+ChatAir is a native Android app for ChatGPT, Gemini, Claude, and DeepSeek, providing a smoother and faster chat.
 
 <div align="left">
 <img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/01.png" width ="260" />
@@ -17,14 +17,18 @@ ChatAir is a native Android app for ChatGPT, Gemini, and Claude, providing a smo
 <img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/04.png" width ="260" />
 <img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/05.png" width ="260" />
 <img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/06.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/07.png" width ="260" />
+<img src = "https://github.com/flyun/chatAir/blob/chatair/ScreenShots/08.png" width ="260" />
 </div>
 
 ## Installation
-download and install the APK package from the [Releases section](https://github.com/flyun/chatAir/releases/latest).
+Install from the following location:
+[<img height="80" alt='Get it on Github' src='https://github.com/flyun/chatAir/blob/chatair/ScreenShots/play.png'/>](https://github.com/flyun/chatAir/releases/latest)
+[<img height="80" alt='Get it on Google Play' src='https://github.com/flyun/chatAir/blob/chatair/ScreenShots/github.png'/>](https://play.google.com/store/apps/details?id=info.flyun.chatair)
 
 ## Features
 - 🚀 **Smooth**: Developed natively on Android, showcasing efficient performance and creating a seamless user experience.
-- 🔬 **Advanced**: Supports OpenAI/Gemini/Claude API calls, as well as the replacement of custom server addresses like OpenRouter/One-api/Ollama, allowing flexible customization of your server address.
+- 🔬 **Advanced**: Supports OpenAI/Gemini/Claude/DeepSeek API calls, as well as the replacement of custom server addresses like OpenRouter/One-api/Ollama, allowing flexible customization of your server address.
 - 📝 **Professional**: Supports Markdown, code highlighting feature makes your code clear and easy to read.
 - 🛠️ **Customizable**: Customizable prompts, model, temperature, history, and reply length limit settings, offering a personalized user experience.
 - 🌙 **Stylish**: Provides dark mode and customized themes to protect your eyes while enhancing user experience.
