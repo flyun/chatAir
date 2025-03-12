@@ -24,8 +24,8 @@ ChatAir 是 ChatGPT、Gemini、Claude 和 DeepSeek 的原生Android应用程序�
 ## 安装
 从以下位置安装：
 
-[<img height="80" alt='Get it on Github' src='https://github.com/flyun/chatAir/blob/chatair/ScreenShots/play.png'/>](https://github.com/flyun/chatAir/releases/latest)
-[<img height="80" alt='Get it on Google Play' src='https://github.com/flyun/chatAir/blob/chatair/ScreenShots/github.png'/>](https://play.google.com/store/apps/details?id=info.flyun.chatair)
+[<img height="80" alt='Get it on Github' src='https://github.com/flyun/chatAir/blob/chatair/ScreenShots/github.png'/>](https://github.com/flyun/chatAir/releases/latest)
+[<img height="80" alt='Get it on Google Play' src='https://github.com/flyun/chatAir/blob/chatair/ScreenShots/play.png'/>](https://play.google.com/store/apps/details?id=info.flyun.chatair)
 
 ## Features
 - 🚀 **流畅**: 使用Android原生开发，高效的性能表现，打造无缝切换的使用体验
