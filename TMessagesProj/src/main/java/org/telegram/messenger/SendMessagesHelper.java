@@ -6872,9 +6872,19 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             message.reasoningMessage = tempMessage.reasoningMessage + reasoningContent;
                         } else if (content != null && tempMessage.message != null){
                             message.message = tempMessage.message + content;
+                        } else {
+                            String processContent = "";
+                            // 处理content或者tempMessage.message为空的情况
+                            if (content != null) {
+                                processContent += content;
+                            }
+                            if (tempMessage.message != null) {
+                                processContent += tempMessage.message;
+                            }
+                            message.message = processContent;
                         }
 
-                        if (message.message == null) {
+                        if (message.message == null || message.message.isEmpty()) {
                             if (message.reasoningMessage != null) {
                                 message.message = generateRandomMessage();
                             } else {
@@ -7304,8 +7314,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                         TLRPC.Message message = new TLRPC.TL_message();
 
+                        String processMessage = chatGMessagePart.getText() != null
+                                ? chatGMessagePart.getText(): "";
+
                         message.id = tempMessage.id;
-                        message.message = tempMessage.message + chatGMessagePart.getText();
+                        message.message = tempMessage.message + processMessage;
                         message.out = tempMessage.out;
                         message.silent = tempMessage.silent;
                         message.dialog_id = tempMessage.dialog_id;
@@ -7608,9 +7621,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             if (tempMessage == null) return;
 
                             TLRPC.Message message = new TLRPC.TL_message();
+                            String processMessage = completionChoice.getText() != null
+                                    ? completionChoice.getText(): "";
 
                             message.id = tempMessage.id;
-                            message.message = tempMessage.message + completionChoice.getText();
+                            message.message = tempMessage.message + processMessage;
                             message.out = tempMessage.out;
                             message.silent = tempMessage.silent;
                             message.dialog_id = tempMessage.dialog_id;
