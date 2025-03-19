@@ -70,6 +70,7 @@ import org.telegram.ui.ThemeActivity;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 public class DrawerProfileCell extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
@@ -688,7 +689,7 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         AvatarDrawable avatarDrawable = new AvatarDrawable(user);
         avatarDrawable.setColor(Theme.getColor(Theme.key_avatar_backgroundInProfileBlue));
         if (BuildVars.IS_CHAT_AIR && user.self) {
-            avatarImageView.setImageDrawable(getResources().getDrawable(R.mipmap.ic_launcher));
+            avatarImageView.setImageDrawable(ContextCompat.getDrawable(getContext(), R.mipmap.ic_launcher));
         } else {
             avatarImageView.setForUserOrChat(user, avatarDrawable);
         }

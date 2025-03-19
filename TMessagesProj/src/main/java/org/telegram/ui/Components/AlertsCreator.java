@@ -239,8 +239,16 @@ public class AlertsCreator {
     public static Dialog processError(String errorStr, BaseFragment fragment) {
         if (TextUtils.isEmpty(errorStr)) return null;
 
-        showSimpleAlert(fragment, LocaleController.getString("ErrorOccurred",
-                R.string.ErrorOccurred) + "\n" + errorStr);
+        showSimpleAlert(fragment, null, LocaleController.getString("ErrorOccurred",
+                        R.string.ErrorOccurred) + "\n" + errorStr,
+                null, null,
+                LocaleController.getString("TelegramFaq", R.string.TelegramFaq),
+                () -> {
+                    AndroidUtilities.logEvent("processError", "faq");
+                    Browser.openUrl(fragment.getContext(),
+                            LocaleController.getString("FaqUrl", R.string.FaqUrl),
+                            true, false);
+                }, null);
 
         return null;
     }
@@ -732,17 +740,40 @@ public class AlertsCreator {
         return createSimpleAlert(context, title, text, null, null, resourcesProvider);
     }
 
-    public static AlertDialog.Builder createSimpleAlert(Context context, final String title, final String text, String positiveButton, Runnable positive, Theme.ResourcesProvider resourcesProvider) {
+    public static AlertDialog.Builder createSimpleAlert(Context context, final String title,
+                                                        final String text, String positiveButton,
+                                                        Runnable positive,
+                                                        Theme.ResourcesProvider resourcesProvider) {
+        return createSimpleAlert(context, title, text, positiveButton, positive,
+                null, null, resourcesProvider);
+    }
+
+    public static AlertDialog.Builder createSimpleAlert(Context context, final String title,
+                                                        final String text,
+                                                        String positiveButton,
+                                                        Runnable positive,
+                                                        String negativeButton,
+                                                        Runnable negative,
+                                                        Theme.ResourcesProvider resourcesProvider) {
         if (context == null || text == null) {
             return null;
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title == null ? LocaleController.getString("AppName", R.string.AppName) : title);
         builder.setMessage(text);
+        if (negativeButton != null) {
+            builder.setNegativeButton(negativeButton, (dialog, which) -> {
+                dialog.dismiss();
+                if (negative != null) {
+                    negative.run();
+                }
+            });
+        }
         if (positiveButton == null) {
+            if (negativeButton == null) builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
             builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
         } else {
-            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+            if (negativeButton == null) builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
             builder.setPositiveButton(positiveButton, (dialog, which) -> {
                 dialog.dismiss();
                 if (positive != null) {
@@ -757,6 +788,11 @@ public class AlertsCreator {
         return showSimpleAlert(baseFragment, null, text);
     }
 
+    public static Dialog showSimpleAlert(BaseFragment baseFragment, final String title,
+                                         final String text, String negativeButton, Runnable negative) {
+        return showSimpleAlert(baseFragment, title, text, null, null, negativeButton, negative, null);
+    }
+
     public static Dialog showSimpleAlert(BaseFragment baseFragment, final String title, final String text) {
         return showSimpleAlert(baseFragment, title, text, null);
     }
@@ -766,6 +802,22 @@ public class AlertsCreator {
             return null;
         }
         AlertDialog.Builder builder = createSimpleAlert(baseFragment.getParentActivity(), title, text, resourcesProvider);
+        Dialog dialog = builder.create();
+        baseFragment.showDialog(dialog);
+        return dialog;
+    }
+    public static Dialog showSimpleAlert(BaseFragment baseFragment, final String title,
+                                         final String text,
+                                         String positiveButton,
+                                         Runnable positive,
+                                         String negativeButton,
+                                         Runnable negative,
+                                         Theme.ResourcesProvider resourcesProvider) {
+        if (text == null || baseFragment == null || baseFragment.getParentActivity() == null) {
+            return null;
+        }
+        AlertDialog.Builder builder = createSimpleAlert(baseFragment.getParentActivity(), title, text,
+                positiveButton, positive, negativeButton, negative, resourcesProvider);
         Dialog dialog = builder.create();
         baseFragment.showDialog(dialog);
         return dialog;

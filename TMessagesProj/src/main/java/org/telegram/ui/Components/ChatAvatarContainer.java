@@ -173,6 +173,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             //头像点击
             avatarImageView.setOnClickListener(v -> {
                 if (!onAvatarClick()) {
+                    AndroidUtilities.logEvent("chatActivityActionBarItem", "openProfile");
                     openProfile(true);
                 }
             });

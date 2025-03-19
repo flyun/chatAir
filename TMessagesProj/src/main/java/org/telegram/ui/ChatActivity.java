@@ -3104,7 +3104,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 //                    bundle.putLong("chat_id", -dialog_id);
 //                    presentFragment(new TopicsFragment(bundle));
                 }
-                AndroidUtilities.logEvent("chatActivityActionBarItem", String.valueOf(id));
+                String type;
+                if (id == -1) {
+                    type = "back";
+                } else {
+                    type = String.valueOf(id);
+                }
+
+                AndroidUtilities.logEvent("chatActivityActionBarItem", type);
             }
         });
         View backButton = actionBar.getBackButton();

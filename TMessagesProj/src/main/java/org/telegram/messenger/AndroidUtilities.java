@@ -5024,6 +5024,31 @@ public class AndroidUtilities {
 
     private static final String CUSTOM_NAME_KEY = "custom_name";
 
+    private static final Pattern SANITIZE_PATTERN = Pattern.compile("[^a-zA-Z0-9_ ]+");
+
+    public static String sanitizeString(String input) {
+        String defaultValue = "illegal_characters";
+        if (input == null) {
+            return defaultValue;
+        }
+
+        Matcher matcher = SANITIZE_PATTERN.matcher(input);
+        String sanitized = matcher.replaceAll("");
+        if (sanitized.isEmpty()) {
+            return defaultValue;
+        }
+        return sanitized;
+    }
+
+    private static Bundle processParams(Bundle params) {
+        if (params == null) return null;
+        params.putString("sdk", sanitizeString(String.valueOf(Build.VERSION.SDK_INT)));
+        params.putString("device", sanitizeString(Build.MANUFACTURER + " " + Build.MODEL));
+        params.putString("local", sanitizeString(String.valueOf(Locale.getDefault())));
+        params.putString("source", ApplicationLoader.getFlavor());
+        return params;
+    }
+
     // firebase 埋点
     public static void logEvent(String name, String type) {
         if (BuildVars.IS_EVENT) {
@@ -5038,8 +5063,8 @@ public class AndroidUtilities {
                     String str = name;
                     if (!TextUtils.isEmpty(type)) str = str + "_" + type;
                     Bundle params = new Bundle();
-                    params.putString("custom_name", name);
-                    params.putString("source", ApplicationLoader.getFlavor());
+                    params.putString(CUSTOM_NAME_KEY, name);
+                    params = processParams(params);
                     if (!TextUtils.isEmpty(type)) params.putString(CUSTOM_NAME_KEY, type);
                     firebaseAnalytics.logEvent(str, params);
                 }
@@ -5073,16 +5098,15 @@ public class AndroidUtilities {
                         if (!TextUtils.isEmpty(key) && !TextUtils.isEmpty(value)) {
                             bundle.putString(key, value);
                         }
-
-                        bundle.putString("source", ApplicationLoader.getFlavor());
-
                     }
                 }
 
                 bundle.putString(CUSTOM_NAME_KEY, eventName);
+                bundle = processParams(bundle);
                 firebaseAnalytics.logEvent(eventName, bundle);
             }
         } catch (Exception e) {
         }
     }
+
 }
