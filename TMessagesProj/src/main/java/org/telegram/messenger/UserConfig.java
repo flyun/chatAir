@@ -541,6 +541,8 @@ public class UserConfig extends BaseController {
         aiModelList.put(17, new AiModelBean("GPT-4o-0806", "gpt-4o-2024-08-06", false));
         aiModelList.put(18, new AiModelBean("GPT-4o-0513", "gpt-4o-2024-05-13", false));
         aiModelList.put(25, new AiModelBean("GPT-4.5 preview", "gpt-4.5-preview-2025-02-27", true));
+        aiModelList.put(26, new AiModelBean("GPT-4.1", "gpt-4.1-2025-04-14", true));
+        aiModelList.put(27, new AiModelBean("GPT-4.1 mini", "gpt-4.1-mini-2025-04-14", true));
         aiModelList.put(24, new AiModelBean("o3-mini", "o3-mini-2025-01-31", true));
         aiModelList.put(23, new AiModelBean("o1", "o1", true));
         aiModelList.put(19, new AiModelBean("o1 mini", "o1-mini", true));
@@ -930,6 +932,8 @@ public class UserConfig extends BaseController {
             || aiModel == 17
             || aiModel == 18
             || aiModel == 25
+            || aiModel == 26
+            || aiModel == 27
         ) {
             if(UserConfig.getInstance(currentAccount).isOldAgreement) return false;
             return true;
