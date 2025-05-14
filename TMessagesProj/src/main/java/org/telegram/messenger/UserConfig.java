@@ -540,15 +540,16 @@ public class UserConfig extends BaseController {
         aiModelList.put(13, new AiModelBean("GPT-4o", "gpt-4o", true));
         aiModelList.put(17, new AiModelBean("GPT-4o-0806", "gpt-4o-2024-08-06", false));
         aiModelList.put(18, new AiModelBean("GPT-4o-0513", "gpt-4o-2024-05-13", false));
-        aiModelList.put(25, new AiModelBean("GPT-4.5 preview", "gpt-4.5-preview-2025-02-27", true));
-        aiModelList.put(26, new AiModelBean("GPT-4.1", "gpt-4.1-2025-04-14", true));
         aiModelList.put(27, new AiModelBean("GPT-4.1 mini", "gpt-4.1-mini-2025-04-14", true));
-        aiModelList.put(24, new AiModelBean("o3-mini", "o3-mini-2025-01-31", true));
+        aiModelList.put(26, new AiModelBean("GPT-4.1", "gpt-4.1-2025-04-14", true));
+        aiModelList.put(25, new AiModelBean("GPT-4.5 preview", "gpt-4.5-preview-2025-02-27", true));
+        aiModelList.put(28, new AiModelBean("o4-mini", "o4-mini", true));
+        aiModelList.put(29, new AiModelBean("o3", "o3", true));
         aiModelList.put(23, new AiModelBean("o1", "o1", true));
         aiModelList.put(19, new AiModelBean("o1 mini", "o1-mini", true));
-        aiModelList.put(20, new AiModelBean("o1 preview", "o1-preview", true));
-        aiModelList.put(21, new AiModelBean("o1 mini-2024-09-12", "o1-mini-2024-09-12", true));
-        aiModelList.put(22, new AiModelBean("o1 preview-2024-09-12", "o1-preview-2024-09-12", true));
+        aiModelList.put(20, new AiModelBean("o1 preview", "o1-preview", false));
+        aiModelList.put(21, new AiModelBean("o1 mini-2024-09-12", "o1-mini-2024-09-12", false));
+        aiModelList.put(22, new AiModelBean("o1 preview-2024-09-12", "o1-preview-2024-09-12", false));
         aiModelList.put(1, new AiModelBean("GPT-3.5", "gpt-3.5-turbo", true));
         aiModelList.put(2, new AiModelBean("GPT-3.5-0613", "gpt-3.5-turbo-0613", false));
         aiModelList.put(3, new AiModelBean("GPT-3.5-16k", "gpt-3.5-turbo-16k", false));
@@ -600,16 +601,20 @@ public class UserConfig extends BaseController {
     // https://ai.google.dev/models/gemini
     public void initGoogle() {
         if (aiModelList == null) return;
+        aiModelList.put(819, new AiModelBean("Gemini 2.5 Flash", "gemini-2.5-flash-preview-04-17", true));
+        aiModelList.put(821, new AiModelBean("Gemini 2.5 Pro", "gemini-2.5-pro-preview-05-06", true));
+        aiModelList.put(820, new AiModelBean("Gemini 2.5 Pro exp-0325", "gemini-2.5-pro-exp-03-25", true));
         aiModelList.put(815, new AiModelBean("Gemini 2.0 Flash", "gemini-2.0-flash-001", true));
+        aiModelList.put(818, new AiModelBean("Gemini 2.0 Flash thinking", "gemini-2.0-flash-thinking-exp-01-21", true));
         aiModelList.put(816, new AiModelBean("Gemini 2.0 Flash lite", "gemini-2.0-flash-lite-001", true));
         aiModelList.put(814, new AiModelBean("Gemini 2.0 Flash exp", "gemini-2.0-flash-exp", true));
         aiModelList.put(817, new AiModelBean("Gemini 2.0 Pro exp-0205", "gemini-2.0-pro-exp-02-05", true));
         aiModelList.put(803, new AiModelBean("Gemini Pro 1.5", "gemini-1.5-pro-latest", true));
-        aiModelList.put(811, new AiModelBean("Gemini Pro 1.5 002", "gemini-1.5-pro-002", true));
+        aiModelList.put(811, new AiModelBean("Gemini Pro 1.5 002", "gemini-1.5-pro-002", false));
         aiModelList.put(807, new AiModelBean("Gemini Pro 1.5 exp-0827", "gemini-1.5-pro-exp-0827", false));
         aiModelList.put(808, new AiModelBean("Gemini Pro 1.5 exp-0801", "gemini-1.5-pro-exp-0801", false));
         aiModelList.put(804, new AiModelBean("Gemini 1.5 Flash", "gemini-1.5-flash-latest", true));
-        aiModelList.put(812, new AiModelBean("Gemini 1.5 Flash 002", "gemini-1.5-flash-002", true));
+        aiModelList.put(812, new AiModelBean("Gemini 1.5 Flash 002", "gemini-1.5-flash-002", false));
         aiModelList.put(801, new AiModelBean("Gemini Pro 1.0", "gemini-pro", false));
         aiModelList.put(809, new AiModelBean("Gemini 1.5 Flash exp-0827", "gemini-1.5-flash-exp-0827", false));
         aiModelList.put(813, new AiModelBean("Gemini 1.5 Flash 8b exp-0924", "gemini-1.5-flash-8b-exp-0924", false));
@@ -669,6 +674,10 @@ public class UserConfig extends BaseController {
                 || model.equals("gemini-2.0-flash-001")
                 || model.equals("gemini-2.0-flash-lite-001")
                 || model.equals("gemini-2.0-pro-exp-02-05")
+                || model.equals("gemini-2.0-flash-thinking-exp-01-21")
+                || model.equals("gemini-2.5-flash-preview-04-17")
+                || model.equals("gemini-2.5-pro-exp-03-25")
+                || model.equals("gemini-2.5-pro-preview-05-06")
         )) {
             return "v1beta";
         }
@@ -848,6 +857,15 @@ public class UserConfig extends BaseController {
 
     }
 
+    public static boolean isThinkingGemini(int aiModel) {
+
+        if (aiModel == 818) return true;
+        if (aiModel == 819) return true;
+        if (aiModel == 820) return true;
+        if (aiModel == 821) return true;
+        return false;
+    }
+
     public boolean isJudgeByModelGemini(int aiModel) {
 
         if (aiModel == 801) return true;
@@ -867,6 +885,10 @@ public class UserConfig extends BaseController {
         if (aiModel == 815) return true;
         if (aiModel == 816) return true;
         if (aiModel == 817) return true;
+        if (aiModel == 818) return true;
+        if (aiModel == 819) return true;
+        if (aiModel == 820) return true;
+        if (aiModel == 821) return true;
 
         return false;
     }
@@ -891,6 +913,8 @@ public class UserConfig extends BaseController {
         if (aiModel == 22) return true;
         if (aiModel == 23) return true;
         if (aiModel == 24) return true;
+        if (aiModel == 28) return true;
+        if (aiModel == 29) return true;
 
         return false;
     }
@@ -956,6 +980,10 @@ public class UserConfig extends BaseController {
                 || aiModel == 815
                 || aiModel == 816
                 || aiModel == 817
+                || aiModel == 818
+                || aiModel == 819
+                || aiModel == 820
+                || aiModel == 821
         ) return true;
 
         // Claude

@@ -56,4 +56,6 @@ public class ChatGGenerationConfig {
     Float topP;
     @JsonProperty("topK")
     Integer topK;
+    @JsonProperty("thinkingConfig")
+    ChatGThinkingConfig thinkingConfig;
 }

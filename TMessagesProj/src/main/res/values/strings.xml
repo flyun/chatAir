@@ -3615,6 +3615,9 @@
     <string name="ChangeMoreModel">Show model list</string>
     <string name="DisableTabletMode">Disable tablet mode</string>
     <string name="RenderAdvancedMarkdown">Render Advanced Markdown</string>
+    <string name="ExportAsHtml">Share as HTML</string>
+    <string name="ExportAsMarkdown">Share as Markdown</string>
+    <string name="ExportAsImage">Share as Image</string>
     <!--chatAir End-->
 
     <!--Prompt Start-->

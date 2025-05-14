@@ -4211,6 +4211,9 @@
     <string name="DisableTabletMode">禁用平板模式</string>
     <string name="TapOnThePencil">点击铅笔开始新的聊天</string>
     <string name="RenderAdvancedMarkdown">渲染高级Markdown</string>
+    <string name="ExportAsHtml">分享为HTML</string>
+    <string name="ExportAsMarkdown">分享为Markdown</string>
+    <string name="ExportAsImage">分享为图片</string>
     <!--chatAir End-->
 
     <!--Prompt Start-->

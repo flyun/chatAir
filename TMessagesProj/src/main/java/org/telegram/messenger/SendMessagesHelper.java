@@ -65,6 +65,7 @@ import com.theokanning.openai.completion.chat.ChatGMessageRole;
 import com.theokanning.openai.completion.chat.ChatGSafetyCategory;
 import com.theokanning.openai.completion.chat.ChatGSafetySetting;
 import com.theokanning.openai.completion.chat.ChatGSafetyThreshold;
+import com.theokanning.openai.completion.chat.ChatGThinkingConfig;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 import com.theokanning.openai.completion.chat.ChatMultiMessage;
@@ -7159,10 +7160,19 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
         ChatGCompletionRequest completionRequest = new ChatGCompletionRequest();
 
+        ChatGThinkingConfig chatGThinkingConfig = null;
+
+        if (UserConfig.isThinkingGemini(aiModel)) {
+            chatGThinkingConfig = ChatGThinkingConfig.builder()
+                    .includeThoughts(true)
+                    .thinkingBudget(8000).build();
+        }
+
         // 配置模型
         ChatGGenerationConfig chatGGenerationConfig = ChatGGenerationConfig.builder()
                 .temperature(temperature != -100 ? (temperature > 1.0 ? 1.0 : temperature) : null)
                 .max_output_tokens(tokenLimit != -100 ? tokenLimit : null)
+                .thinkingConfig(chatGThinkingConfig)
                 .build();
 
         completionRequest.setGenerationConfig(chatGGenerationConfig);
