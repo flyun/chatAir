@@ -3595,7 +3595,7 @@
     <string name="SwitchSubtitleContentTips">Switch the word count content or model content of the subtitle</string>
     <string name="CustomModel">Custom Model</string>
     <string name="HideToolbar">Hide Chat Toolbar</string>
-    <string name="HideReasoning">Automatically hide DeepSeek reasoning</string>
+    <string name="HideReasoning">Automatically hide the reasoning process</string>
     <string name="OpenAI">OpenAI</string>
     <string name="Gemini">Gemini</string>
     <string name="ChangeCustomModel">Change Custom Model</string>

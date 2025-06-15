@@ -4192,7 +4192,7 @@
     <string name="SwitchSubtitleContent">切换副标题内容</string>
     <string name="SwitchSubtitleContentTips">切换副标题的字数内容或者模型内容</string>
     <string name="HideToolbar">隐藏聊天标题栏</string>
-    <string name="HideReasoning">自动隐藏DeepSeek推理</string>
+    <string name="HideReasoning">自动隐藏推理过程</string>
     <string name="CustomModel">自定义模型</string>
     <string name="ChangeCustomModel">更改自定义模型</string>
     <string name="CasualTalk">闲聊</string>

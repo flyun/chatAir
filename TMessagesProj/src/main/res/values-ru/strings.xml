@@ -3478,7 +3478,7 @@
     <string name="SwitchSubtitleContentTips">Переключение количества слов или содержимого модели субтитров</string>
     <string name="CustomModel">Пользовательская модель</string>
     <string name="HideToolbar">Скрытие панели инструментов чата</string>
-    <string name="HideReasoning">Автоматическое скрытие рассуждений DeepSeek</string>
+    <string name="HideReasoning">Автоматически скрыть процесс рассуждения</string>
     <string name="OpenAI">OpenAI</string>
     <string name="Gemini">Gemini</string>
     <string name="ChangeCustomModel">Изменить пользовательскую модель</string>

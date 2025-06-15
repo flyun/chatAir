@@ -6671,7 +6671,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
     }
 
-    private void processMessage(String content, long userId, long promptTokens, long completionTokens) {
+    private void processMessage(String content, String reasoningContent, long userId,
+                                long promptTokens, long completionTokens) {
 
         if (content == null) return;
 
@@ -6688,6 +6689,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         message.pts_count = 1;
         message.silent = false;
         message.user_id = userId;
+        if (reasoningContent != null) {
+            message.reasoningMessage = reasoningContent;
+        }
 
         message.chat_air = true;
         message.promptTokens = promptTokens;
@@ -7291,7 +7295,23 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                         if (chatGMessagePart.getText() == null) return;
                         message.id = getUserConfig().getNewMessageId();
-                        message.message = chatGMessagePart.getText();
+
+                        String reasoningContent = null;
+                        String content = null;
+                        if(chatGMessagePart.isThought()) {
+                            reasoningContent = chatGMessagePart.getText();
+                        } else {
+                            content = chatGMessagePart.getText();
+                        }
+
+                        if (content == null) {
+                            content = "";
+                        }
+
+                        if (reasoningContent != null) {
+                            message.reasoningMessage = reasoningContent;
+                        }
+                        message.message = content;
                         message.out = false;
                         message.pts = getMessagesStorage().getLastPtsValue() + 1;
                         message.pts_count = 1;
@@ -7304,6 +7324,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         temp.out = message.out;
                         temp.date = message.date;
                         temp.dialog_id = message.user_id;
+
+                        if (reasoningContent != null) {
+                            temp.reasoningMessage = reasoningContent;
+                        }
 
                         streamMessages.put(streamId, temp);
 
@@ -7327,13 +7351,37 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         String processMessage = chatGMessagePart.getText() != null
                                 ? chatGMessagePart.getText(): "";
 
+                        String reasoningContent = null;
+                        String content = null;
+
+                        if (chatGMessagePart.isThought()) {
+                            reasoningContent = processMessage;
+                        } else {
+                            content = processMessage;
+                        }
+
+                        if (reasoningContent != null && tempMessage.reasoningMessage != null) {
+                            message.reasoningMessage = tempMessage.reasoningMessage + reasoningContent;
+                        } else if (content != null){
+
+                            if(tempMessage.message != null) {
+                                message.message = tempMessage.message + content;
+                            } else {
+                                message.message = content;
+                            }
+
+                        }
+
                         message.id = tempMessage.id;
-                        message.message = tempMessage.message + processMessage;
                         message.out = tempMessage.out;
                         message.silent = tempMessage.silent;
                         message.dialog_id = tempMessage.dialog_id;
 
                         tempMessage.message = message.message;
+                        if (message.reasoningMessage != null && !message.reasoningMessage.isEmpty()) {
+                            tempMessage.reasoningMessage = message.reasoningMessage;
+                        }
+
                         streamMessages.put(streamId, tempMessage);
 
                         MessageObject messageObject
@@ -7448,21 +7496,31 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
                                     if (completionChoice.getContent() != null) {
 
-                                        if (completionChoice.getContent().getParts() == null) return;
+                                        if (completionChoice.getContent().getParts() == null
+                                                || completionChoice.getContent().getParts().isEmpty()) return;
 
+                                        String content = null;
+                                        String reasoningContent = null;
+                                        long userId = baseMessage.getDialog_id();
+                                        long promptTokens = 0;
+                                        long completionTokens = 0;
                                         for (ChatGMessagePart part : completionChoice.getContent().getParts()) {
 
-                                            String content;
-                                            long userId = baseMessage.getDialog_id();
-                                            long promptTokens = 0;
-                                            long completionTokens = 0;
+                                            if (part.isThought()) {
+                                                reasoningContent = part.getText();
+                                            } else {
+                                                content = part.getText();
+                                            }
 
-                                            content = part.getText();
-
-                                            // 现在只处理文字
-                                            processMessage(content, userId, promptTokens, completionTokens);
+                                            if (content == null) {
+                                                content = "";
+                                            }
 
                                         }
+
+                                        // 现在只处理文字
+                                        processMessage(content, reasoningContent, userId,
+                                                promptTokens, completionTokens);
                                     }
 
                                 });
@@ -7749,7 +7807,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                                         content = message.getText();
 
                                         // 现在只处理文字
-                                        processMessage(content, userId, promptTokens, completionTokens);
+                                        processMessage(content, null, userId,
+                                                promptTokens, completionTokens);
 
                                     }
 

@@ -19,6 +19,8 @@ public class ChatGMessagePart{
 
     @JsonProperty("text")
     private String text;
+    @JsonProperty("thought")
+    private boolean thought;
     @JsonProperty("inline_data")
     private ChatGMessagePartInnerData inline_data;
 
