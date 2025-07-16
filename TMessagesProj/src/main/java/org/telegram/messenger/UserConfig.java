@@ -513,7 +513,7 @@ public class UserConfig extends BaseController {
                 autoHideKeyboard = preferences.getBoolean("autoHideKeyboard", defaultAutoHideKeyboard);
                 switchSubtitleContent = preferences.getBoolean("switchSubtitleContent", defaultSwitchSubtitleContent);
                 isHideToolbar = preferences.getBoolean("hideToolbar", defaultHideToolbar);
-                isHideReasoning = preferences.getBoolean("hideRreasoning", defaultHideReasoning);
+                isHideReasoning = preferences.getBoolean("hideReasoning", defaultHideReasoning);
 
                 apiKeyGoogle = preferences.getString("apiKeyGoogle", "");
                 apiServerGoogle = preferences.getString("apiServerGoogle", defaultApiServerGoogle);
@@ -602,9 +602,9 @@ public class UserConfig extends BaseController {
     // https://ai.google.dev/models/gemini
     public void initGoogle() {
         if (aiModelList == null) return;
-        aiModelList.put(823, new AiModelBean("Gemini 2.5 Flash", "gemini-2.5-flash-preview-05-20", true));
+        aiModelList.put(823, new AiModelBean("Gemini 2.5 Flash", "gemini-2.5-flash", true));
         aiModelList.put(819, new AiModelBean("Gemini 2.5 Flash pre-0417", "gemini-2.5-flash-preview-04-17", true));
-        aiModelList.put(822, new AiModelBean("Gemini 2.5 Pro", "gemini-2.5-pro-preview-06-05", true));
+        aiModelList.put(822, new AiModelBean("Gemini 2.5 Pro", "gemini-2.5-pro", true));
         aiModelList.put(821, new AiModelBean("Gemini 2.5 Pro pre-0506", "gemini-2.5-pro-preview-05-06", false));
         aiModelList.put(820, new AiModelBean("Gemini 2.5 Pro exp-0325", "gemini-2.5-pro-exp-03-25", false));
         aiModelList.put(815, new AiModelBean("Gemini 2.0 Flash", "gemini-2.0-flash", true));
@@ -689,6 +689,8 @@ public class UserConfig extends BaseController {
                 || model.equals("gemini-2.5-pro-preview-05-06")
                 || model.equals("gemini-2.5-flash-preview-05-20")
                 || model.equals("gemini-2.5-pro-preview-06-05")
+                || model.equals("gemini-2.5-flash")
+                || model.equals("gemini-2.5-pro")
         )) {
             return "v1beta";
         }
