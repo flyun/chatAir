@@ -80,8 +80,9 @@ dependencies {
 
 def isWindows = String.valueOf(DefaultNativePlatform.currentOperatingSystem.toFamilyName() == OperatingSystemFamily.WINDOWS)
 android {
-    compileSdkVersion 34
-    buildToolsVersion '34.0.0'
+    namespace 'org.telegram.messenger'
+    compileSdkVersion 35
+    buildToolsVersion '35.0.0'
     ndkVersion "21.4.7075529"
 
     sourceSets.main.jniLibs.srcDirs = ['./jni/']
@@ -97,10 +98,11 @@ android {
         disable 'ExtraTranslation'
         disable 'BlockedPrivateApi'
     }
-
-    dexOptions {
-        jumboMode = true
+    
+    buildFeatures {
+        buildConfig true
     }
+
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
@@ -113,7 +115,7 @@ android {
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionName "8.9.0"
 
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']

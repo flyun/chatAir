@@ -1,19 +1,38 @@
 apply plugin: 'com.android.library'
 
 android {
+    namespace 'io.noties.markwon.html'
 
-    compileSdkVersion 34
-    buildToolsVersion '34.0.0'
+    compileSdkVersion 35
+    buildToolsVersion '35.0.0'
+
+    buildFeatures {
+        buildConfig true
+    }
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 1
         versionName version
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+    }
+    
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        
+        release {
+            minifyEnabled false
+        }
+        
+        standalone {
+            minifyEnabled false
+        }
     }
 }
 

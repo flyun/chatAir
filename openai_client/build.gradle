@@ -20,7 +20,13 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 34
+    namespace 'com.flyun.openaiClient'
+    compileSdkVersion 35
+    
+    buildFeatures {
+        buildConfig true
+    }
+    
     compileOptions {
         targetCompatibility JavaVersion.VERSION_11
         sourceCompatibility JavaVersion.VERSION_11
@@ -31,9 +37,17 @@ android {
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        
+        standalone {
+            minifyEnabled false
         }
     }
 

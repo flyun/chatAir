@@ -113,3 +113,31 @@
 # Markdown
 -dontwarn io.noties.**
 -keep class io.noties.** { *; }
+
+# Retrofit
+-dontwarn retrofit2.**
+-keep class retrofit2.** { *; }
+-keepattributes Signature
+-keepattributes Exceptions
+-keepclasseswithmembers class * {
+    @retrofit2.http.* <methods>;
+}
+
+# OkHttp
+-dontwarn okhttp3.**
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+-dontwarn okio.**
+-keep class okio.** { *; }
+
+# RxJava
+-dontwarn io.reactivex.**
+-keep class io.reactivex.** { *; }
+-keep interface io.reactivex.** { *; }
+
+# Jackson
+-keep class com.fasterxml.jackson.** { *; }
+-dontwarn com.fasterxml.jackson.**
+-keepclassmembers class * {
+     @com.fasterxml.jackson.annotation.* *;
+}

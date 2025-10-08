@@ -2,7 +2,7 @@ package org.telegram.messenger;
 
 import com.huawei.hms.push.HmsMessaging;
 
-import org.telegram.messenger.huawei.BuildConfig;
+import info.flyun.chatair.BuildConfig;
 
 public class HuaweiApplicationLoader extends ApplicationLoader {
     @Override

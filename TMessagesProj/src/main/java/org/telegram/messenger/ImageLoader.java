@@ -61,8 +61,6 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -1100,36 +1098,6 @@ public class ImageLoader {
                     secureDocumentHash = null;
                 }
                 boolean canDeleteFile = true;
-                boolean useNativeWebpLoader = false;
-
-                if (Build.VERSION.SDK_INT < 19) {
-                    RandomAccessFile randomAccessFile = null;
-                    try {
-                        randomAccessFile = new RandomAccessFile(cacheFileFinal, "r");
-                        byte[] bytes;
-                        if (cacheImage.type == ImageReceiver.TYPE_THUMB) {
-                            bytes = headerThumb;
-                        } else {
-                            bytes = header;
-                        }
-                        randomAccessFile.readFully(bytes, 0, bytes.length);
-                        String str = new String(bytes).toLowerCase();
-                        str = str.toLowerCase();
-                        if (str.startsWith("riff") && str.endsWith("webp")) {
-                            useNativeWebpLoader = true;
-                        }
-                    } catch (Exception e) {
-                        FileLog.e(e);
-                    } finally {
-                        if (randomAccessFile != null) {
-                            try {
-                                randomAccessFile.close();
-                            } catch (Exception e) {
-                                FileLog.e(e);
-                            }
-                        }
-                    }
-                }
 
                 String mediaThumbPath = null;
                 if (cacheImage.imageLocation.path != null) {
@@ -1186,7 +1154,7 @@ public class ImageLoader {
                         if (cacheImage.filter.contains("f")) {
                             force8888 = true;
                         }
-                        if (!useNativeWebpLoader && w_filter != 0 && h_filter != 0) {
+                        if (w_filter != 0 && h_filter != 0) {
                             opts.inJustDecodeBounds = true;
 
                             if (mediaId != null && mediaThumbPath == null) {
@@ -1293,55 +1261,42 @@ public class ImageLoader {
                             }
                         }
 
-                        if (useNativeWebpLoader) {
-                            RandomAccessFile file = new RandomAccessFile(cacheFileFinal, "r");
-                            ByteBuffer buffer = file.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, cacheFileFinal.length());
-
-                            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                            bmOptions.inJustDecodeBounds = true;
-                            Utilities.loadWebpImage(null, buffer, buffer.limit(), bmOptions, true);
-                            image = Bitmaps.createBitmap(bmOptions.outWidth, bmOptions.outHeight, Bitmap.Config.ARGB_8888);
-
-                            Utilities.loadWebpImage(image, buffer, buffer.limit(), null, !opts.inPurgeable);
-                            file.close();
-                        } else {
-                            if (opts.inPurgeable || secureDocumentKey != null) {
-                                RandomAccessFile f = new RandomAccessFile(cacheFileFinal, "r");
-                                int len = (int) f.length();
-                                int offset = 0;
-                                byte[] bytesThumb = bytesThumbLocal.get();
-                                byte[] data = bytesThumb != null && bytesThumb.length >= len ? bytesThumb : null;
-                                if (data == null) {
-                                    bytesThumb = data = new byte[len];
-                                    bytesThumbLocal.set(bytesThumb);
-                                }
-                                f.readFully(data, 0, len);
-                                f.close();
-                                boolean error = false;
-                                if (secureDocumentKey != null) {
-                                    EncryptedFileInputStream.decryptBytesWithKeyFile(data, 0, len, secureDocumentKey);
-                                    byte[] hash = Utilities.computeSHA256(data, 0, len);
-                                    if (secureDocumentHash == null || !Arrays.equals(hash, secureDocumentHash)) {
-                                        error = true;
-                                    }
-                                    offset = (data[0] & 0xff);
-                                    len -= offset;
-                                } else if (inEncryptedFile) {
-                                    EncryptedFileInputStream.decryptBytesWithKeyFile(data, 0, len, cacheImage.encryptionKeyPath);
-                                }
-                                if (!error) {
-                                    image = BitmapFactory.decodeByteArray(data, offset, len, opts);
-                                }
-                            } else {
-                                FileInputStream is;
-                                if (inEncryptedFile) {
-                                    is = new EncryptedFileInputStream(cacheFileFinal, cacheImage.encryptionKeyPath);
-                                } else {
-                                    is = new FileInputStream(cacheFileFinal);
-                                }
-                                image = BitmapFactory.decodeStream(is, null, opts);
-                                is.close();
+                        if (opts.inPurgeable || secureDocumentKey != null) {
+                            RandomAccessFile f = new RandomAccessFile(cacheFileFinal, "r");
+                            int len = (int) f.length();
+                            int offset = 0;
+                            byte[] bytesThumb = bytesThumbLocal.get();
+                            byte[] data = bytesThumb != null && bytesThumb.length >= len ? bytesThumb : null;
+                            if (data == null) {
+                                bytesThumb = data = new byte[len];
+                                bytesThumbLocal.set(bytesThumb);
                             }
+                            f.readFully(data, 0, len);
+                            f.close();
+                            boolean error = false;
+                            if (secureDocumentKey != null) {
+                                EncryptedFileInputStream.decryptBytesWithKeyFile(data, 0, len, secureDocumentKey);
+                                byte[] hash = Utilities.computeSHA256(data, 0, len);
+                                if (secureDocumentHash == null || !Arrays.equals(hash, secureDocumentHash)) {
+                                    error = true;
+                                }
+                                offset = (data[0] & 0xff);
+                                len -= offset;
+                            } else if (inEncryptedFile) {
+                                EncryptedFileInputStream.decryptBytesWithKeyFile(data, 0, len, cacheImage.encryptionKeyPath);
+                            }
+                            if (!error) {
+                                image = BitmapFactory.decodeByteArray(data, offset, len, opts);
+                            }
+                        } else {
+                            FileInputStream is;
+                            if (inEncryptedFile) {
+                                is = new EncryptedFileInputStream(cacheFileFinal, cacheImage.encryptionKeyPath);
+                            } else {
+                                is = new FileInputStream(cacheFileFinal);
+                            }
+                            image = BitmapFactory.decodeStream(is, null, opts);
+                            is.close();
                         }
 
                         if (image == null) {
@@ -1422,106 +1377,93 @@ public class ImageLoader {
                             }
                         }
                         if (image == null) {
-                            if (useNativeWebpLoader && secureDocumentKey == null) {
-                                RandomAccessFile file = new RandomAccessFile(cacheFileFinal, "r");
-                                ByteBuffer buffer = file.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, cacheFileFinal.length());
-
-                                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                                bmOptions.inJustDecodeBounds = true;
-                                Utilities.loadWebpImage(null, buffer, buffer.limit(), bmOptions, true);
-                                image = Bitmaps.createBitmap(bmOptions.outWidth, bmOptions.outHeight, Bitmap.Config.ARGB_8888);
-
-                                Utilities.loadWebpImage(image, buffer, buffer.limit(), null, !opts.inPurgeable);
-                                file.close();
-                            } else {
-                                String DEBUG_TAG = "secured_document_image";
-                                try {
-                                    if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
-                                        FileLog.d( DEBUG_TAG + " try get image from secured document " + secureDocumentKey + " encryption path " + cacheImage.encryptionKeyPath);
-                                    }
-                                    RandomAccessFile f = new RandomAccessFile(cacheFileFinal, "r");
-                                    int len = (int) f.length();
-                                    int offset = 0;
-                                    byte[] bytes = bytesLocal.get();
-                                    byte[] data = bytes != null && bytes.length >= len ? bytes : null;
-                                    if (data == null) {
-                                        bytes = data = new byte[len];
-                                        bytesLocal.set(bytes);
-                                    }
-                                    f.readFully(data, 0, len);
-                                    f.close();
-                                    boolean error = false;
-                                    if (secureDocumentKey != null) {
-                                        EncryptedFileInputStream.decryptBytesWithKeyFile(data, 0, len, secureDocumentKey);
-                                        byte[] hash = Utilities.computeSHA256(data, 0, len);
-                                        if (secureDocumentHash == null || !Arrays.equals(hash, secureDocumentHash)) {
-                                            error = true;
-                                        }
-                                        offset = (data[0] & 0xff);
-                                        len -= offset;
-                                    } else if (inEncryptedFile) {
-                                        EncryptedFileInputStream.decryptBytesWithKeyFile(data, 0, len, cacheImage.encryptionKeyPath);
-                                    }
-                                    if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
-                                        FileLog.d(DEBUG_TAG + " check error " + error);
-                                    }
-                                    if (!error) {
-                                        image = BitmapFactory.decodeByteArray(data, offset, len, opts);
-                                        if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
-                                            FileLog.d( DEBUG_TAG + " image " + image);
-                                        }
-                                    }
-                                } catch (Throwable e) {
-                                    FileLog.e(e);
+                            String DEBUG_TAG = "secured_document_image";
+                            try {
+                                if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
+                                    FileLog.d( DEBUG_TAG + " try get image from secured document " + secureDocumentKey + " encryption path " + cacheImage.encryptionKeyPath);
                                 }
-
-                                if (image == null) {
-                                    FileInputStream is;
-                                    if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
-                                        FileLog.d(DEBUG_TAG + " try get image from stream ");
+                                RandomAccessFile f = new RandomAccessFile(cacheFileFinal, "r");
+                                int len = (int) f.length();
+                                int offset = 0;
+                                byte[] bytes = bytesLocal.get();
+                                byte[] data = bytes != null && bytes.length >= len ? bytes : null;
+                                if (data == null) {
+                                    bytes = data = new byte[len];
+                                    bytesLocal.set(bytes);
+                                }
+                                f.readFully(data, 0, len);
+                                f.close();
+                                boolean error = false;
+                                if (secureDocumentKey != null) {
+                                    EncryptedFileInputStream.decryptBytesWithKeyFile(data, 0, len, secureDocumentKey);
+                                    byte[] hash = Utilities.computeSHA256(data, 0, len);
+                                    if (secureDocumentHash == null || !Arrays.equals(hash, secureDocumentHash)) {
+                                        error = true;
                                     }
-                                    if (secureDocumentKey != null) {
-                                        is = new EncryptedFileInputStream(cacheFileFinal, secureDocumentKey);
-                                    } else if (inEncryptedFile) {
-                                        is = new EncryptedFileInputStream(cacheFileFinal, cacheImage.encryptionKeyPath);
+                                    offset = (data[0] & 0xff);
+                                    len -= offset;
+                                } else if (inEncryptedFile) {
+                                    EncryptedFileInputStream.decryptBytesWithKeyFile(data, 0, len, cacheImage.encryptionKeyPath);
+                                }
+                                if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
+                                    FileLog.d(DEBUG_TAG + " check error " + error);
+                                }
+                                if (!error) {
+                                    image = BitmapFactory.decodeByteArray(data, offset, len, opts);
+                                    if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
+                                        FileLog.d( DEBUG_TAG + " image " + image);
+                                    }
+                                }
+                            } catch (Throwable e) {
+                                FileLog.e(e);
+                            }
+
+                            if (image == null) {
+                                FileInputStream is;
+                                if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
+                                    FileLog.d(DEBUG_TAG + " try get image from stream ");
+                                }
+                                if (secureDocumentKey != null) {
+                                    is = new EncryptedFileInputStream(cacheFileFinal, secureDocumentKey);
+                                } else if (inEncryptedFile) {
+                                    is = new EncryptedFileInputStream(cacheFileFinal, cacheImage.encryptionKeyPath);
+                                } else {
+                                    is = new FileInputStream(cacheFileFinal);
+                                }
+                                if (cacheImage.imageLocation.document instanceof TLRPC.TL_document) {
+                                    try {
+                                        ExifInterface exif = new ExifInterface(is);
+                                        int attribute = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
+                                        switch (attribute) {
+                                            case ExifInterface.ORIENTATION_ROTATE_90:
+                                                orientation = 90;
+                                                break;
+                                            case ExifInterface.ORIENTATION_ROTATE_180:
+                                                orientation = 180;
+                                                break;
+                                            case ExifInterface.ORIENTATION_ROTATE_270:
+                                                orientation = 270;
+                                                break;
+                                        }
+                                    } catch (Throwable ignore) {
+
+                                    }
+                                    if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
+                                        is.close();
+                                        if (secureDocumentKey != null) {
+                                            is = new EncryptedFileInputStream(cacheFileFinal, secureDocumentKey);
+                                        } else if (inEncryptedFile) {
+                                            is = new EncryptedFileInputStream(cacheFileFinal, cacheImage.encryptionKeyPath);
+                                        }
                                     } else {
-                                        is = new FileInputStream(cacheFileFinal);
+                                        is.getChannel().position(0);
                                     }
-                                    if (cacheImage.imageLocation.document instanceof TLRPC.TL_document) {
-                                        try {
-                                            ExifInterface exif = new ExifInterface(is);
-                                            int attribute = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
-                                            switch (attribute) {
-                                                case ExifInterface.ORIENTATION_ROTATE_90:
-                                                    orientation = 90;
-                                                    break;
-                                                case ExifInterface.ORIENTATION_ROTATE_180:
-                                                    orientation = 180;
-                                                    break;
-                                                case ExifInterface.ORIENTATION_ROTATE_270:
-                                                    orientation = 270;
-                                                    break;
-                                            }
-                                        } catch (Throwable ignore) {
+                                }
+                                image = BitmapFactory.decodeStream(is, null, opts);
+                                is.close();
 
-                                        }
-                                        if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
-                                            is.close();
-                                            if (secureDocumentKey != null) {
-                                                is = new EncryptedFileInputStream(cacheFileFinal, secureDocumentKey);
-                                            } else if (inEncryptedFile) {
-                                                is = new EncryptedFileInputStream(cacheFileFinal, cacheImage.encryptionKeyPath);
-                                            }
-                                        } else {
-                                            is.getChannel().position(0);
-                                        }
-                                    }
-                                    image = BitmapFactory.decodeStream(is, null, opts);
-                                    is.close();
-
-                                    if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
-                                        FileLog.d(DEBUG_TAG + " image2 " + image);
-                                    }
+                                if (secureDocumentKey != null || cacheImage.encryptionKeyPath != null) {
+                                    FileLog.d(DEBUG_TAG + " image2 " + image);
                                 }
                             }
                         }
@@ -2168,7 +2110,11 @@ public class ImageLoader {
         filter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);
         filter.addDataScheme("file");
         try {
-            ApplicationLoader.applicationContext.registerReceiver(receiver, filter);
+            if (Build.VERSION.SDK_INT >= 33) {
+                ApplicationLoader.applicationContext.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                ApplicationLoader.applicationContext.registerReceiver(receiver, filter);
+            }
         } catch (Throwable ignore) {
 
         }

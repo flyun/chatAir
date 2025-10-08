@@ -1,7 +1,8 @@
 package info.flyun.chatair;
 
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.regular.BuildConfig;
+
+import androidx.multidex.BuildConfig;
 
 public class ApplicationLoaderImpl extends ApplicationLoader {
     @Override
