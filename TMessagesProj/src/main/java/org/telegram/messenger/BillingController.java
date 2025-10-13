@@ -6,15 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.util.Consumer;
-
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
+import com.android.billingclient.api.PendingPurchasesParams;
 import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.ProductDetailsResponseListener;
 import com.android.billingclient.api.Purchase;
@@ -39,6 +36,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.util.Consumer;
 
 public class BillingController implements PurchasesUpdatedListener, BillingClientStateListener {
     public final static String PREMIUM_PRODUCT_ID = "telegram_premium";
@@ -70,7 +71,7 @@ public class BillingController implements PurchasesUpdatedListener, BillingClien
 
     private BillingController(Context ctx) {
         billingClient = BillingClient.newBuilder(ctx)
-                .enablePendingPurchases()
+                .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
                 .setListener(this)
                 .build();
     }
@@ -318,7 +319,7 @@ public class BillingController implements PurchasesUpdatedListener, BillingClien
         if (setupBillingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
             queryProductDetails(Collections.singletonList(PREMIUM_PRODUCT), (billingResult, list) -> {
                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    for (ProductDetails details : list) {
+                    for (ProductDetails details : list.getProductDetailsList()) {
                         if (details.getProductId().equals(PREMIUM_PRODUCT_ID)) {
                             PREMIUM_PRODUCT_DETAILS = details;
                         }

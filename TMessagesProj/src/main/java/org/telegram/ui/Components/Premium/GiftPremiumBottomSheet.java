@@ -16,9 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.ProductDetails;
@@ -52,6 +49,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class GiftPremiumBottomSheet extends BottomSheetWithRecyclerListView {
     private PremiumGradient.PremiumGradientTools gradientTools;
@@ -120,7 +120,7 @@ public class GiftPremiumBottomSheet extends BottomSheetWithRecyclerListView {
                 BillingController.getInstance().queryProductDetails(products, (billingResult, list) -> {
                     long pricePerMonthMaxStore = 0;
 
-                    for (ProductDetails details : list) {
+                    for (ProductDetails details : list.getProductDetailsList()) {
                         for (GiftTier giftTier : giftTiers) {
                             if (giftTier.giftOption.store_product != null && giftTier.giftOption.store_product.equals(details.getProductId())) {
                                 giftTier.setGooglePlayProductDetails(details);
